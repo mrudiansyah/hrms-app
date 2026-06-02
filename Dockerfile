@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     unixodbc-dev \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Add Microsoft repo for msodbcsql18 (for Debian 12)
@@ -20,7 +21,7 @@ RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev
 
 # Install PHP extensions (including SQL Server drivers)
-RUN docker-php-ext-install pdo pdo_mysql gd xml zip \
+RUN docker-php-ext-install pdo_mysql gd zip \
     && pecl install sqlsrv pdo_sqlsrv \
     && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
@@ -28,7 +29,7 @@ RUN docker-php-ext-install pdo pdo_mysql gd xml zip \
 RUN a2enmod rewrite
 
 # Ubah DocumentRoot Apache agar mengarah ke folder /public milik Laravel
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+ENV APACHE_DOCUMENT_ROOT="/var/www/html/public"
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 

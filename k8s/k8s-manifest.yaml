@@ -92,15 +92,15 @@ spec:
         - name: DB_CONNECTION
           value: "sqlsrv"
         - name: DB_HOST
-          value: "GANTI_IP_SQLSERVER_DISINI"
+          value: "192.168.1.4"
         - name: DB_PORT
           value: "1433"
         - name: DB_DATABASE
-          value: "GANTI_NAMA_DB_DISINI"
+          value: "db_hrms"
         - name: DB_USERNAME
-          value: "GANTI_USERNAME_DISINI"
+          value: "hrms"
         - name: DB_PASSWORD
-          value: "GANTI_PASSWORD_DISINI"
+          value: "1nd()n3514"
         # Shared Storage
         volumeMounts:
         - name: storage-volume

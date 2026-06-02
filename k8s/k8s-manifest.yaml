@@ -34,118 +34,7 @@ spec:
       storage: 100Gi
   volumeName: hrms-storage-pv
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: hrms-mysql-pvc
-  namespace: hrms-app
-spec:
-  storageClassName: local-path
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
----
-# ==========================================
-# 1.1 NFS Backup Storage for MySQL
-# ==========================================
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: hrms-mysql-backup-pv
-spec:
-  capacity:
-    storage: 20Gi
-  accessModes:
-    - ReadWriteMany
-  nfs:
-    server: 192.168.1.24
-    path: /volume1/db-backup/hrms-db
-  storageClassName: nfs-hrms-mysql-backup
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: hrms-mysql-backup-pvc
-  namespace: hrms-app
-spec:
-  storageClassName: nfs-hrms-mysql-backup
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 20Gi
-  volumeName: hrms-mysql-backup-pv
----
-# ==========================================
-# 2. MySQL Database Setup
-# ==========================================
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hrms-mysql
-  namespace: hrms-app
-spec:
-  selector:
-    matchLabels:
-      app: hrms-mysql
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app: hrms-mysql
-    spec:
-      containers:
-      - name: mysql
-        image: mysql:8.0
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "L()gitech572!"
-        - name: MYSQL_DATABASE
-          value: "db_hrms"
-        - name: MYSQL_USER
-          value: "ems"
-        - name: MYSQL_PASSWORD
-          value: "123456"
-        ports:
-        - containerPort: 3306
-          name: mysql
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "512Mi"
-          limits:
-            cpu: "2000m"
-            memory: "4Gi"
-        args:
-          - --innodb-buffer-pool-size=2G
-          - --innodb-log-file-size=512M
-          - --max-allowed-packet=512M
-          - --innodb-flush-log-at-trx-commit=2
-        volumeMounts:
-        - name: mysql-data
-          mountPath: /var/lib/mysql
-      volumes:
-      - name: mysql-data
-        persistentVolumeClaim:
-          claimName: hrms-mysql-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hrms-mysql-service
-  namespace: hrms-app
-spec:
-  type: NodePort
-  ports:
-  - port: 3306
-    targetPort: 3306
-    nodePort: 30306
-  selector:
-    app: hrms-mysql
----
+
 # ==========================================
 # 3. HRMS Laravel Application Setup
 # ==========================================
@@ -199,19 +88,19 @@ spec:
           value: "https://hrms.summitadyawinsa.co.id"
         - name: TRUSTED_PROXIES
           value: "*"
-        # Database Connections - Pointing to internal K8s MySQL service
+        # Database Connections - External MS SQL Server
         - name: DB_CONNECTION
-          value: "mysql"
+          value: "sqlsrv"
         - name: DB_HOST
-          value: "hrms-mysql-service"
+          value: "GANTI_IP_SQLSERVER_DISINI"
         - name: DB_PORT
-          value: "3306"
+          value: "1433"
         - name: DB_DATABASE
-          value: "db_hrms"
+          value: "GANTI_NAMA_DB_DISINI"
         - name: DB_USERNAME
-          value: "ems"
+          value: "GANTI_USERNAME_DISINI"
         - name: DB_PASSWORD
-          value: "123456"
+          value: "GANTI_PASSWORD_DISINI"
         # Shared Storage
         volumeMounts:
         - name: storage-volume
@@ -259,41 +148,3 @@ spec:
             port:
               number: 80
 ---
-# ==========================================
-# 4. Daily Database Backup to NFS
-# ==========================================
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: hrms-mysql-daily-backup
-  namespace: hrms-app
-spec:
-  schedule: "0 1 * * *" # Setiap jam 1 pagi
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: mysql-backup
-            image: mysql:8.0
-            command:
-            - /bin/sh
-            - -c
-            - |
-              DATE=$(date +%Y%m%d_%H%M%S)
-              echo "Memulai backup MySQL HRMS jam $DATE..."
-              mysqldump -h hrms-mysql-service -u ems -p"$MYSQL_PASSWORD" db_hrms > /backup/hrms_db_backup_$DATE.sql
-              echo "Backup Selesai! File: hrms_db_backup_$DATE.sql"
-              # Hapus backup yang lebih tua dari 14 hari agar disk tidak penuh
-              find /backup -type f -name "*.sql" -mtime +14 -delete
-            env:
-            - name: MYSQL_PASSWORD
-              value: "123456"
-            volumeMounts:
-            - name: backup-storage
-              mountPath: /backup
-          restartPolicy: OnFailure
-          volumes:
-          - name: backup-storage
-            persistentVolumeClaim:
-              claimName: hrms-mysql-backup-pvc

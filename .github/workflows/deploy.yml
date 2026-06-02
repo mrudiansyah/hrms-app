@@ -1,0 +1,63 @@
+name: Deploy to K3s (New App GitOps)
+
+on:
+  push:
+    branches:
+      - main
+
+# GANTI VARIABEL INI SAJA SETIAP ADA PROJECT BARU
+env:
+  DOCKER_IMAGE: "mrudiansyah14/hrms-app"
+  INFRA_FOLDER: "production/hrms-app"
+  NAMESPACE: "hrms-app"
+  APP_NAME: "hrms-app"
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: 📥 Checkout Kode Aplikasi
+        uses: actions/checkout@v4
+
+      - name: 🐳 Login ke Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: 🔨 Build & Push Image
+        run: |
+          TAG=$(date +%Y%m%d)-${GITHUB_SHA::7}
+          FULL_IMAGE="${{ env.DOCKER_IMAGE }}:$TAG"
+          
+          sudo docker build -t $FULL_IMAGE .
+          sudo docker push $FULL_IMAGE
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+      - name: 🏗️ Setup Repo Infra
+        run: |
+          rm -rf infra-repo
+          git clone https://x-access-token:${{ secrets.INFRA_REPO_TOKEN }}@github.com/mrudiansyah/infra.git infra-repo
+
+      - name: 📝 Update Manifest di Repo Infra
+        run: |
+          TARGET_DIR="infra-repo/${{ env.INFRA_FOLDER }}"
+          mkdir -p $TARGET_DIR
+          
+          # Inisialisasi manifest jika belum ada
+          if [ ! -f "$TARGET_DIR/k8s-manifest.yaml" ]; then
+            cp k8s/k8s-manifest.yaml $TARGET_DIR/k8s-manifest.yaml
+          fi
+          
+          # Update Image Tag
+          sed -i "s|image: ${{ env.DOCKER_IMAGE }}:.*|image: ${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}|g" $TARGET_DIR/k8s-manifest.yaml
+          
+          # Force rollout dengan update timestamp
+          sed -i "s/deployment-timestamp: .*/deployment-timestamp: \"$(date)\"/g" $TARGET_DIR/k8s-manifest.yaml
+
+      - name: 🚀 Push Perubahan ke Repo Infra
+        run: |
+          cd infra-repo
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "deploy: update ${{ env.APP_NAME }} to ${{ env.IMAGE_TAG }}" || echo "No changes to commit"
+          git push origin main

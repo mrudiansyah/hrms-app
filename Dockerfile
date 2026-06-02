@@ -1,34 +1,18 @@
 FROM php:8.2-apache
 
-# Install dependencies
+# Update and install basic dependencies
 RUN apt-get update && apt-get install -y \
-    gnupg2 \
-    curl \
-    apt-transport-https \
     git \
     unzip \
-    libpng-dev \
-    libxml2-dev \
-    libzip-dev \
-    unixodbc-dev \
-    g++ \
-    make \
-    build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Add Microsoft repo for msodbcsql18 (for Debian 12)
-RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
-    && curl -fsSL https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev
+# Gunakan script install-php-extensions (jauh lebih aman & anti-gagal)
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions
 
-# Install PHP extensions (including SQL Server drivers)
-RUN docker-php-ext-install pdo_mysql
-RUN docker-php-ext-install gd
-RUN docker-php-ext-install zip
-RUN pecl install sqlsrv
-RUN pecl install pdo_sqlsrv
-RUN docker-php-ext-enable sqlsrv pdo_sqlsrv
+# Install PHP extensions (Otomatis mendownload GPG key MS SQL & ekstensi lainnya)
+RUN install-php-extensions pdo_mysql gd zip sqlsrv pdo_sqlsrv
 
 # Enable Apache mod_rewrite (dibutuhkan untuk Laravel)
 RUN a2enmod rewrite

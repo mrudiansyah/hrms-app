@@ -36,8 +36,8 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
-# Install composer dependencies (Opsional, jika vendor tidak di-commit)
-# RUN composer install --no-dev --optimize-autoloader
+# Install composer dependencies
+RUN composer install --no-interaction --no-dev --optimize-autoloader
 
 EXPOSE 80
 CMD ["apache2-foreground"]

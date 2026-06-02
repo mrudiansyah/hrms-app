@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unixodbc-dev \
     g++ \
+    make \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Add Microsoft repo for msodbcsql18 (for Debian 12)
@@ -21,9 +23,12 @@ RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev
 
 # Install PHP extensions (including SQL Server drivers)
-RUN docker-php-ext-install pdo_mysql gd zip \
-    && pecl install sqlsrv pdo_sqlsrv \
-    && docker-php-ext-enable sqlsrv pdo_sqlsrv
+RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install gd
+RUN docker-php-ext-install zip
+RUN pecl install sqlsrv
+RUN pecl install pdo_sqlsrv
+RUN docker-php-ext-enable sqlsrv pdo_sqlsrv
 
 # Enable Apache mod_rewrite (dibutuhkan untuk Laravel)
 RUN a2enmod rewrite

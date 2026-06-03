@@ -71,6 +71,9 @@ spec:
             chmod -R 775 bootstrap/cache &&
             echo "memory_limit=2G" > /usr/local/etc/php/conf.d/memory.ini &&
             echo "max_execution_time=600" > /usr/local/etc/php/conf.d/timeout.ini &&
+            (php artisan view:clear || true) &&
+            (php artisan cache:clear || true) &&
+            (php artisan config:clear || true) &&
             (php artisan migrate --force || true) &&
             apache2-foreground
         ports:

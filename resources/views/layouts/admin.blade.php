@@ -8,35 +8,35 @@
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Bootstrap 3.3.7 -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/bootstrap/dist/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/bootstrap/dist/css/bootstrap.min.css') }}">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/font-awesome/css/font-awesome.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/font-awesome/css/font-awesome.min.css') }}">
   <!-- Ionicons -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/Ionicons/css/ionicons.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/Ionicons/css/ionicons.min.css') }}">
   <!-- DataTables -->
   <link rel="stylesheet"
-    href="{{ asset('/public/assets/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css') }}">
+    href="{{ asset('/assets/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css') }}">
   <!-- Theme style -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/dist/css/AdminLTE.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/dist/css/AdminLTE.min.css') }}">
   <!-- AdminLTE Skins. Choose a skin from the css/skins
        folder instead of downloading all of them to reduce the load. -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/dist/css/skins/_all-skins.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/dist/css/skins/_all-skins.min.css') }}">
 
   <link rel="stylesheet"
-    href="{{ asset('/public/assets/bower_components/bootstrap/dist/css/bootstrap-select.min.css') }}">
+    href="{{ asset('/assets/bower_components/bootstrap/dist/css/bootstrap-select.min.css') }}">
   <!-- daterange picker -->
   <link rel="stylesheet"
-    href="{{ asset('/public/assets/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}">
+    href="{{ asset('/assets/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}">
   <!-- bootstrap datepicker -->
   <link rel="stylesheet"
-    href="{{ asset('/public/assets/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css') }}">
+    href="{{ asset('/assets/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css') }}">
   <!-- jvectormap -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/jvectormap/jquery-jvectormap.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/jvectormap/jquery-jvectormap.css') }}">
 
   <!-- fullCalendar -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/fullcalendar/dist/fullcalendar.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/fullcalendar/dist/fullcalendar.min.css') }}">
   <link rel="stylesheet"
-    href="{{ asset('/public/assets/bower_components/fullcalendar/dist/fullcalendar.print.min.css') }}" media="print">
+    href="{{ asset('/assets/bower_components/fullcalendar/dist/fullcalendar.print.min.css') }}" media="print">
   <style>
     .fc-time {
       display: none;
@@ -52,12 +52,12 @@
   -->
 
   <link rel="stylesheet"
-    href="{{ asset('/public/assets/bower_components/datatables.net-bs/css/buttons.dataTables.min.css') }}">
-  <!-- <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/datatables.net-bs/css/datatables.min.css') }}"> -->
-  <!-- <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/datatables.net-bs/css/jquery.dataTables.min.css') }}"> -->
-  <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/summernote/summernote.css') }}">
-  <link rel="stylesheet" href="{{ asset('/public/assets/sweetalert/sweetalert.css') }}">
-  <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/select2/dist/css/select2.min.css') }}">
+    href="{{ asset('/assets/bower_components/datatables.net-bs/css/buttons.dataTables.min.css') }}">
+  <!-- <link rel="stylesheet" href="{{ asset('/assets/bower_components/datatables.net-bs/css/datatables.min.css') }}"> -->
+  <!-- <link rel="stylesheet" href="{{ asset('/assets/bower_components/datatables.net-bs/css/jquery.dataTables.min.css') }}"> -->
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/summernote/summernote.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/sweetalert/sweetalert.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/select2/dist/css/select2.min.css') }}">
 
   <style>
     .abuabu {
@@ -408,82 +408,82 @@ echo "Usage: " . $MB . " MB \n";?>
 
 
     <!-- jQuery 3 -->
-    <script src="{{ asset('/public/assets/bower_components/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <!-- Bootstrap 3.3.7 -->
-    <script src="{{ asset('/public/assets/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
     <!-- DataTables -->
-    <script src="{{ asset('/public/assets/bower_components/datatables.net/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/datatables.net/js/jquery.dataTables.min.js') }}"></script>
     <script
-      src="{{ asset('/public/assets/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js') }}"></script>
+      src="{{ asset('/assets/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js') }}"></script>
     <!-- SlimScroll -->
-    <script src="{{ asset('/public/assets/bower_components/jquery-slimscroll/jquery.slimscroll.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery-slimscroll/jquery.slimscroll.min.js') }}"></script>
     <!-- FastClick -->
-    <script src="{{ asset('/public/assets/bower_components/fastclick/lib/fastclick.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/fastclick/lib/fastclick.js') }}"></script>
     <!-- AdminLTE App -->
-    <script src="{{ asset('/public/assets/dist/js/adminlte.min.js') }}"></script>
+    <script src="{{ asset('/assets/dist/js/adminlte.min.js') }}"></script>
     <!-- AdminLTE for demo purposes -->
-    <script src="{{ asset('/public/assets/dist/js/demo.js') }}"></script>
+    <script src="{{ asset('/assets/dist/js/demo.js') }}"></script>
 
-    <script src="{{ asset('/public/assets/bower_components/jquery/dist/jquerys.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery/dist/jquerys.min.js') }}"></script>
 
-    <script src="{{ asset('/public/assets/bower_components/jquery/dist/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/bower_components/jquery/dist/bootstrap-select.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery/dist/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery/dist/bootstrap-select.min.js') }}"></script>
 
     <script>var jQuery_3_2_1 = $.noConflict(true);</script>
 
     <!-- date-range-picker -->
-    <script src="{{ asset('/public/assets/bower_components/moment/min/moment.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/moment/min/moment.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
     <script
-      src="{{ asset('/public/assets/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}"></script>
+      src="{{ asset('/assets/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}"></script>
     <script
-      src="{{ asset('/public/assets/bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/plugins/timepicker/bootstrap-timepicker.min.js') }}"></script>
+      src="{{ asset('/assets/bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/timepicker/bootstrap-timepicker.min.js') }}"></script>
 
     <!-- ChartJS -->
-    <script src="{{ asset('/public/assets/bower_components/chart.js/Chart.js') }}"></script>
-    <script src="{{ asset('/public/assets/bower_components/chart.js/utils.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/chart.js/Chart.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/chart.js/utils.js') }}"></script>
 
 
-    <script src="{{ asset('/public/assets/bower_components/datatables.net/js/buttons.print.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/bower_components/datatables.net/js/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/datatables.net/js/buttons.print.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/datatables.net/js/dataTables.buttons.min.js') }}"></script>
 
-    <!-- <script src="{{ asset('/public/assets/js/jquery.dataTables.min.js') }}"></script> -->
-    <script src="{{ asset('/public/assets/js/jszip.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/js/pdfmake.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/js/vfs_fonts.js') }}"></script>
-    <script src="{{ asset('/public/assets/js/buttons.html5.min.js') }}"></script>
+    <!-- <script src="{{ asset('/assets/js/jquery.dataTables.min.js') }}"></script> -->
+    <script src="{{ asset('/assets/js/jszip.min.js') }}"></script>
+    <script src="{{ asset('/assets/js/pdfmake.min.js') }}"></script>
+    <script src="{{ asset('/assets/js/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('/assets/js/buttons.html5.min.js') }}"></script>
 
     <!-- Dashboard-->
 
     <!-- jQuery UI 1.11.4 -->
-    <script src="{{ asset('/public/assets/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery-ui/jquery-ui.min.js') }}"></script>
     <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
     <script>
       $.widget.bridge('uibutton', $.ui.button);
     </script>
     <!-- Sparkline -->
-    <script src="{{ asset('/public/assets/bower_components/jquery-sparkline/dist/jquery.sparkline.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery-sparkline/dist/jquery.sparkline.min.js') }}"></script>
     <!-- jvectormap -->
-    <script src="{{ asset('/public/assets/plugins/jvectormap/jquery-jvectormap-1.2.2.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/plugins/jvectormap/jquery-jvectormap-world-mill-en.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/jvectormap/jquery-jvectormap-1.2.2.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/jvectormap/jquery-jvectormap-world-mill-en.js') }}"></script>
     <!-- jQuery Knob Chart -->
-    <script src="{{ asset('/public/assets/bower_components/jquery-knob/dist/jquery.knob.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery-knob/dist/jquery.knob.min.js') }}"></script>
     <!-- datepicker -->
     <script
-      src="{{ asset('/public/assets/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}"></script>
+      src="{{ asset('/assets/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js') }}"></script>
     <!-- Bootstrap WYSIHTML5 -->
-    <script src="{{ asset('/public/assets/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js') }}"></script>
+    <script src="{{ asset('/assets/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js') }}"></script>
     <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-    <!-- <script src="{{ asset('/public/assets/dist/js/pages/dashboard.js') }}"></script> -->
+    <!-- <script src="{{ asset('/assets/dist/js/pages/dashboard.js') }}"></script> -->
 
     <!-- fullCalendar -->
-    <script src="{{ asset('/public/assets/bower_components/moment/moment.js') }}"></script>
-    <script src="{{ asset('/public/assets/bower_components/fullcalendar/dist/fullcalendar.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/moment/moment.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/fullcalendar/dist/fullcalendar.min.js') }}"></script>
 
-    <script src="{{ asset('/public/assets/bower_components/summernote/summernote.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/sweetalert/sweetalert.min.js') }}"></script>
-    <script src="{{ asset('/public/assets/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/summernote/summernote.min.js') }}"></script>
+    <script src="{{ asset('/assets/sweetalert/sweetalert.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/select2/dist/js/select2.full.min.js') }}"></script>
 
     <!-- End Dashboard-->
 

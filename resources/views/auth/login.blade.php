@@ -16,11 +16,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 3.3.7 -->
-    <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/bootstrap/dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('/assets/bower_components/bootstrap/dist/css/bootstrap.min.css') }}">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/font-awesome/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('/assets/bower_components/font-awesome/css/font-awesome.min.css') }}">
     <!-- Ionicons -->
-    <link rel="stylesheet" href="{{ asset('/public/assets/bower_components/Ionicons/css/ionicons.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('/assets/bower_components/Ionicons/css/ionicons.min.css') }}">
     
     <style>
         body, html {
@@ -28,7 +28,7 @@
             margin: 0;
             font-family: 'Poppins', sans-serif;
             background-color: #1a1a2e; /* Fallback */
-            background-image: url('{{ asset('/public/assets/images/background/sai2.jpg') }}');
+            background-image: url('{{ asset('/assets/images/background/sai2.jpg') }}');
             background-repeat: no-repeat;
             background-size: cover;
             background-position: center;
@@ -266,9 +266,9 @@
     </div>
 
     <!-- jQuery 3 -->
-    <script src="{{ asset('/public/assets/bower_components/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/jquery/dist/jquery.min.js') }}"></script>
     <!-- Bootstrap 3.3.7 -->
-    <script src="{{ asset('/public/assets/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
 
 </body>
 </html>

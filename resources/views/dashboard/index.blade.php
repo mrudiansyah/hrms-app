@@ -339,8 +339,8 @@
 @endsection
 @section('Scripts')
 	
-	<script src="{{ asset('/public/assets/js/Chart.min.js') }}"></script>
-	<script src="{{ asset('/public/assets/js/utils.js') }}"></script>
+	<script src="{{ asset('/assets/js/Chart.min.js') }}"></script>
+	<script src="{{ asset('/assets/js/utils.js') }}"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
 	<!-- Grafik Bar/Line -->
   <script>

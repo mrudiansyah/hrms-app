@@ -21,16 +21,14 @@ class DashboardController extends Controller
         $today = date('Y-m-d');
 
         //Expired Check
-        $tb_utility = DB::table('tb_utilities')->get();
-        return $tb_utility;
-        // $tb_utility=DB::table('tb_utilities')->where('atribut','expired_password')->where('status','1')->count();
-        // if($tb_utility>0){
-        //     $locked=Auth::user()->locked_status;
-        //     $expired_date=Auth::user()->expired_date;
-        //     if($expired_date<$today) {
-        //         return redirect('/ChangePassword');
-        //     }
-        // }
+        $tb_utility=DB::table('tb_utilities')->where('atribut','expired_password')->where('status','1')->count();
+        if($tb_utility>0){
+            $locked=Auth::user()->locked_status;
+            $expired_date=Auth::user()->expired_date;
+            if($expired_date<$today) {
+                return redirect('/ChangePassword');
+            }
+        }
         //Expired Check End
 
         $qty_ksk = $this->kskReminder();

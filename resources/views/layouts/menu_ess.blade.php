@@ -29,13 +29,8 @@
                     </span>
                 </a>
                 <ul class="treeview-menu">
-                    <?php    if (request()->user()->hasRole('tka')) {?>
-                    <li><a href="/SlipGaji/Temp"><i class="fa fa-circle-o"></i> <span>Slip Gaji</span></a></li>
+                    <li><a href="/SlipGaji"><i class="fa fa-circle-o"></i> <span>Slip Gaji</span></a></li>
                     <li><a href="/SlipOT"><i class="fa fa-circle-o"></i> <span>Slip Overtime</span></a></li>
-                    <?php    } else {?>
-                    <li><a href="/SlipGaji/Temp"><i class="fa fa-circle-o"></i> <span>Slip Gaji</span></a></li>
-                    <li><a href="/SlipOT"><i class="fa fa-circle-o"></i> <span>Slip Overtime</span></a></li>
-                    <?php    }?>
                 </ul>
             </li>
             @if(isset($ess_leave) && $ess_leave == 1)

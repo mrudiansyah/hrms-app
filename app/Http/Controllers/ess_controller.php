@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use DateTime;
 use Auth;
+use PDF;
 
 class ess_controller extends Controller
 {
@@ -112,6 +113,10 @@ class ess_controller extends Controller
             $id_shift = $dt->id_shift;
             $leader_id = $dt->leader_id;
         }
+        $tb_photo = DB::table('tb_photos')->where('id_employee', '0')->get();
+        foreach ($tb_photo as $dt_photo) {
+            $photo = $dt_photo->nama_photo;
+        }
         $tb_photo = DB::table('tb_photos')->where('id_employee', $id)->orderby('id', 'desc')->limit('1')->get();
         foreach ($tb_photo as $dt_photo) {
             $photo = $dt_photo->nama_photo;
@@ -145,5 +150,152 @@ class ess_controller extends Controller
 
         return view('page_ess/profile', ['photo' => $photo, 'tb_employee_family' => $tb_employee_family, 'tb_domicile' => $tb_domicile, 'tb_address_darurat' => $tb_address_darurat, 'tb_bagian' => $tb_bagian, 'tb_status' => $tb_status, 'id_employee' => $id, 'tb_employee' => $tb_employee, 'tb_employee_leave' => $tb_employee_leave, 'checkin_act' => $checkin_act, 'checkout_act' => $checkout_act, 'cshift' => $cshift, 'leader_id' => $leader_id, 'leader_name' => $leader_name, 'shift_code' => $shift_code, 'id_employee' => $id, 'PIN' => $pin, 'tb_address' => $tb_address, 'tb_education' => $tb_education, 'tb_experience' => $tb_experience, 'tb_skill' => $tb_skill, 'tb_leaves' => $tb_leaves, 'email' => $email, 'juduls' => 'Profile', 'menu' => 'employees', 'ess_leave' => $ess_leave]);
     }
+    function employee_slip()
+    {
+        $email = Auth::user()->email;
+        $tb_employee = DB::table('tb_emails')
+            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
+            ->where('email_address', $email)->get();
+        foreach ($tb_employee as $dt) {
+            $id_employee = $dt->id_employee;
+            $NIK = $dt->NIK;
+            $employee_name = $dt->employee_name;
+            $tb_salary_excel = DB::table('tb_salary_excel')->where('NIK', $NIK)->where('send_mail', '1')->orderby('periode', 'desc')->limit(6)->get();
+        }
+
+        $tb_utility = DB::table('tb_utilities')->where('atribut', 'ess_leave')->get(['status']);
+        foreach ($tb_utility as $dt) {
+            $ess_leave = $dt->status;
+        }
+        $tb1 = DB::table('tb_salary_summary')->where('id_employee', $id_employee)->where('mail_status', '1')->orderby('periode', 'desc')->get();
+        if (request()->user()->hasRole('root') || request()->user()->hasRole('ess')) {
+            return view('page_ess/slip_gaji', ['tb_salary_excel' => $tb_salary_excel, 'tb1' => $tb1, 'NIK' => $NIK, 'employee_name' => $employee_name, 'menu' => 'slip_gaji', 'juduls' => 'Slip Gaji', 'ess_leave' => $ess_leave]);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function slip($periode, $id_employee)
+    {
+        $email = Auth::user()->email;
+        $tb_employee = DB::table('tb_emails')
+            ->where('email_address', $email)->get();
+        foreach ($tb_employee as $dt) {
+            $id_employee_Login = $dt->id_employee;
+        }
+        if ($id_employee_Login != $id_employee) {
+            return "Gagal Download, Apakah ini NIK Anda....? Silahkan hubungi HR.";
+        } else {
+            $kategori = DB::table('tb_salary_contract')->where('id_employee', $id_employee)->value('tipe_kontrak');
+            $thn = date('Y', strtotime($periode . '-01'));
+            $bln = date('F', strtotime($periode . '-01'));
+            $periode_text = $thn . ' ' . $bln;
+
+            $tb_salary_summary_employee = $this->tb_salary_summary_employee($periode, $id_employee);
+            $view = '';
+            if ($kategori == 'SAI')
+                $view = "page_ess/salary_slip_sai";
+            if ($kategori == 'MAGANG')
+                $view = "page_ess/salary_slip_magang";
+            if ($view == '')
+                return abort(403, 'Under Maintenance');
+            $FileName = 'SLIP.PDF';
+            if ($kategori == 'PSAB' || $kategori == 'PKL')
+                $pdf = PDF::loadview($view, ['tb_salary_summary_employee' => $tb_salary_summary_employee, 'periode_text' => $periode_text, 'thn' => $thn, 'menu' => 'salary_slip'])->setPaper(array(0, 0, 280, 355));
+            else
+                $pdf = PDF::loadview($view, ['tb_salary_summary_employee' => $tb_salary_summary_employee, 'periode_text' => $periode_text, 'thn' => $thn, 'menu' => 'salary_slip'])->setPaper(array(0, 0, 280, 630));
+            return $pdf->stream($FileName);
+
+        }
+    }
+    public function tb_salary_summary_employee($periode, $id_employee)
+    {
+        $tabel = DB::table('tb_salary_summary')
+            ->leftjoin('tb_salary_contract', 'tb_salary_contract.id_employee', '=', 'tb_salary_summary.id_employee');
+        if ($periode != '0')
+            $tabel = $tabel->where('periode', $periode);
+        $tabel = $tabel->where('tb_salary_summary.id_employee', $id_employee)
+            ->orderby('tb_salary_summary.periode', 'desc')
+            ->get(['tb_salary_summary.*', 'tb_salary_contract.NIK', 'tb_salary_contract.nama_karyawan', 'tb_salary_contract.department as dept_code', 'tb_salary_contract.jabatan as nama_jabatan', 'tb_salary_contract.status_pajak', 'tb_salary_contract.total_salary', 'tb_salary_contract.tipe_kontrak', 'tb_salary_contract.upah_harian as upah_psab', 'tb_salary_contract.tunjangan_harian as tunjangan_pkl']);
+        return $tabel;
+    }
+    function employee_slip_temp_download($periode, $NIK)
+    {
+        $email = Auth::user()->email;
+        $tb_employee = DB::table('tb_emails')
+            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
+            ->where('email_address', $email)->get();
+        foreach ($tb_employee as $dt) {
+            $NIK_Login = $dt->NIK;
+        }
+        if ($NIK_Login != $NIK) {
+            return "Gagal Download, Apakah ini NIK Anda....? Silahkan hubungi HR.";
+        } else {
+            $thn = date('Y', strtotime($periode . '-01'));
+            $bln = date('m', strtotime($periode . '-01'));
+            $kalendar = CAL_GREGORIAN;
+            $hariawal = date('Y-m-d', strtotime($thn . '-' . $bln . '-01'));
+            $hariakhir = cal_days_in_month($kalendar, $bln, $thn);
+            $bulan = date('F', strtotime($thn . '-' . $bln . '-01'));
+            $akhirbulan = date('Y-m-d', strtotime($thn . '-' . $bln . '-' . $hariakhir));
+            $periode_text = date('F Y', strtotime($thn . '-' . $bln . '-01'));
+
+            $tb_slip = DB::table('tb_salary_excel')->where('periode', $periode)
+                ->where('NIK', $NIK)
+                ->get();
+
+            $is_magang = 0;
+            $tb_employee = DB::table('tb_employees')->where('NIK', $NIK)->where('position_id', 19)->where('status', '1')->get();
+            foreach ($tb_employee as $dt) {
+                $is_magang = 1;
+            }
+
+            $FileName = 'SLIP_GAJI ' . $periode . ' ' . $NIK . '.PDF';
+            if ($is_magang == 0)
+                $pdf = PDF::loadview('page_ess/slip_gaji_mail', ['tb_slip' => $tb_slip, 'thn' => $thn, 'bln' => $bln, 'periode_text' => $periode_text, 'akhirbulan' => $akhirbulan, 'periode' => $periode, 'hariawal' => $hariawal, 'NIK' => $NIK, 'menu' => 'overtimes'])->setPaper(array(0, 0, 280, 620));
+            else
+                $pdf = PDF::loadview('page_ess/slip_gaji_magang', ['tb_slip' => $tb_slip, 'thn' => $thn, 'bln' => $bln, 'periode_text' => $periode_text, 'akhirbulan' => $akhirbulan, 'periode' => $periode, 'hariawal' => $hariawal, 'NIK' => $NIK, 'menu' => 'overtimes'])->setPaper(array(0, 0, 280, 620));
+            return $pdf->stream($FileName);
+        }
+
+        //return view('page/user/m_report/slip_overtime_mail',['tb_sum'=>$tb_sum,'tb_slip'=>$tb_slip,'thn'=>$thn,'bln'=>$bln,'judul'=>$judul,'akhirbulan'=>$akhirbulan,'periode'=>$periode,'hariawal'=>$hariawal,'id_employee'=>$id_employee,'menu'=>'overtimes']);
+    }
+    function employee_slip_ot()
+    {
+        $email = Auth::user()->email;
+        $tb_employee = DB::table('tb_emails')
+            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
+            ->leftjoin('tb_positions', 'tb_positions.id', '=', 'tb_employees.position_id')
+            ->where('email_address', $email)->get();
+        foreach ($tb_employee as $dt) {
+            $id_employee = $dt->id_employee;
+            $NIK = $dt->NIK;
+            $employee_name = $dt->employee_name;
+            $position_index = $dt->position_index;
+        }
+        $tb_summary_overtime = DB::table('tb_summary_overtime')
+            ->leftjoin('tb_rapel_khusus', 'tb_rapel_khusus.id_summary', '=', 'tb_summary_overtime.id')
+            ->where('send_mail', '1')
+            ->where('tb_summary_overtime.id_employee', $id_employee)
+            ->orderby('periode', 'desc')
+            ->limit(6)
+            ->get(['tb_summary_overtime.*', 'tb_rapel_khusus.rapel_gaji', 'tb_rapel_khusus.rapel_ot', 'tb_rapel_khusus.pph21_rapel', 'tb_rapel_khusus.rapel_total']);
+
+        $tb_utility = DB::table('tb_utilities')->where('atribut', 'ess_leave')->get(['status']);
+        foreach ($tb_utility as $dt) {
+            $ess_leave = $dt->status;
+        }
+        $tb1 = DB::table('tb_ot_summary')->where('id_employee', $id_employee)->where('distribute', '1')->orderby('periode', 'desc')->get();
+        if ($position_index < 3) {
+            $status = '1';
+        } else {
+            $status = '2';
+        }
+        if (request()->user()->hasRole('root') || request()->user()->hasRole('ess')) {
+            return view('page_ess/slip_overtime', ['tb_summary_overtime' => $tb_summary_overtime, 'tb1' => $tb1, 'NIK' => $NIK, 'employee_name' => $employee_name, 'status' => $status, 'menu' => 'slip_gaji', 'juduls' => 'Slip Overtime', 'ess_leave' => $ess_leave]);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+
 }
 #endregion

@@ -77,4 +77,10 @@ Route::get('/payroll/distribute_assignment_slip/{start?}/{end?}', [App\Http\Cont
 
 //ESS
 Route::get('/Profile', [App\Http\Controllers\ess_controller::class, 'index']);
+Route::get('/SlipGaji', [App\Http\Controllers\ess_controller::class, 'employee_slip']);
+Route::get('/Slip/{periode}/{id_employee}', [App\Http\Controllers\ess_controller::class, 'slip']);
+Route::get('/SlipGaji/Temp/{periode}/{NIK}', [App\Http\Controllers\ess_controller::class, 'employee_slip_temp_download']);
+Route::get('/SlipOT', [App\Http\Controllers\ess_controller::class, 'employee_slip_ot']);
+Route::get('/payroll/slip/overtime_personal/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_overtime_personal']);
+Route::get('/payroll/slip/assignment/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_assignment']);
 //ESS End

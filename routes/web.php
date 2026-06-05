@@ -2,9 +2,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-	return redirect('/Dashboard');
+    return redirect('/Dashboard');
 });
-Route::get('/Reset', function() {
+Route::get('/Reset', function () {
     Artisan::call('cache:clear');
     dd("Cache Clear All");
 });
@@ -13,7 +13,7 @@ Auth::routes(['verify' => true]);
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/home', function () {
-	return redirect('/Dashboard');
+    return redirect('/Dashboard');
 });
 
 use App\Http\Controllers\UserController;
@@ -75,3 +75,6 @@ Route::get('/payroll/summary_assignment/{start?}/{end?}', [App\Http\Controllers\
 Route::get('/payroll/tax_assignment_excel/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_assignment_excel']);
 Route::get('/payroll/distribute_assignment_slip/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'distribute_assignment_slip']);
 
+//ESS
+Route::get('/Profile', [App\Http\Controllers\ess_controller::class, 'index']);
+//ESS End

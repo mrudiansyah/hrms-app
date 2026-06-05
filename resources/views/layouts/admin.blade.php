@@ -22,11 +22,9 @@
        folder instead of downloading all of them to reduce the load. -->
   <link rel="stylesheet" href="{{ asset('/assets/dist/css/skins/_all-skins.min.css') }}">
 
-  <link rel="stylesheet"
-    href="{{ asset('/assets/bower_components/bootstrap/dist/css/bootstrap-select.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/bootstrap/dist/css/bootstrap-select.min.css') }}">
   <!-- daterange picker -->
-  <link rel="stylesheet"
-    href="{{ asset('/assets/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/bootstrap-daterangepicker/daterangepicker.css') }}">
   <!-- bootstrap datepicker -->
   <link rel="stylesheet"
     href="{{ asset('/assets/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css') }}">
@@ -35,8 +33,8 @@
 
   <!-- fullCalendar -->
   <link rel="stylesheet" href="{{ asset('/assets/bower_components/fullcalendar/dist/fullcalendar.min.css') }}">
-  <link rel="stylesheet"
-    href="{{ asset('/assets/bower_components/fullcalendar/dist/fullcalendar.print.min.css') }}" media="print">
+  <link rel="stylesheet" href="{{ asset('/assets/bower_components/fullcalendar/dist/fullcalendar.print.min.css') }}"
+    media="print">
   <style>
     .fc-time {
       display: none;
@@ -137,8 +135,8 @@ $periode = date('Y-m');?>
             <li>
               <a style="padding:8px 8px 8px 0px;" title="Sign Out" class="dropdown-item" href="{{ route('logout') }}"
                 onclick="event.preventDefault();document.getElementById('logout-form').submit();">
-                <button class="btn btn-default btn-md">
-                  <i class="fa fa-power-off" style="color:red;"></i>
+                <button class="btn btn-danger btn-md">
+                  <i class="fa fa-power-off" style="color:white;"></i>
                   <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                     @csrf
                   </form>
@@ -146,9 +144,16 @@ $periode = date('Y-m');?>
               </a>
             </li>
             <li>
-              <a style="padding:8px 8px 8px 0px;" title="Sign Out" class="dropdown-item" href="/HRMS/ChangePassword">
-                <button class="btn btn-default btn-md">
-                  <i class="fa fa-key" style="color:ble;"></i> Change Password
+              <a style="padding:8px 8px 8px 0px;" title="ESS Portal" class="dropdown-item" href="/Profile">
+                <button class="btn btn-success btn-md">
+                  <i class="fa fa-user" style="color:white;"></i> ESS
+                </button>
+              </a>
+            </li>
+            <li>
+              <a style="padding:8px 8px 8px 0px;" title="Sign Out" class="dropdown-item" href="/ChangePassword">
+                <button class="btn btn-warning btn-md">
+                  <i class="fa fa-key" style="color:white;"></i> Change Password
                 </button>
               </a>
             </li>
@@ -413,8 +418,7 @@ echo "Usage: " . $MB . " MB \n";?>
     <script src="{{ asset('/assets/bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
     <!-- DataTables -->
     <script src="{{ asset('/assets/bower_components/datatables.net/js/jquery.dataTables.min.js') }}"></script>
-    <script
-      src="{{ asset('/assets/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js') }}"></script>
+    <script src="{{ asset('/assets/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js') }}"></script>
     <!-- SlimScroll -->
     <script src="{{ asset('/assets/bower_components/jquery-slimscroll/jquery.slimscroll.min.js') }}"></script>
     <!-- FastClick -->

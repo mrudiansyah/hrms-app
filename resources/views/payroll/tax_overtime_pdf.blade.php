@@ -1,16 +1,11 @@
-@extends('layouts/admin')
+@extends('layouts/pdf')
 @section('Contents')
     <div class="content-wrapper">
         <section class="content-header">
             <h1>
                 Payroll
-                <small>Assignment Summary Detail</small>
+                <small>Overtime Summary Detail</small>
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-                <li>Assignment Summary</li>
-                <li class="active">Summary Detail</li>
-            </ol>
         </section>
 
         <section class="content">
@@ -24,63 +19,6 @@
 
             <div class="row">
                 <div class="col-md-12">
-                    <!-- Filter Box -->
-                    <div class="box box-default">
-                        <div class="box-header with-border">
-                            <h3 class="box-title"><i class="fa fa-filter"></i> Filter Periode</h3>
-                        </div>
-                        <div class="box-body">
-                            <div class="pull-right">
-                                <a href="{{ url('/payroll/summary_assignment/' . $start . '/' . $end) }}"
-                                    class="btn btn-default btn-md"><i class="fa fa-angle-double-left"></i> &nbsp;Back</a>
-                                <a href="/payroll/tax_overtime_approval/Assignment/{{$periode}}"
-                                    class="btn btn-info btn-md"><i class="fa fa-edit"></i> &nbsp;Add Approval</a>
-                                <button class="btn btn-success btn-md"
-                                    onclick="exportTableToExcel('payroll-table', 'Assignment_Summary_{{$periode}}')"><i
-                                        class="fa fa-file-excel-o"></i>
-                                    &nbsp;Save as Excel</button>
-                                <a href="/payroll/tax_assignment_pdf/{{$start}}/{{$end}}" class="btn btn-danger btn-md"
-                                    target="_blank"><i class="fa fa-file-pdf-o"></i> &nbsp;Download PDF</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Modal Import -->
-                    <div class="modal fade" id="modal-import" tabindex="-1" role="dialog">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header bg-aqua">
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                            aria-hidden="true">&times;</span></button>
-                                    <h4 class="modal-title">Import Rapel</h4>
-                                </div>
-                                <form action="{{ url('/payroll/import_rapel') }}" method="POST"
-                                    enctype="multipart/form-data">
-                                    @csrf
-                                    <input type="hidden" name="start" value="{{ $start }}">
-                                    <input type="hidden" name="end" value="{{ $end }}">
-                                    <div class="modal-body">
-                                        <div class="form-group">
-                                            <label for="file">Excel File</label>
-                                            <input type="file" name="file" id="file" class="form-control" required>
-                                            <p class="help-block">
-                                                Format: Kolom A (NIK), Kolom B (Periode YYYY-MM), Kolom C (Amount).
-                                                <br>
-                                                <a href="{{ url('/payroll/download_format_rapel') }}" class="text-primary">
-                                                    <i class="fa fa-download"></i> Download Format Excel
-                                                </a>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-primary">Import Now</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Data Box -->
                     <div class="box box-primary">
                         <div class="box-header with-border">
@@ -91,10 +29,11 @@
                             <div class="table-responsive">
                                 <table id="payroll-table" class="table table-bordered table-striped table-hover">
                                     <thead>
-                                        <tr>
+                                        <tr style="background-color: #f4b084;">
                                             <th>No</th>
                                             <th>Employee Name</th>
                                             <th>NIK</th>
+                                            <th>Position</th>
                                             <th>Dept</th>
                                             <th>CC_Code</th>
                                             <th>SLPJ</th>
@@ -108,8 +47,6 @@
                                             <th>Amount</th>
                                             <th>Norek</th>
                                             <th>Total_Paid</th>
-                                            <th>Nama</th>
-                                            <th>Slip</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -196,6 +133,7 @@
                                                         <td>{{ $no++ }}</td>
                                                         <td>{{ $item->employee_name }}</td>
                                                         <td>{{ $item->nik }}</td>
+                                                        <td>{{ $item->position_name }}</td>
                                                         <td>{{ $item->dept_code }}</td>
                                                         <td>{{ $item->cc_code }}</td>
                                                         <td>{{ number_format($item->slpj, 0) }}</td>
@@ -209,15 +147,10 @@
                                                         <td>{{ number_format($item->net_amount, 0) }}</td>
                                                         <td>{{ $item->nomor_rekening }}</td>
                                                         <td>{{ number_format($item->net_amount, 0) }}</td>
-                                                        <td>{{ $item->employee_name }}</td>
-                                                        <td>
-                                                            <a href="{{ url('/payroll/slip/overtime/' . $start . '/' . $end . '/' . $item->id_employee) }}"
-                                                                class="btn btn-xs btn-primary"><i class="fa fa-print"></i></a>
-                                                        </td>
                                                     </tr>
                                                 @endforeach
-                                                <tr style="font-weight: bold; background-color: #f9f9f9;">
-                                                    <td colspan="5" class="text-right">Sub Total CC {{ $cc_code }}</td>
+                                                <tr style="background-color: #eee; font-weight: bold;">
+                                                    <td colspan="6" class="text-right">Sub Total CC {{ $cc_code }}</td>
                                                     <td>{{ number_format($sub_cc['slpj'], 0) }}</td>
                                                     <td>{{ number_format($sub_cc['hours_act'], 2) }}</td>
                                                     <td>{{ number_format($sub_cc['hour_convertion'], 2) }}</td>
@@ -229,12 +162,10 @@
                                                     <td>{{ number_format($sub_cc['net_amount'], 0) }}</td>
                                                     <td></td>
                                                     <td>{{ number_format($sub_cc['net_amount'], 0) }}</td>
-                                                    <td></td>
-                                                    <td></td>
                                                 </tr>
                                             @endforeach
-                                            <tr style="font-weight: bold; background-color: #e9e9e9;">
-                                                <td colspan="5" class="text-right">Sub Total Dept {{ $dept_code }}</td>
+                                            <tr style="background-color: #d2d6de; font-weight: bold;">
+                                                <td colspan="6" class="text-right">Sub Total Dept {{ $dept_code }}</td>
                                                 <td>{{ number_format($sub_dept['slpj'], 0) }}</td>
                                                 <td>{{ number_format($sub_dept['hours_act'], 2) }}</td>
                                                 <td>{{ number_format($sub_dept['hour_convertion'], 2) }}</td>
@@ -246,14 +177,12 @@
                                                 <td>{{ number_format($sub_dept['net_amount'], 0) }}</td>
                                                 <td></td>
                                                 <td>{{ number_format($sub_dept['net_amount'], 0) }}</td>
-                                                <td></td>
-                                                <td></td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot>
                                         <tr style="font-weight: bold; background-color: #d9d9d9;">
-                                            <td colspan="5" class="text-right">Grand Total All</td>
+                                            <td colspan="6" class="text-right">Grand Total All</td>
                                             <td>{{ number_format($grand_total['slpj'], 0) }}</td>
                                             <td>{{ number_format($grand_total['hours_act'], 2) }}</td>
                                             <td>{{ number_format($grand_total['hour_convertion'], 2) }}</td>
@@ -265,13 +194,11 @@
                                             <td>{{ number_format($grand_total['net_amount'], 0) }}</td>
                                             <td></td>
                                             <td>{{ number_format($grand_total['net_amount'], 0) }}</td>
-                                            <td></td>
-                                            <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>
                                 @foreach($tb_approval as $dt2)
-                                    <table border="1" cellspacing="0" cellpadding="5" width="900" align="center">
+                                    <table border="1" cellspacing="0" cellpadding="5" align="center" style="width:50%;">
                                         <tr>
                                             <td colspan="3" style="text-align:center;">Approved by</td>
                                             <td style="text-align:center;">Verified by</td>
@@ -378,36 +305,5 @@
 @endsection
 
 @section('Scripts')
-    <script>
-        $(document).ready(function () {
-            $('#payroll-table').DataTable({
-                'paging': true,
-                'lengthChange': true,
-                'searching': true,
-                'ordering': false,
-                'info': true,
-                'autoWidth': false,
-                "pageLength": -1,
-                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                dom: 'Bfrtip',
-                buttons: [
-                    'copy', 'excel', 'print'
-                ]
-            });
-        });
-        function exportTableToExcel(tableID, filename = '') {
-            var tableSelect = document.getElementById(tableID);
-            var tableHTML = tableSelect.outerHTML;
-            var blob = new Blob([tableHTML], {
-                type: "application/vnd.ms-excel"
-            });
-            var url = URL.createObjectURL(blob);
-            var downloadLink = document.createElement("a");
-            filename = filename ? filename + '.xls' : 'excel_data.xls';
-            downloadLink.href = url;
-            downloadLink.download = filename;
-            downloadLink.click();
-            URL.revokeObjectURL(url);
-        }
-    </script>
+
 @endsection

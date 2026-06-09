@@ -77,6 +77,8 @@ class PayrollController extends Controller
             $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
             $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
             $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
         }
 
         $tb1 = DB::table('tb_ot_summary')
@@ -92,7 +94,83 @@ class PayrollController extends Controller
 
         $menu = 'overtime_tax';
 
-        return view('payroll.tax_overtime_excel', compact('tb1', 'start', 'end', 'menu'));
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
+
+
+        return view('payroll.tax_overtime_excel', compact('tb1', 'start', 'end', 'menu', 'periode', 'tb_approval', 'id_employee'));
+    }
+    function tax_overtime_pdf($start, $end)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+        $tb1 = DB::table('tb_ot_summary')
+            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
+            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
+            ->leftjoin('tb_positions as c', 'c.id', '=', 'b.position_id')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori', 'Overtime')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code', 'c.position_name']);
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
+        if (request()->user()->hasRole('payroll')) {
+            $FileName = 'Overtime_Summary_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/tax_overtime_pdf', ['tb1' => $tb1, 'periode' => $periode, 'start' => $start, 'end' => $end, 'menu' => 'payroll', 'juduls' => 'Summary Overtime', 'tb_approval' => $tb_approval, 'id_employee' => $id_employee])->setPaper('a3', 'landscape');
+            return $pdf->stream($FileName);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function tax_overtime_approval($tipe, $periode)
+    {
+        $admin = Auth::user()->name;
+        if ($periode == 0)
+            $periode = date('Y-m');
+        $check_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('category', 'payroll')->where('tipe', $tipe)->count();
+        if ($check_approval == 0) {
+            $tb1 = DB::table('v_approval')->where('group', '1')->get();
+            $no = 0;
+            foreach ($tb1 as $dt1) {
+                $no++;
+                $dt_id[$no] = $dt1->id;
+                $dt_name[$no] = $dt1->employee_name;
+                $dt_pos[$no] = $dt1->position_name;
+            }
+            $add_approval = DB::table('tb_payroll_approval')->insert([
+                'periode' => $periode,
+                'category' => 'payroll',
+                'tipe' => $tipe,
+                'id_approver_1' => $dt_id[1],
+                'id_approver_2' => $dt_id[2],
+                'id_approver_3' => $dt_id[3],
+                'id_approver_4' => $dt_id[4],
+                'name_1' => $dt_name[1],
+                'name_2' => $dt_name[2],
+                'name_3' => $dt_name[3],
+                'name_4' => $dt_name[4],
+                'pos_1' => $dt_pos[1],
+                'pos_2' => $dt_pos[2],
+                'pos_3' => $dt_pos[3],
+                'pos_4' => $dt_pos[4],
+                'created_by' => $admin
+            ]);
+            return redirect()->back()->with('success', 'Approval berhasil ditambahkan.');
+        } else {
+            return redirect()->back();
+        }
     }
 
     public function distribute_spl_slip($start = null, $end = null)
@@ -725,6 +803,8 @@ class PayrollController extends Controller
             $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
             $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
             $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
         }
 
         $tb1 = DB::table('tb_ot_summary')
@@ -737,9 +817,43 @@ class PayrollController extends Controller
             ->orderby('employee_name', 'asc')
             ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code']);
 
-        $menu = 'overtime_tax';
-
-        return view('payroll.summary_assignment_excel', compact('tb1', 'start', 'end', 'menu'));
+        $menu = 'summary_assignment';
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Assignment')->get();
+        return view('payroll.summary_assignment_excel', compact('tb1', 'start', 'end', 'menu', 'periode', 'id_employee', 'tb_approval'));
+    }
+    function tax_assignment_pdf($start, $end)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+        $tb1 = DB::table('tb_ot_summary')
+            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
+            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori', 'Assignment')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code']);
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Assignment')->get();
+        if (request()->user()->hasRole('payroll')) {
+            $FileName = 'Overtime_Summary_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/summary_assignment_pdf', ['tb1' => $tb1, 'periode' => $periode, 'start' => $start, 'end' => $end, 'menu' => 'payroll', 'juduls' => 'Summary Overtime', 'tb_approval' => $tb_approval, 'id_employee' => $id_employee])->setPaper('a3', 'landscape');
+            return $pdf->stream($FileName);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
     }
     public function slip_assignment($start, $end, $id_employee)
     {

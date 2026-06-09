@@ -70,6 +70,8 @@ Route::post('/payroll/tax_overtime/calculation', [App\Http\Controllers\PayrollCo
 Route::get('/payroll/slip/overtime/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_overtime']);
 Route::get('/payroll/distribute_spl_slip/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'distribute_spl_slip']);
 Route::post('/payroll/collect_meals', [App\Http\Controllers\PayrollController::class, 'collect_meals']);
+Route::get('/payroll/overtime_detail', [App\Http\Controllers\PayrollController::class, 'overtime_detail']);
+Route::post('/payroll/capture_rapel', [App\Http\Controllers\PayrollController::class, 'capture_rapel']);
 
 Route::get('/payroll/capture_assignment/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'capture_assignment']);
 Route::post('/payroll/save_summary_assignment', [App\Http\Controllers\PayrollController::class, 'save_summary_assignment']);

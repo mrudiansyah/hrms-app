@@ -65,6 +65,66 @@ class PayrollController extends Controller
 
         return view('payroll.tax_overtime', compact('tb1', 'start', 'end', 'menu'));
     }
+
+    public function overtime_detail(Request $request)
+    {
+        $id_employee = $request->id_employee;
+
+        $data = DB::table('tb_overtime_details')
+            ->where('id_employee', $id_employee)
+            ->where(function ($query) {
+                $query->whereNull('captured_at')
+                    ->orWhere('captured_at', '');
+            })
+            ->where('date_on', '>=', '2026-03-01')
+            ->where('isDelete', 0)
+            ->select('id as idtrans', 'id_overtime', 'date_on', 'start_act', 'finish_act', 'hours_act', 'SLPJ', 'ammount')
+            ->orderBy('date_on', 'asc')
+            ->get();
+
+        return response()->json($data);
+    }
+
+    public function capture_rapel(Request $request)
+    {
+        $id = $request->id;
+        $rapel_amount = $request->rapel_amount;
+        $idtrans = $request->idtrans;
+
+        if (!$id) {
+            return response()->json(['success' => false, 'message' => 'ID tidak ditemukan.'], 422);
+        }
+
+        $row = DB::table('tb_ot_summary')->where('id', $id)->first();
+        if (!$row) {
+            return response()->json(['success' => false, 'message' => 'Data summary tidak ditemukan.'], 404);
+        }
+
+        $last_rapel = floatval($row->rapel_amount ?? 0);
+        $current_rapel = $last_rapel + $rapel_amount;
+
+        $new_gross = floatval($row->ot_amount ?? 0)
+            + floatval($row->meal_amount ?? 0)
+            + ($current_rapel);
+
+        $updated = DB::table('tb_ot_summary')->where('id', $id)->update([
+            'rapel_amount' => $current_rapel,
+            'gross_amount' => $new_gross,
+            'updated_at' => now(),
+        ]);
+
+        $time = date('Y-m-d H:i:s');
+        if ($updated !== false) {
+            DB::table('tb_overtime_details')->where('id', $idtrans)->update([
+                'isRapel' => '1',
+                'captured_at' => $time,
+            ]);
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Gagal mengupdate data.'], 500);
+    }
+
     public function tax_overtime_excel(Request $request, $start = null, $end = null)
     {
         $start = $start ?? $request->start;

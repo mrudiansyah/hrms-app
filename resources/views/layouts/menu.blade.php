@@ -22,7 +22,7 @@
 			<li class="treeview<?php if (isset($menu) && ($menu == 'user_management'))
 		echo ' active';?>">
 				<a href="#">
-					<i class="fa fa-users text-aqua"></i> <span>User Management</span>
+					<i class="fa fa-users text-red"></i> <span>User Management</span>
 					<span class="pull-right-container">
 						<i class="fa fa-angle-left pull-right"></i>
 					</span>
@@ -38,11 +38,37 @@
 				</ul>
 			</li>
 			<?php }?>
+			<?php if (request()->user()->hasRole('admin_department')) {?>
+			<li class="treeview<?php if (isset($menu) && ($menu == 'recruitment'))
+		echo ' active';?>">
+				<a href="#">
+					<i class="fa fa-user text-yellow"></i> <span>Personalia</span>
+					<span class="pull-right-container">
+						<i class="fa fa-angle-left pull-right"></i>
+					</span>
+				</a>
+				<ul class="treeview-menu">
+					<li class="treeview<?php if (isset($menu) && ($menu == 'recruitment'))
+		echo ' active';?>">
+						<a href="#">
+							<i class="fa fa-user-plus"></i> <span>Recruitment</span>
+							<span class="pull-right-container">
+								<i class="fa fa-angle-left pull-right"></i>
+							</span>
+						</a>
+						<ul class="treeview-menu">
+							<li><a href="/FPPK"><i class="fa fa-circle"></i> FPPK</a></li>
+						</ul>
+					</li>
+					<li><a href="{{ route('renewal.index') }}"><i class="fa fa-edit"></i> Renewal</a></li>
+				</ul>
+			</li>
+			<?php }?>
 			<?php if (request()->user()->hasRole('payroll')) {?>
 			<li class="treeview<?php if (isset($menu) && ($menu == 'overtime' || $menu == 'overtime_summary' || $menu == 'overtime_tax' || $menu == 'capture_assignment' || $menu == 'summary_assignment'))
 		echo ' active';?>">
 				<a href="#">
-					<i class="fa fa-money text-aqua"></i> <span>Payroll</span>
+					<i class="fa fa-money text-green"></i> <span>Payroll</span>
 					<span class="pull-right-container">
 						<i class="fa fa-angle-left pull-right"></i>
 					</span>
@@ -123,7 +149,7 @@
 			<li class="treeview<?php if (isset($menu) && ($menu == 'improvement' || $menu == 'qcc' || $menu == 'gqcc'))
 		echo ' active';?>">
 				<a href="#">
-					<i class="fa fa-line-chart text-aqua"></i> <span>Improvement</span>
+					<i class="fa fa-line-chart text-green"></i> <span>Improvement</span>
 					<span class="pull-right-container">
 						<i class="fa fa-angle-left pull-right"></i>
 					</span>

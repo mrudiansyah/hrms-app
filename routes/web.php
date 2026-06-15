@@ -89,3 +89,26 @@ Route::get('/SlipOT', [App\Http\Controllers\ess_controller::class, 'employee_sli
 Route::get('/payroll/slip/overtime_personal/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_overtime_personal']);
 Route::get('/payroll/slip/assignment/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_assignment']);
 //ESS End
+
+Route::get('/FPPK', [App\Http\Controllers\fppk_controller::class, 'index']);
+Route::get('/FPPK/create', [App\Http\Controllers\fppk_controller::class, 'create']);
+Route::get('/FPPK/show/{id}', [App\Http\Controllers\fppk_controller::class, 'show']);
+Route::get('/FPPK/edit/{id}', [App\Http\Controllers\fppk_controller::class, 'edit']);
+Route::post('/FPPK/store', [App\Http\Controllers\fppk_controller::class, 'store']);
+Route::put('/FPPK/update/{id}', [App\Http\Controllers\fppk_controller::class, 'update']);
+Route::post('/FPPK/approve/{id}', [App\Http\Controllers\fppk_controller::class, 'approve']);
+Route::delete('/FPPK/delete/{id}', [App\Http\Controllers\fppk_controller::class, 'destroy']);
+Route::get('/FPPK/print/{id}', [App\Http\Controllers\fppk_controller::class, 'print']);
+Route::get('/FPPK/export', [App\Http\Controllers\fppk_controller::class, 'export']);
+
+// Renewal Routes
+Route::get('/renewal', [App\Http\Controllers\RenewalController::class, 'index'])->name('renewal.index');
+Route::get('/renewal/search/employee', [App\Http\Controllers\RenewalController::class, 'searchEmployee'])->name('renewal.search');  // ← UBAH INI
+Route::get('/renewal/create', [App\Http\Controllers\RenewalController::class, 'create'])->name('renewal.create');
+Route::post('/renewal', [App\Http\Controllers\RenewalController::class, 'store'])->name('renewal.store');
+Route::get('/renewal/{id}', [App\Http\Controllers\RenewalController::class, 'show'])->name('renewal.show');
+Route::get('/renewal/{id}/edit', [App\Http\Controllers\RenewalController::class, 'edit'])->name('renewal.edit');
+Route::put('/renewal/{id}', [App\Http\Controllers\RenewalController::class, 'update'])->name('renewal.update');
+Route::delete('/renewal/{id}', [App\Http\Controllers\RenewalController::class, 'destroy'])->name('renewal.destroy');
+Route::post('/renewal/approve/{id}', [App\Http\Controllers\RenewalController::class, 'approve'])->name('renewal.approve');
+Route::get('/renewal/{id}/print', [App\Http\Controllers\RenewalController::class, 'print'])->name('renewal.print');

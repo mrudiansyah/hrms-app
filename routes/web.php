@@ -88,6 +88,14 @@ Route::get('/SlipGaji/Temp/{periode}/{NIK}', [App\Http\Controllers\ess_controlle
 Route::get('/SlipOT', [App\Http\Controllers\ess_controller::class, 'employee_slip_ot']);
 Route::get('/payroll/slip/overtime_personal/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_overtime_personal']);
 Route::get('/payroll/slip/assignment/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_assignment']);
+
+Route::get('/Documents/{id}',[App\Http\Controllers\ess_controller::class,'document']);
+Route::post('/Document/Upload',[App\Http\Controllers\ess_controller::class,'document_upload']);
+Route::post('/Delete/Document',[App\Http\Controllers\ess_controller::class,'delete_document']);
+Route::get('/Document/Download/{id}',[App\Http\Controllers\ess_controller::class,'document_download']);
+Route::get('/Training/Invitation',[App\Http\Controllers\ess_controller::class,'training_invitation']);
+
+
 //ESS End
 
 Route::get('/FPPK', [App\Http\Controllers\fppk_controller::class, 'index']);
@@ -112,3 +120,46 @@ Route::put('/renewal/{id}', [App\Http\Controllers\RenewalController::class, 'upd
 Route::delete('/renewal/{id}', [App\Http\Controllers\RenewalController::class, 'destroy'])->name('renewal.destroy');
 Route::post('/renewal/approve/{id}', [App\Http\Controllers\RenewalController::class, 'approve'])->name('renewal.approve');
 Route::get('/renewal/{id}/print', [App\Http\Controllers\RenewalController::class, 'print'])->name('renewal.print');
+
+//Migration
+    Route::get('/Admin/Employee', [App\Http\Controllers\admin_employee::class, 'index']);
+    Route::get('/Admin/Employee/Create', [App\Http\Controllers\admin_employee::class, 'createData']);
+
+    Route::post('/Admin/Employee/SelectDept', [App\Http\Controllers\admin_employee::class, 'selectDept']);
+    Route::post('/Admin/Employee/Select', [App\Http\Controllers\admin_employee::class, 'selectLeader']);
+    Route::post('/Admin/Employee/SelectCC', [App\Http\Controllers\admin_employee::class, 'selectCC']);
+    Route::post('/AgreementCheck2', [App\Http\Controllers\contract_controller::class, 'AgreementCheck2']);
+    Route::post('/Admin/Employee/Create/Submit', [App\Http\Controllers\admin_employee::class, 'insertData']);
+    Route::get('/Admin/Employee/Update/{id}', [App\Http\Controllers\admin_employee::class, 'updateData']);
+    Route::post('/Admin/Employee/Update/Submit', [App\Http\Controllers\admin_employee::class, 'saveData']);
+    Route::get('/Admin/Employee/Create/Delete/{id}/{id2}', [App\Http\Controllers\admin_employee::class, 'selectDelete']);
+    Route::post('/Admin/Employee/Create/Posisi', [App\Http\Controllers\admin_employee::class, 'saveBagian']);
+    Route::post('/Admin/Employee/Create/Detail', [App\Http\Controllers\admin_employee::class, 'saveDetail']);
+    Route::post('/Admin/Employee/Create/Family', [App\Http\Controllers\admin_employee::class, 'saveFamily']);
+    Route::post('/Admin/Employee/Kabupaten', [App\Http\Controllers\admin_employee::class, 'selectKab']);
+    Route::post('/Admin/Employee/Kecamatan', [App\Http\Controllers\admin_employee::class, 'selectKec']);
+    Route::post('/Admin/Employee/Desa', [App\Http\Controllers\admin_employee::class, 'selectDes']);
+    Route::post('/Admin/Employee/Link', [App\Http\Controllers\admin_employee::class, 'selectLink']);
+    Route::post('/Admin/Employee/Create/Address', [App\Http\Controllers\admin_employee::class, 'saveAddress']);
+    Route::post('/Admin/Employee/Create/Domicile', [App\Http\Controllers\admin_employee::class, 'saveDomicile']);
+    Route::post('/Admin/Employee/Create/Kontak', [App\Http\Controllers\admin_employee::class, 'saveKontak']);
+    Route::post('/Admin/Employee/Create/Education', [App\Http\Controllers\admin_employee::class, 'saveEducation']);
+    Route::post('/Admin/Employee/Create/Experience', [App\Http\Controllers\admin_employee::class, 'saveExperience']);
+    Route::post('/Admin/Employee/Create/Skill', [App\Http\Controllers\admin_employee::class, 'saveSkill']);
+    Route::get('/Admin/EmployeeBPJS', [App\Http\Controllers\admin_employee::class, 'bpjs']);
+    Route::post('/Admin/EmployeeBPJS', [App\Http\Controllers\admin_employee::class, 'bpjsUpdate']);
+    Route::post('/Admin/EmployeeBPJS/Kes', [App\Http\Controllers\admin_employee::class, 'bpjsUpdateKes']);
+    Route::post('/Admin/EmployeeBPJS/TK', [App\Http\Controllers\admin_employee::class, 'bpjsUpdateTK']);
+    Route::get('/Admin/Employee/Domiciles', [App\Http\Controllers\admin_employee::class, 'employeeDomiciles']);
+    Route::get('/Admin/Employee/Address', [App\Http\Controllers\admin_employee::class, 'employeeAddress']);
+    Route::get('/Admin/Employee/PSAB', [App\Http\Controllers\admin_employee::class, 'psab_list']);
+    Route::get('/Admin/Employee/Other/{tipe}', [App\Http\Controllers\admin_employee::class, 'otherEmployee']);
+    Route::post('/Admin/Employee/Other', [App\Http\Controllers\admin_employee::class, 'otherEmployeeSave']);
+    Route::get('/Admin/Employee/Record/Show/{periode}', [App\Http\Controllers\admin_employee::class, 'recordShow']);
+    Route::post('/Admin/Employee/Record/Submit', [App\Http\Controllers\admin_employee::class, 'recordSave']);
+    Route::post('/Admin/Employee/Record/Update', [App\Http\Controllers\admin_employee::class, 'recordUpdate']);
+    Route::get('/Admin/Employee/Other/{tipe}', [App\Http\Controllers\admin_employee::class, 'otherEmployee']);
+    Route::get('/Admin/Employee/Education', [App\Http\Controllers\admin_employee::class, 'education']);
+    Route::get('/Admin/Department/{id}/{periode}', [App\Http\Controllers\admin_employee::class, 'department']);
+
+//End Migration

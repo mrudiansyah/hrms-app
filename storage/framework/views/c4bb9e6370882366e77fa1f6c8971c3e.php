@@ -4,10 +4,10 @@
 		<!-- Sidebar user panel -->
 		<div class="user-panel">
 			<div class="pull-left image">
-				<img src="{{ asset('/assets/dist/img/user.jpg') }}" class="img-circle" alt="User Image">
+				<img src="<?php echo e(asset('/assets/dist/img/user.jpg')); ?>" class="img-circle" alt="User Image">
 			</div>
 			<div class="pull-left info">
-				<p>{{ Auth::user()->name }}</p>
+				<p><?php echo e(Auth::user()->name); ?></p>
 				<a href="#"><i class="fa fa-circle text-success"></i> Online</a>
 			</div>
 		</div>
@@ -28,13 +28,13 @@
 					</span>
 				</a>
 				<ul class="treeview-menu">
-					@if(request()->user()->hasRole('add_user'))
+					<?php if(request()->user()->hasRole('add_user')): ?>
 						<li><a href="/user-management"><i class="fa fa-user"></i> Users</a></li>
-					@endif
-					@if(request()->user()->hasRole('role'))
+					<?php endif; ?>
+					<?php if(request()->user()->hasRole('role')): ?>
 						<li><a href="/role-management"><i class="fa fa-key"></i> Roles</a></li>
 						<li><a href="/userrole-management"><i class="fa fa-cogs"></i> User Role</a></li>
-					@endif
+					<?php endif; ?>
 				</ul>
 			</li>
 			<?php }?>
@@ -159,7 +159,7 @@
 							<li><a href="/FPPK"><i class="fa fa-circle"></i> FPPK</a></li>
 						</ul>
 					</li>
-					<li><a href="{{ route('renewal.index') }}"><i class="fa fa-edit"></i> Renewal</a></li>
+					<li><a href="<?php echo e(route('renewal.index')); ?>"><i class="fa fa-edit"></i> Renewal</a></li>
 				</ul>
 			</li>
 			<?php }?>
@@ -275,4 +275,4 @@
 		</ul>
 	</section>
 	<!-- /.sidebar -->
-</aside>
+</aside><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/layouts/menu.blade.php ENDPATH**/ ?>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use DateTime;
 use Auth;
 use PDF;
@@ -294,6 +296,110 @@ class ess_controller extends Controller
             return view('page_ess/slip_overtime', ['tb_summary_overtime' => $tb_summary_overtime, 'tb1' => $tb1, 'NIK' => $NIK, 'employee_name' => $employee_name, 'status' => $status, 'menu' => 'slip_gaji', 'juduls' => 'Slip Overtime', 'ess_leave' => $ess_leave]);
         } else {
             return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function document($id_doc){
+        $tb_training_document=DB::table('tb_training_document')->where('doc_level','0')->orderby('id','desc')->get();
+        $related_file=DB::table('tb_training_document')->where('id',$id_doc)->get();
+        $file_name='';
+        $document_name='';
+        foreach($related_file as $dt){
+            $file_name=$dt->file_name;
+            $document_name=$dt->document_name;
+        }
+        if (request()->user()->hasRole('root')||request()->user()->hasRole('training')){
+            return view('page_ess/training_document',['tb_training_document'=>$tb_training_document,'id_doc'=>$id_doc,'file_name'=>$file_name,'document_name'=>$document_name,'menu'=>'training_tools','juduls'=>'Training Documents']);
+        //}elseif (request()->user()->hasRole('ess')){
+            //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
+        }else{
+            return abort(403,'Anda tidak punya akses');
+        }
+    }
+    function document_upload(Request $data){
+        $admin=Auth::user()->name;
+        $namaFile='';
+        if($data->document_name=='')return redirect()->back()->with(['success'=>'Document Name can not be null']);
+        if($data->id_document==''){
+            $file = $data->file('training_doc');
+            if($file=='')return redirect()->back()->with(['success'=>'File can not be null']);
+            $namaFile = $file->getClientOriginalName();
+            $tb_training_document=DB::table('tb_training_document')->where('file_name',$namaFile)->where('doc_level','0')->count();
+            if($tb_training_document>0)return redirect()->back()->with(['success'=>'File already exists']);
+
+            $terupload = $file->move(storage_path('app/public'), $namaFile);
+            if($terupload){
+                $add=DB::table('tb_training_document')->insert([
+                    'document_name'=>$data->document_name,
+                    'file_name'=>$namaFile,
+                    'doc_level'=>'0',
+                    'admin'=>$admin,
+                ]);
+                if($add){
+                    return redirect()->back()->with(['success'=>'Upload Sukses']);
+                }
+            }
+        }else{
+            $update=DB::table('tb_training_document')->where('id',$data->id_document)->update([
+                'document_name'=>$data->document_name,
+                'admin'=>$admin,
+            ]);
+            if($update)return redirect()->back()->with(['success'=>'Update Sukses']);
+        }
+        return redirect()->back()->with(['success'=>'There is no change']);
+    }
+    function delete_document(Request $data){
+        $tb_training_document=DB::table('tb_training_document')->where('id',$data->id)->get();
+        foreach($tb_training_document as $dt){
+            $file_path = storage_path('app/public/' . $dt->file_name); 
+            if(file_exists($file_path)){ 
+                unlink($file_path); 
+            }
+        }
+        $delete=DB::table('tb_training_document')->where('id',$data->id)->delete();
+        if($delete){
+            $hasil='Sukses';
+        }
+        else $hasil='Gagal';
+        return $hasil;
+    }
+    function document_download($id){
+        if (request()->user()->hasRole('ess')){
+            $tb_training_document=DB::table('tb_training_document')->where('id',$id)->get();
+            foreach($tb_training_document as $dt){
+                $file_path = storage_path('app/public/' . $dt->file_name);
+                if(file_exists($file_path)){ 
+                    return Storage::download('public/'.$dt->file_name);
+                }else{
+                    return redirect()->back()->with(['success'=>'File is not available']);
+                }
+            }
+        }else{
+            return abort(403,'Anda tidak punya akses');
+        }
+    }
+    function training_invitation(){
+        if (request()->user()->hasRole('ess')){
+            $email=Auth::user()->email;
+            $tb_employee=DB::table('tb_emails')
+            ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+            ->where('email_address',$email)->get();
+            foreach($tb_employee as $dt){
+                $id_employee=$dt->id_employee;
+            }
+            $tb_training_invitation=DB::table('tb_training_invitation')
+            ->leftjoin('tb_training_schedule','tb_training_schedule.id','=','tb_training_invitation.id_training_schedule')
+            ->leftjoin('tb_training_list','tb_training_list.id','=','tb_training_schedule.id_training')
+            ->leftjoin('tb_skill_type','tb_skill_type.id','=','tb_training_list.id_type')
+            ->leftjoin('tb_training_participant','tb_training_participant.id_training_invitation','=','tb_training_invitation.id')
+            ->leftjoin('tb_related_test','tb_related_test.id_training_schedule','=','tb_training_schedule.id')
+            ->where('tb_training_invitation.id_employee',$id_employee)
+            //->orderby('tb_training_schedule.id','desc')->get(['tb_training_schedule.*','tb_training_list.training_name','tb_skill_type.skill_type']);
+            ->orderby('tb_training_schedule.id','desc')
+            ->get(['tb_training_invitation.*','tb_training_schedule.id as id_training_schedule','tb_training_schedule.id_training','tb_training_schedule.nara_sumber','tb_training_schedule.tanggal','tb_training_schedule.start','tb_training_schedule.finish','tb_training_list.training_name','tb_skill_type.skill_type','tb_training_participant.free_test','tb_training_participant.post_test','tb_training_participant.passing_grade','tb_training_participant.progress','tb_training_participant.grade_status','tb_related_test.id_test','tb_training_participant.id as idparticipant']);
+            return $tb_training_invitation;
+            return view('page/training/training_invitation',['tb_training_invitation'=>$tb_training_invitation,'page_status'=>'','site'=>$this->site,'menu'=>'training_activity','juduls'=>'Training Schedule']);
+        }else{
+            return abort(403,'Anda tidak punya akses');
         }
     }
 

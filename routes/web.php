@@ -26,6 +26,12 @@ Route::post('/userrole-management/selectUser', [UserRoleController::class, 'sele
 Route::post('/userrole-management/addRole', [UserRoleController::class, 'addRole']);
 Route::post('/userrole-management/removeRole', [UserRoleController::class, 'removeRole']);
 
+Route::get('/Staff', [App\Http\Controllers\staff_controller::class, 'index']);
+Route::post('/Staff/SelectUser', [App\Http\Controllers\staff_controller::class, 'selectUser']);
+Route::post('/Staff/AddDept', [App\Http\Controllers\staff_controller::class, 'addDept']);
+Route::post('/Staff/RemoveDept', [App\Http\Controllers\staff_controller::class, 'removeDept']);
+
+
 use App\Http\Controllers\ManifestController;
 Route::get('/manifest', [ManifestController::class, 'index']);
 Route::post('/manifest/update-status/{id}', [ManifestController::class, 'updateStatus']);
@@ -161,5 +167,19 @@ Route::get('/renewal/{id}/print', [App\Http\Controllers\RenewalController::class
     Route::get('/Admin/Employee/Other/{tipe}', [App\Http\Controllers\admin_employee::class, 'otherEmployee']);
     Route::get('/Admin/Employee/Education', [App\Http\Controllers\admin_employee::class, 'education']);
     Route::get('/Admin/Department/{id}/{periode}', [App\Http\Controllers\admin_employee::class, 'department']);
+
+    Route::get('/Status/Active', [App\Http\Controllers\contract_controller::class, 'active']);
+    Route::post('/Status/New', [App\Http\Controllers\contract_controller::class, 'newContract']);
+    Route::get('/Status/Permanen', [App\Http\Controllers\contract_controller::class, 'permanen']);
+    Route::get('/Status/Kontrak', [App\Http\Controllers\contract_controller::class, 'kontrak']);
+    Route::get('/Status/Magang', [App\Http\Controllers\contract_controller::class, 'magang']);
+    Route::get('/Status/Other', [App\Http\Controllers\contract_controller::class, 'other']);
+    Route::get('/Status/SAB', [App\Http\Controllers\contract_controller::class, 'SAB']);
+    Route::get('/Status/Draft', [App\Http\Controllers\contract_controller::class, 'draft']);
+    Route::get('/Status/NonActive/{periode}', [App\Http\Controllers\contract_controller::class, 'nonactive']);
+    Route::get('/Status/Reactive/{id}', [App\Http\Controllers\contract_controller::class, 'reactive']);
+    Route::get('/Status/Deactive/{id}', [App\Http\Controllers\contract_controller::class, 'deactive']);
+    Route::get('/Status/Delete/{id}', [App\Http\Controllers\contract_controller::class, 'delete']);
+    Route::get('/Status/Arsif/{periode}', [App\Http\Controllers\contract_controller::class, 'arsif']);
 
 //End Migration

@@ -65,28 +65,6 @@ class contract_controller extends Controller
         }
         $tb_employee=$tb_employee->orderby('employee_name','asc')
         ->get(['tb_employees.PIN','tb_employee_detail.nomor_ktp','tb_employees.id as idemployee','tb_employees.join_date as joindate','tb_employees.NIK','tb_employees.employee_name','tb_employees.gender','tb_employees.status','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_statuses.*']);
-        // $today=date('Y-m-d');
-        // foreach($tb_employee as $dt){
-        //     $markup=date('Y-m-d',strtotime('+2 months',strtotime($dt->start_contract)));
-        //     if($markup<$today){
-        //       $update=DB::table('tb_employees')->where('id',$dt->idemployee)->update([
-        //         'delete'=>'1',
-        //         'updated_at'=>$now,
-        //       ]);
-        //     }
-        // }
-        // $tb_employee=DB::table('tb_employees')
-        // ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
-        // ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
-        // ->leftjoin('tb_statuses', function ($join) {
-        //     $join->on('tb_statuses.id_employee', '=', 'tb_employees.id')
-        //          ->where('tb_statuses.active', '1');
-        // })
-        // ->where('delete','0')
-        // ->where('tb_employees.status','0')
-        // ->orderby('employee_name','asc')
-        // ->get(['tb_employees.PIN','tb_employees.id as idemployee','tb_employees.join_date as joindate','tb_employees.NIK','tb_employees.employee_name','tb_employees.gender','tb_employees.status','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_statuses.*']);
-        //return $hari_awal.' '.$hari_akhir;
         return view('page/admin/m_employee/contract_inactive',['tb_employee'=>$tb_employee,'periode'=>$periode,'menu'=>'employee','submenu'=>'contract','Judul'=>'Employee (Non Active)']);
     }
     function active(){
@@ -152,16 +130,7 @@ class contract_controller extends Controller
       ->where('tb_employees.status','1')
       ->where('tb_statuses.active', '1')
       ->where('tb_statuses.contract_name','Kontrak')
-      //->where('tb_statuses.contract_name','<>','PSAB')
-      //->where('tb_statuses.contract_name','<>','SAB')
-      //->where('tb_statuses.contract_name','<>','NASKA')
-      //->where('tb_statuses.contract_name','<>','Other')
-      //->where('tb_statuses.contract_name','<>','End Contract')
-      //->where('tb_statuses.contract_name','<>','Permanen')
-      //->where('tb_statuses.contract_name','<>','Magang')
       ->orderby('finish_contract','asc')
-      //->orderby('tb_employees.employee_name','asc')
-      //->orderby('active','desc')
       ->get(['tb_employees.PIN','tb_employees.id as idemployee','tb_employees.join_date as joindate','tb_employees.NIK','tb_employees.employee_name','tb_employees.gender','tb_employees.status','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_statuses.*']);
 
       return view('page/admin/m_employee/contract(custome)',['tb_employee'=>$tb_employee,'menu'=>'employee','submenu'=>'contract','submenu'=>'contract','Judul'=>'Employee (Kontrak)']);
@@ -347,7 +316,7 @@ class contract_controller extends Controller
           ]);
 
           if($data->id_contract!=''){
-            tb_status::where('id',$data->id_contract)->update(['active'=>'0']);
+            DB::table('tb_statuses')->where('id',$data->id_contract)->update(['active'=>'0']);
             if($data->contract_name!='Resign'&&$data->contract_name!='Kabur'&&$data->contract_name!='Magang'&&$data->contract_name!='SAB'){
               //Kompensasi
 
@@ -412,7 +381,7 @@ class contract_controller extends Controller
               $deaktif=DB::table('tb_employee_leaves')->where('id_employee',$data->id_employee)->update(['status'=>'0']);
               //Nonactive TMS
               $periode=date('Y-m',strtotime($now));
-              $tb_we=DB::connection('tms')->table('tb_work_entries')->where('id_employee',$data->id_employee)->where('periode',$periode)->where('daily_show','1')->update(['daily_show'=>'0']);
+              $tb_we=DB::table('tb_work_entries')->where('id_employee',$data->id_employee)->where('periode',$periode)->where('daily_show','1')->update(['daily_show'=>'0']);
               //Ganti atasan
                 $table1=DB::table('tb_employees')->where('id',$data->id_employee)->get();
                 foreach($table1 as $tb1){
@@ -424,7 +393,7 @@ class contract_controller extends Controller
                 ]);
 
                 //Update TMS
-                $update_tms=DB::connection('tms')->table('tb_work_contract')->where('id_employee',$data->id_employee)->update([
+                $update_tms=DB::table('tb_work_contract')->where('id_employee',$data->id_employee)->update([
                   'isactive'=>'0'
                 ]);
 

@@ -34,6 +34,7 @@
 					<?php if(request()->user()->hasRole('role')): ?>
 						<li><a href="/role-management"><i class="fa fa-key"></i> Roles</a></li>
 						<li><a href="/userrole-management"><i class="fa fa-cogs"></i> User Role</a></li>
+						<li><a href="/Staff"><i class="fa fa-circle-o"></i> Staff Admin</a></li>
 					<?php endif; ?>
 				</ul>
 			</li>
@@ -85,7 +86,7 @@
 							</span>
 							</a>
 							<ul class="treeview-menu">
-								<li class="treeview<?php if(isset($menu)&&$menu=='employee'&&isset($submenu)&&$submenu=='contract')echo ' active';?>">
+								<!-- <li class="treeview<?php if(isset($menu)&&$menu=='employee'&&isset($submenu)&&$submenu=='contract')echo ' active';?>">
 									<a href="#">
 									<i class="fa fa-circle-o"></i> <span> Agreement</span>
 									<span class="pull-right-container">
@@ -96,15 +97,15 @@
 										<li><a href="/Agreement/Kontrak"><i class="fa fa-circle-o"></i>SAI Contract</a></li>
 										<li><a href="/Agreement/Magang"><i class="fa fa-circle-o"></i>Magang</a></li>
 									</ul>
-								</li>
-									<li><a href="/Status/Active"><i class="fa fa-circle-o"></i> Registered</a></li>
-							<li><a href="/Status/Draft"><i class="fa fa-circle-o"></i> Non Active</a></li>
+								</li> -->
+								<li><a href="/Status/Active"><i class="fa fa-circle-o"></i> Registered</a></li>
+								<li><a href="/Status/Draft"><i class="fa fa-circle-o"></i> Non Active</a></li>
 							<?php if (request()->user()->hasRole('ksk_hr')) {?>
 								<li><a href="/Status/KSK/0"><i class="fa fa-circle-o"></i> KSK</a></li>
 							<?php }?>
-							<li><a href="/Status/Letter/0"><i class="fa fa-circle-o"></i> Letter</a></li>
+							<!-- <li><a href="/Status/Letter/0"><i class="fa fa-circle-o"></i> Letter</a></li> -->
 							<?php if (request()->user()->hasRole('allowance')) {?>
-								<li><a href="/Kompensasi/0"><i class="fa fa-circle-o"></i> Kompensasi</a></li>
+								<!-- <li><a href="/Kompensasi/0"><i class="fa fa-circle-o"></i> Kompensasi</a></li> -->
 							<?php }?>
 							</ul>
 						</li>

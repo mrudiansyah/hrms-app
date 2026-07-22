@@ -510,45 +510,135 @@ class contract_controller extends Controller
         //$this->kskRefresh($periode);
       }
 
-      $tb_ksk=DB::table('tb_ksk')
-      ->leftjoin('tb_departments','tb_departments.id','=','tb_ksk.dept_id')
-      ->leftjoin('tb_employees as tb_employees1','tb_employees1.id','tb_ksk.approval1')
-      ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','tb_ksk.approval2')
-      ->leftjoin('tb_employees as tb_employees3','tb_employees3.id','tb_ksk.approval3')
-      ->leftjoin('tb_employees as tb_employees4','tb_employees4.id','tb_ksk.approval4')
-      ->leftjoin('tb_employees as tb_employees5','tb_employees5.id','tb_ksk.approval5')
-      ->leftjoin('tb_employees as tb_employees6','tb_employees6.id','tb_ksk.approval6')
-      ->leftjoin('tb_ksk_target',function($join){
-        $join->on('tb_ksk_target.periode','=','tb_ksk.periode')->on('tb_ksk.dept_id','=','tb_ksk_target.dept_id');
-      })
-      ->select([
-        'tb_ksk.*',
-        'tb_departments.dept_code',
-        'tb_employees1.id as approval1',
-        'tb_employees2.id as approval2',
-        'tb_employees3.id as approval3',
-        'tb_employees4.id as approval4',
-        'tb_employees5.id as approval5',
-        'tb_employees6.id as approval6',
-        'tb_employees1.employee_name as approvalname1',
-        'tb_employees2.employee_name as approvalname2',
-        'tb_employees3.employee_name as approvalname3',
-        'tb_employees4.employee_name as approvalname4',
-        'tb_employees5.employee_name as approvalname5',
-        'tb_employees6.employee_name as approvalname6',
-        'tb_ksk_target.permanent_target',
-        'tb_ksk_target.contract_target',
-        'tb_ksk_target.magang_target',
-        'tb_ksk_target.permanent_actual',
-        'tb_ksk_target.contract_actual',
-        'tb_ksk_target.magang_actual',
-        'tb_ksk_target.permanent_remain',
-        'tb_ksk_target.contract_remain',
-        'tb_ksk_target.magang_remain',
-      ])
-      ->where('no_ksk','like',$kunci)
-      ->where('tb_ksk.periode',$periode)
-      ->orderby('no_ksk','asc')->get();
+      // Query utama
+      $tb_ksk = DB::table('tb_ksk')
+          ->leftJoin('tb_departments', 'tb_departments.id', '=', 'tb_ksk.dept_id')
+          ->leftJoin('tb_employees as tb_employees1', 'tb_employees1.id', '=', 'tb_ksk.approval1')
+          ->leftJoin('tb_employees as tb_employees2', 'tb_employees2.id', '=', 'tb_ksk.approval2')
+          ->leftJoin('tb_employees as tb_employees3', 'tb_employees3.id', '=', 'tb_ksk.approval3')
+          ->leftJoin('tb_employees as tb_employees4', 'tb_employees4.id', '=', 'tb_ksk.approval4')
+          ->leftJoin('tb_employees as tb_employees5', 'tb_employees5.id', '=', 'tb_ksk.approval5')
+          ->leftJoin('tb_employees as tb_employees6', 'tb_employees6.id', '=', 'tb_ksk.approval6')
+          ->leftJoin('tb_ksk_target', function($join) {
+              $join->on('tb_ksk_target.periode', '=', 'tb_ksk.periode')
+                  ->on('tb_ksk_target.dept_id', '=', 'tb_ksk.dept_id');
+          })
+          ->select([
+              'tb_ksk.*',
+              'tb_departments.dept_code',
+              'tb_employees1.id as approval1',
+              'tb_employees2.id as approval2',
+              'tb_employees3.id as approval3',
+              'tb_employees4.id as approval4',
+              'tb_employees5.id as approval5',
+              'tb_employees6.id as approval6',
+              'tb_employees1.employee_name as approvalname1',
+              'tb_employees2.employee_name as approvalname2',
+              'tb_employees3.employee_name as approvalname3',
+              'tb_employees4.employee_name as approvalname4',
+              'tb_employees5.employee_name as approvalname5',
+              'tb_employees6.employee_name as approvalname6',
+              'tb_ksk_target.permanent_target',
+              'tb_ksk_target.contract_target',
+              'tb_ksk_target.magang_target',
+              'tb_ksk_target.permanent_actual',
+              'tb_ksk_target.contract_actual',
+              'tb_ksk_target.magang_actual',
+              'tb_ksk_target.permanent_remain',
+              'tb_ksk_target.contract_remain',
+              'tb_ksk_target.magang_remain',
+          ])
+          ->where('no_ksk', 'like', $kunci)
+          ->where('tb_ksk.periode', $periode)
+          ->orderBy('no_ksk', 'asc')
+          ->get();
+
+      // Proses data untuk view
+      $data = [];
+      $no = 0;
+      foreach ($tb_ksk as $dt) {
+          $no++;
+          
+          // Hitung approval status
+          $qty_approval = 0;
+          if ($dt->approval1 > 0 && $dt->approval1_status == 1) $qty_approval++;
+          if ($dt->approval2 > 0 && $dt->approval2_status == 1) $qty_approval++;
+          if ($dt->approval3 > 0 && $dt->approval3_status == 1) $qty_approval++;
+          if ($dt->approval4 > 0 && $dt->approval4_status == 1) $qty_approval++;
+          if ($dt->approval5 > 0 && $dt->approval5_status == 1) $qty_approval++;
+          if ($dt->approval6 > 0 && $dt->approval6_status == 1) $qty_approval++;
+          
+          // Query tb_ksk_detail (pindahkan dari view)
+          $qty_total = DB::table('tb_ksk_detail')
+              ->where('id_ksk', $dt->id)
+              ->count();
+              
+          $qty_performance = DB::table('tb_ksk_detail')
+              ->where('id_ksk', $dt->id)
+              ->whereNull('performance')
+              ->count();
+          
+          // Tentukan status dan warna
+          $performance_status = 0;
+          $warna = 'btn-success';
+          if ($qty_performance > 0) {
+              $warna = 'btn-warning';
+              $performance_status = 0;
+          }
+          
+          // Cek quota
+          $quota_status = 1;
+          if ($dt->permanent_target == '') {
+              $quota_status = 0;
+          }
+          
+          // Status lock
+          $lock_status = 0;
+          if ($dt->approval1_status == 1) {
+              $lock_status = 1;
+          }
+          
+          // Simpan ke array
+          $data[] = [
+              'no' => $no,
+              'id' => $dt->id,
+              'no_ksk' => $dt->no_ksk,
+              'dept_code' => $dt->dept_code,
+              'dept_id' => $dt->dept_id,
+              'approval1' => $dt->approval1,
+              'approval2' => $dt->approval2,
+              'approval3' => $dt->approval3,
+              'approval4' => $dt->approval4,
+              'approval5' => $dt->approval5,
+              'approval6' => $dt->approval6,
+              'approval1_status' => $dt->approval1_status,
+              'approval2_status' => $dt->approval2_status,
+              'approval3_status' => $dt->approval3_status,
+              'approval4_status' => $dt->approval4_status,
+              'approval5_status' => $dt->approval5_status,
+              'approval6_status' => $dt->approval6_status,
+              'approvalname1' => $dt->approvalname1,
+              'approvalname2' => $dt->approvalname2,
+              'approvalname3' => $dt->approvalname3,
+              'approvalname4' => $dt->approvalname4,
+              'approvalname5' => $dt->approvalname5,
+              'approvalname6' => $dt->approvalname6,
+              'qty_approval' => $qty_approval,
+              'qty_total' => $qty_total,
+              'qty_performance' => $qty_performance,
+              'warna' => $warna,
+              'performance_status' => $performance_status,
+              'quota_status' => $quota_status,
+              'lock_status' => $lock_status,
+              'permanent_target' => $dt->permanent_target,
+              'contract_target' => $dt->contract_target,
+              'magang_target' => $dt->magang_target,
+              'permanent_actual' => $dt->permanent_actual,
+              'contract_actual' => $dt->contract_actual,
+              'magang_actual' => $dt->magang_actual,
+              'periode' => $periode,
+          ];
+      }
       //return $tb_ksk;
       $judul="KSK List (".$periode.")";
       $tb_ksk_lock=DB::table('tb_ksk_lock')->where('periode',$periode)->get();
@@ -556,7 +646,7 @@ class contract_controller extends Controller
       foreach ($tb_ksk_lock as $dt) {
         $status_lock=$dt->is_lock;
       }
-      return view('page/admin/m_employee/ksk',['tb_ksk'=>$tb_ksk,'periode'=>$periode,'status_lock'=>$status_lock,'menu'=>'employee','submenu'=>'contract','submenu'=>'contract','Judul'=>$judul]);
+      return view('page/admin/m_employee/ksk',['tb_ksk'=>$tb_ksk,'data'=>$data,'periode'=>$periode,'status_lock'=>$status_lock,'menu'=>'employee','submenu'=>'contract','submenu'=>'contract','Judul'=>$judul]);
       //return redirect('/Status/KSK/Detail/'.$periode)->with(['success' => "KSK Created"]);
     }
     function kskRefresh($periode){
@@ -674,44 +764,44 @@ class contract_controller extends Controller
               $approval4='0';
               $approval3='0';
               foreach($tb_leader as $dt2){
-                $tb_position=DB::connection('mysql')->table('tb_positions')->where('id',$dt2->position_id6)->get();
+                $tb_position=DB::table('tb_positions')->where('id',$dt2->position_id6)->get();
                 foreach($tb_position as $dt3){
                   if($dt3->position_index<=7)$approval6=$dt2->approval6;
                   else $approval6='0';
                   if($dt3->position_index>=6)$pic=$dt2->approval6;
                 }
-                $tb_position=DB::connection('mysql')->table('tb_positions')->where('id',$dt2->position_id5)->get();
+                $tb_position=DB::table('tb_positions')->where('id',$dt2->position_id5)->get();
                 foreach($tb_position as $dt3){
                   if($dt3->position_index<=7)$approval5=$dt2->approval5;
                   else $approval5='0';
                   if($dt3->position_index>=6)$pic=$dt2->approval5;
                 }
-                $tb_position=DB::connection('mysql')->table('tb_positions')->where('id',$dt2->position_id4)->get();
+                $tb_position=DB::table('tb_positions')->where('id',$dt2->position_id4)->get();
                 foreach($tb_position as $dt3){
                   if($dt3->position_index<=10)$approval4=$dt2->approval4;
                   else $approval4='0';
                   if($dt3->position_index>=6)$pic=$dt2->approval4;
                 }
-                $tb_position=DB::connection('mysql')->table('tb_positions')->where('id',$dt2->position_id3)->get();
+                $tb_position=DB::table('tb_positions')->where('id',$dt2->position_id3)->get();
                 foreach($tb_position as $dt3){
                   if($dt3->position_index<=10)$approval3=$dt2->approval3;
                   else $approval3='0';
                   if($dt3->position_index>=6)$pic=$dt2->approval3;
                 }
-                $tb_position=DB::connection('mysql')->table('tb_positions')->where('id',$dt2->position_id2)->get();
+                $tb_position=DB::table('tb_positions')->where('id',$dt2->position_id2)->get();
                 foreach($tb_position as $dt3){
                   if($dt3->position_index<=10)$approval2=$dt2->approval2;
                   else $approval2='0';
                   if($dt3->position_index>=6)$pic=$dt2->approval2;
                 }
-                $tb_position=DB::connection('mysql')->table('tb_positions')->where('id',$dt2->position_id1)->get();
+                $tb_position=DB::table('tb_positions')->where('id',$dt2->position_id1)->get();
                 foreach($tb_position as $dt3){
                   if($dt3->position_index<=10)$approval1=$dt2->approval1;
                   else $approval1='0';
                   if($dt3->position_index>=6)$pic=$dt2->approval1;
                 }
               }
-              $tb_employees=DB::connection('mysql')->table('tb_employees')
+              $tb_employees=DB::table('tb_employees')
               ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
               ->where('tb_employees.id',$pic)->get(['tb_employees.*','tb_positions.position_name']);
               foreach($tb_employees as $dtemployee){
@@ -758,7 +848,7 @@ class contract_controller extends Controller
   
           $periode_awal=date('Y-m',strtotime($dt->start_contract));
           $periode_akhir=date('Y-m',strtotime($dt->finish_contract));
-          $tb_absen=DB::connection('emsAbsensi')->table('tb_absensi_rate')->where('id_employee',$dt->idemployee)->where('periode','>=',$periode_awal)->where('periode','<=',$periode_akhir)->get();
+          $tb_absen=DB::table('tb_absensi_rate')->where('id_employee',$dt->idemployee)->where('periode','>=',$periode_awal)->where('periode','<=',$periode_akhir)->get();
           $sick=0;$permit=0;$alpa=0;$late=0;$minutes=0;
           foreach($tb_absen as $dt_absen){
             $sick=$sick+$dt_absen->sakit;
@@ -1399,7 +1489,7 @@ class contract_controller extends Controller
     }
     function kskUpdate(Request $data){
       date_default_timezone_set("Asia/Jakarta");
-      $sekarang=date('Y-m-d H;i:s');
+      $sekarang=date('Y-m-d H:i:s');
       $update=DB::table('tb_ksk_detail')->where('id',$data->idksk)->update([
         'warning_letter'=>$data->warning_letter,
         'sick'=>$data->sick,
@@ -1417,11 +1507,11 @@ class contract_controller extends Controller
     function kskTarget(Request $data){
       $admin=Auth::user()->name;
       date_default_timezone_set("Asia/Jakarta");
-      $sekarang=date('Y-m-d H;i:s');
+      $sekarang=date('Y-m-d H:i:s');
       $permanent_remain=$data->permanent_plan-$data->permanent_actual;
       $contract_remain=$data->contract_plan-$data->contract_actual;
       $magang_remain=$data->magang_plan-$data->magang_actual;
-      $cek=DB::connection('mysql')->table('tb_ksk_target')->where('dept_id',$data->deptid)->where('periode',$data->periode_target)->count();
+      $cek=DB::table('tb_ksk_target')->where('dept_id',$data->deptid)->where('periode',$data->periode_target)->count();
       if($cek==0){
         $insert=DB::table('tb_ksk_target')->insert([
           'dept_id'=>$data->deptid,
@@ -1841,18 +1931,18 @@ class contract_controller extends Controller
     }
     function kskDetailRefresh(Request $data){
       $id_ksk_detail=$data->id;
-      $tb_ksk_detail=DB::connection('mysql')->table('tb_ksk_detail')->where('id',$id_ksk_detail)->get();
+      $tb_ksk_detail=DB::table('tb_ksk_detail')->where('id',$id_ksk_detail)->get();
       foreach($tb_ksk_detail as $dt){
-        $tb_employees=DB::connection('mysql')->table('tb_employees')->where('id',$dt->id_employee)->get();
+        $tb_employees=DB::table('tb_employees')->where('id',$dt->id_employee)->get();
         foreach ($tb_employees as $dt1) {
           $join_date_ems=$dt1->join_date;
         }
 
-        $update_tb_statuses=DB::connection('mysql')->table('tb_statuses')->where('id',$dt->id_kontrak)->update([
+        $update_tb_statuses=DB::table('tb_statuses')->where('id',$dt->id_kontrak)->update([
           'join_date'=>$join_date_ems
         ]);
 
-        $tb_statuses=DB::connection('mysql')->table('tb_statuses')->where('id',$dt->id_kontrak)->get();
+        $tb_statuses=DB::table('tb_statuses')->where('id',$dt->id_kontrak)->get();
         foreach($tb_statuses as $dt2){
           $start_contract=date('Y-m-d',strtotime('-1 days',strtotime($dt2->join_date)));
           $datetime2 = date_create($dt2->finish_contract);
@@ -1865,7 +1955,7 @@ class contract_controller extends Controller
         }
 
 
-        $update=DB::connection('mysql')->table('tb_ksk_detail')->where('id',$id_ksk_detail)->update([
+        $update=DB::table('tb_ksk_detail')->where('id',$id_ksk_detail)->update([
           'join_date'=>$join_date_ems,
           'first_contract'=>$join_date_ems,
           'months'=>$lama_contract

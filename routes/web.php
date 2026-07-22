@@ -182,4 +182,25 @@ Route::get('/renewal/{id}/print', [App\Http\Controllers\RenewalController::class
     Route::get('/Status/Delete/{id}', [App\Http\Controllers\contract_controller::class, 'delete']);
     Route::get('/Status/Arsif/{periode}', [App\Http\Controllers\contract_controller::class, 'arsif']);
 
+    Route::get('/Status/KSK/{id}', [App\Http\Controllers\contract_controller::class, 'ksk']);
+    Route::get('/Status/KSK/Create/{id}', [App\Http\Controllers\contract_controller::class, 'kskCreate']);
+    Route::get('/Status/KSK/Refresh/{id}', [App\Http\Controllers\contract_controller::class, 'kskRefresh']);
+    Route::get('/Employee/KSK/Print/{id_ksk}', [App\Http\Controllers\employee_controller::class, 'kskPrint']);
+    Route::post('/Status/KSK/Target', [App\Http\Controllers\contract_controller::class, 'kskTarget']);
+    Route::get('/Status/KSK/Detail/{id}/{id2}', [App\Http\Controllers\contract_controller::class, 'kskDetail']);
+    Route::get('/Status/KSK/Print/{id}', [App\Http\Controllers\contract_controller::class, 'kskPrint']);
+    Route::get('/Status/KSK/Performance/{id}/{id2}', [App\Http\Controllers\contract_controller::class, 'kskPerformance']);
+    Route::post('/Status/KSK/Update', [App\Http\Controllers\contract_controller::class, 'kskUpdate']);
+    Route::post('/Status/KSKDetail/Refresh', [App\Http\Controllers\contract_controller::class, 'kskDetailRefresh']);
+
+    Route::get('/Employee/{id}/{id2}', [App\Http\Controllers\employee_controller::class, 'employee']);
+
+    Route::get('/Leader', [App\Http\Controllers\employee_controller::class, 'leader']);
+    Route::get('/Leader/{id}', [App\Http\Controllers\employee_controller::class, 'updateLeader']);
+    Route::post('/LeaderUpdate', [App\Http\Controllers\employee_controller::class, 'saveData']);
+
+    Route::get('/Setup', [App\Http\Controllers\setup_controller::class, 'index']);
+    Route::post('/Setup/Update', [App\Http\Controllers\setup_controller::class, 'setup_update']);
+    Route::post('/Setup/UpdateLimit', [App\Http\Controllers\setup_controller::class, 'setup_limit']);
+
 //End Migration

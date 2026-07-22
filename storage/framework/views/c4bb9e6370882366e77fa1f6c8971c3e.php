@@ -41,7 +41,7 @@
 			<?php }?>
 
 			<?php if (request()->user()->hasRole('admin_shift')||request()->user()->hasRole('admin_employee')||request()->user()->hasRole('admin_calendar')) {?>
-				<li class="treeview<?php if(isset($menu)&&($menu=='shift'||$menu=='employee'||$menu=='calendar'))echo ' active';?>">
+				<li class="treeview<?php if(isset($menu)&&($menu=='shift'||$menu=='employee'||$menu=='leader'||$menu=='calendar'))echo ' active';?>">
 				<a href="#">
 				<i class="fa fa-database"></i> <span>Master Data</span>
 				<span class="pull-right-container">
@@ -100,13 +100,13 @@
 								</li> -->
 								<li><a href="/Status/Active"><i class="fa fa-circle-o"></i> Registered</a></li>
 								<li><a href="/Status/Draft"><i class="fa fa-circle-o"></i> Non Active</a></li>
-							<?php if (request()->user()->hasRole('ksk_hr')) {?>
-								<li><a href="/Status/KSK/0"><i class="fa fa-circle-o"></i> KSK</a></li>
-							<?php }?>
-							<!-- <li><a href="/Status/Letter/0"><i class="fa fa-circle-o"></i> Letter</a></li> -->
-							<?php if (request()->user()->hasRole('allowance')) {?>
-								<!-- <li><a href="/Kompensasi/0"><i class="fa fa-circle-o"></i> Kompensasi</a></li> -->
-							<?php }?>
+								<?php if (request()->user()->hasRole('ksk_hr')) {?>
+									<li><a href="/Status/KSK/0"><i class="fa fa-circle-o"></i> KSK</a></li>
+								<?php }?>
+								<!-- <li><a href="/Status/Letter/0"><i class="fa fa-circle-o"></i> Letter</a></li> -->
+								<?php if (request()->user()->hasRole('allowance')) {?>
+									<!-- <li><a href="/Kompensasi/0"><i class="fa fa-circle-o"></i> Kompensasi</a></li> -->
+								<?php }?>
 							</ul>
 						</li>
 						<?php }?>
@@ -119,6 +119,7 @@
 
 					</ul>
 					</li>
+					<li><a href="/Leader"><i class="fa fa-user"></i> Direct Leader</a></li>
 				<?php }if (request()->user()->hasRole('admin_calendar')) {?>
 					<!-- <li class="<?php if(isset($menu)&&$menu=='calendar')echo ' active';?>">
 					<a href="/Admin/Freeday">
@@ -136,6 +137,9 @@
 				</ul>
 			</li>
 			<?php }?>
+			<?php if(request()->user()->hasRole('hr_access')): ?>
+				<li><a href="/Setup"><i class="fa fa-gear"></i> SetUp Utility</a></li>
+			<?php endif; ?>
 
 
 			<?php if (request()->user()->hasRole('admin_department')) {?>

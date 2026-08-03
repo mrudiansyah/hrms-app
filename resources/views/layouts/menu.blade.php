@@ -43,7 +43,7 @@
 			<?php if (request()->user()->hasRole('admin_shift')||request()->user()->hasRole('admin_employee')||request()->user()->hasRole('admin_calendar')) {?>
 				<li class="treeview<?php if(isset($menu)&&($menu=='shift'||$menu=='employee'||$menu=='leader'||$menu=='calendar'))echo ' active';?>">
 				<a href="#">
-				<i class="fa fa-database"></i> <span>Master Data</span>
+				<i class="fa fa-database text-red"></i> <span>Master Data</span>
 				<span class="pull-right-container">
 				<i class="fa fa-angle-left pull-right"></i>
 				</span>
@@ -138,7 +138,131 @@
 			</li>
 			<?php }?>
 			@if(request()->user()->hasRole('hr_access'))
-				<li><a href="/Setup"><i class="fa fa-gear"></i> SetUp Utility</a></li>
+				<li><a href="/Setup"><i class="fa fa-gear text-red"></i> SetUp Utility</a></li>
+			@endif
+			@if (request()->user()->hasRole('training')||request()->user()->hasRole('competence')||request()->user()->hasRole('hr_access')||request()->user()->hasRole('performance')||request()->user()->hasRole('leader'))
+				<li class="treeview<?php if(isset($menu)&&($menu=='training'||$menu=='training_activity'||$menu=='training_tools'||$menu=='training_actual'||$menu=='competence'||$menu=='master'||$menu=='aktual'||$menu=='performanceAll'))echo ' active';?>">
+					<a href="#">
+					<i class="fa fa-graduation-cap text-green"></i> <span>Depelovement</span>
+					<span class="pull-right-container">
+						<i class="fa fa-angle-left pull-right"></i>
+					</span>
+					</a>
+					<ul class="treeview-menu">
+
+						<?php if (request()->user()->hasRole('training')) {?>
+							<li class="treeview<?php if(isset($menu)&&($menu=='training'||$menu=='training_activity'||$menu=='training_tools'||$menu=='training_actual'))echo ' active';?>">
+								<a href="#">
+							<i class="fa fa-book"></i> <span>Training</span>
+								<span class="pull-right-container">
+									<i class="fa fa-angle-left pull-right"></i>
+								</span>
+								</a>
+								<ul class="treeview-menu">
+									<li class="treeview<?php if(isset($menu)&&$menu=='training_tools'||$menu=='training')echo ' active';?>">
+										<a href="#">
+										<i class="fa fa-circle"></i> <span>Master List</span>
+										<span class="pull-right-container">
+											<i class="fa fa-angle-left pull-right"></i>
+										</span>
+										</a>
+										<ul class="treeview-menu">
+											<li><a href="/Training/List/0/0"><i class="fa fa-circle-o"></i> Training</a></li>
+											<li><a href="/Training/Document/0"><i class="fa fa-circle-o"></i> Documents</a></li>
+											<li><a href="/Training/Examination"><i class="fa fa-circle-o"></i> Test</a></li>
+										</ul>
+									</li>
+									<li class="treeview<?php if(isset($menu)&&($menu=='training_activity'||$menu=='training_actual'))echo ' active';?>">
+										<a href="#">
+										<i class="fa fa-circle"></i> <span>Training Activity</span>
+										<span class="pull-right-container">
+											<i class="fa fa-angle-left pull-right"></i>
+										</span>
+										</a>
+										<ul class="treeview-menu">
+											<li><a href="/Training/Periode/0"><i class="fa fa-circle-o"></i> Plan</a></li>
+											<li class="treeview<?php if(isset($menu)&&$menu=='training_actual')echo ' active';?>">
+												<a href="#">
+												<i class="fa fa-circle-o"></i> <span>Actual</span>
+												<span class="pull-right-container">
+													<i class="fa fa-angle-left pull-right"></i>
+												</span>
+												</a>
+												<ul class="treeview-menu">
+													<li><a href="/Training/Actuals/0/0"><i class="fa fa-circle-o"></i> Group</a></li>
+													<li><a href="/Training/Personal"><i class="fa fa-circle-o"></i> Employee</a></li>
+												</ul>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+						<?php }?>
+
+						<!-- <?php if (request()->user()->hasRole('performance')||request()->user()->hasRole('info_employee')) {?>
+							<li><a href="/Performance/0/0/0"><i class="fa fa-list-ol"></i> Performance Rank</a></li>
+						<?php }?>
+						<?php if (request()->user()->hasRole('hr_access')) {?>
+							<li><a href="/Performances/0/0/0"><i class="fa fa-bar-chart"></i> Performance Summary</a></li>
+						<?php }?>
+						<?php if (request()->user()->hasRole('competence')||request()->user()->hasRole('hr_access')) {?>
+							<li class="treeview<?php if(isset($menu)&&($menu=='SkillMatric'||$menu=='SkillMatric1'||$menu=='SkillMatric2'))echo ' active';?>">
+								<a href="#">
+								<i class="fa fa-gear"></i> <span>Competence</span>
+								<span class="pull-right-container">
+									<i class="fa fa-angle-left pull-right"></i>
+								</span>
+								</a>
+								<ul class="treeview-menu">
+									<?php if (request()->user()->hasRole('competence')) {?>
+										<li class="treeview<?php if(isset($menu)&&($menu=='SkillMatric'||$menu=='SkillMatric0'))echo ' active';?>">
+											<a href="#">
+											<i class="fa fa-circle"></i> <span>Set Up</span>
+											<span class="pull-right-container">
+												<i class="fa fa-angle-left pull-right"></i>
+											</span>
+											</a>
+											<ul class="treeview-menu">
+												<li><a href="/SkillMatric/Type"><i class="fa fa-circle-o"></i> Skill Type</a></li>
+												<li><a href="/SkillMatric/Group"><i class="fa fa-circle-o"></i> Skill Group</a></li>
+												<li><a href="/SkillMatric"><i class="fa fa-circle-o"></i> Competence List</a></li>
+												<li><a href="/SkillMatric/Group/0"><i class="fa fa-circle-o"></i> Competence Group</a></li>
+											</ul>
+										</li>
+									<?php }?>
+									<li class="treeview<?php if(isset($menu)&&($menu=='SkillMatric1'))echo ' active';?>">
+										<a href="#">
+										<i class="fa fa-circle"></i> <span>Update Competence</span>
+										<span class="pull-right-container">
+											<i class="fa fa-angle-left pull-right"></i>
+										</span>
+										</a>
+										<ul class="treeview-menu">
+											<li><a href="/SkillMatric/MainJob"><i class="fa fa-circle-o"></i> Employee List</a></li>
+											<li><a href="/SkillMatric/CompetenceEmployee/0"><i class="fa fa-circle-o"></i> Competence Employee</a></li>
+											<li><a href="/SkillMatric/EmployeeCompetence/0/0"><i class="fa fa-circle-o"></i> Employee Competence</a></li>
+										</ul>
+									</li>
+									<li class="treeview<?php if(isset($menu)&&($menu=='SkillMatric2'))echo ' active';?>">
+										<a href="#">
+										<i class="fa fa-circle"></i> <span>Report Competence</span>
+										<span class="pull-right-container">
+											<i class="fa fa-angle-left pull-right"></i>
+										</span>
+										</a>
+										<ul class="treeview-menu">
+											<li><a href="/SkillMatric/Groups"><i class="fa fa-circle-o"></i> Group Competence</a></li>
+											<li><a href="/SkillMatric/Employees/0"><i class="fa fa-circle-o"></i> Employee Matric</a></li>
+											<li><a href="/SkillMatric/FelxibilityChart/0/0"><i class="fa fa-circle-o"></i> Felxibility Chart</a></li>
+											<li><a href="/SkillMatric/LineEmployee/0/0"><i class="fa fa-circle-o"></i> Matric Mc Line</a></li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+						<?php }?> -->
+
+					</ul>
+				</li>
 			@endif
 
 
@@ -146,7 +270,7 @@
 			<li class="treeview<?php if (isset($menu) && ($menu == 'recruitment'))
 		echo ' active';?>">
 				<a href="#">
-					<i class="fa fa-user text-yellow"></i> <span>Personalia</span>
+					<i class="fa fa-user text-green"></i> <span>Personalia</span>
 					<span class="pull-right-container">
 						<i class="fa fa-angle-left pull-right"></i>
 					</span>
@@ -172,7 +296,7 @@
 			<li class="treeview<?php if (isset($menu) && ($menu == 'overtime' || $menu == 'overtime_summary' || $menu == 'overtime_tax' || $menu == 'capture_assignment' || $menu == 'summary_assignment'))
 		echo ' active';?>">
 				<a href="#">
-					<i class="fa fa-money text-green"></i> <span>Payroll</span>
+					<i class="fa fa-money text-yellow"></i> <span>Payroll</span>
 					<span class="pull-right-container">
 						<i class="fa fa-angle-left pull-right"></i>
 					</span>
@@ -211,7 +335,7 @@
 			<li class="treeview<?php if (isset($menu) && ($menu == 'manifest' || $menu == 'master_ap' || $menu == 'master_area' || $menu == 'working_area' || $menu == 'outside' || $menu == 'scurity'))
 		echo ' active';?>">
 				<a href="#">
-					<i class="fa fa-clock-o text-aqua"></i> <span>Manifest</span>
+					<i class="fa fa-clock-o text-green"></i> <span>Manifest</span>
 					<span class="pull-right-container">
 						<i class="fa fa-angle-left pull-right"></i>
 					</span>

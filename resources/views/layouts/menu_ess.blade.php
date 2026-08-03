@@ -42,7 +42,7 @@
             </li>
             <?php }?>
             <?php if (request()->user()->hasRole('ess') && request()->user()->hasRole('training')) {?>
-            <li><a href="/Documents/0"><i class="fa fa-book"></i> <span>Training Document</span></a></li>
+            <!-- <li><a href="/Documents/0"><i class="fa fa-book"></i> <span>Training Document</span></a></li> -->
             <?php }?>
             <li><a href="/Performance"><i class="fa fa-line-chart"></i> <span>Performance</span></a></li>
         </ul>

@@ -10,6 +10,10 @@ use Auth;
 
 class log_controller extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth','verified']);
+    }
     function index(){
       $email=Auth::user()->email;
       $tb_log=DB::table('log_activities')->where('subject',$email)->orderby('created_at','desc')->take(1)->get();

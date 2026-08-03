@@ -14,6 +14,10 @@ class WhatsappController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
+    public function __construct()
+    {
+        $this->middleware(['auth','verified']);
+    }
     public function sendMessage(Request $request)
     {
         $request->validate([

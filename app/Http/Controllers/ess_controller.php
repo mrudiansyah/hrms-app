@@ -396,11 +396,448 @@ class ess_controller extends Controller
             //->orderby('tb_training_schedule.id','desc')->get(['tb_training_schedule.*','tb_training_list.training_name','tb_skill_type.skill_type']);
             ->orderby('tb_training_schedule.id','desc')
             ->get(['tb_training_invitation.*','tb_training_schedule.id as id_training_schedule','tb_training_schedule.id_training','tb_training_schedule.nara_sumber','tb_training_schedule.tanggal','tb_training_schedule.start','tb_training_schedule.finish','tb_training_list.training_name','tb_skill_type.skill_type','tb_training_participant.free_test','tb_training_participant.post_test','tb_training_participant.passing_grade','tb_training_participant.progress','tb_training_participant.grade_status','tb_related_test.id_test','tb_training_participant.id as idparticipant']);
-            return $tb_training_invitation;
-            return view('page/training/training_invitation',['tb_training_invitation'=>$tb_training_invitation,'page_status'=>'','site'=>$this->site,'menu'=>'training_activity','juduls'=>'Training Schedule']);
+            return view('page/training/training_invitation',['tb_training_invitation'=>$tb_training_invitation,'page_status'=>'','menu'=>'training_activity','juduls'=>'Training Schedule']);
         }else{
             return abort(403,'Anda tidak punya akses');
         }
+    }
+    function training_schedule($id_training_invitation){
+        $email=Auth::user()->email;
+        $admin=Auth::user()->name;
+        $time=date('Y-m-d h:i:s');
+        $tanggal=date('Y-m-d');
+        $start=$time;
+        $finish=$time;
+
+        $id_employee=DB::table('tb_emails')->where('email_address',$email)->value('id_employee');
+        $id_training_schedule=DB::table('tb_training_invitation')->where('id_employee',$id_employee)->where('id',$id_training_invitation)->value('id_training_schedule');
+
+        $cek_aktual = DB::table('tb_training_actual')
+        ->where('id_training_schedule',$id_training_schedule)
+        ->where('is_delete','0')
+        ->count();
+        if($cek_aktual==0){
+            $tb_training_schedule=DB::table('tb_training_schedule')->where('id',$id_training_schedule)->get();
+            foreach($tb_training_schedule as $dt){
+                $add_actual=DB::table('tb_training_actual')->insert([
+                    'id_training_schedule'=>$dt->id,
+                    'nara_sumber'=>$dt->nara_sumber,
+                    'tanggal_aktual'=>$tanggal,
+                    'start_aktual'=>$start,
+                    'finish_aktual'=>$finish,
+                    'in_class'=>0,
+                    'admin'=>$admin,
+                    'created_at'=>$time,
+                ]);
+            }
+        }
+        $id_training_actual = DB::table('tb_training_actual')->where('id',$id_training_schedule)->where('is_delete','0')->value('id');
+
+        $cek_participant=DB::table('tb_training_participant')
+        ->where('id_training_invitation',$id_training_invitation)
+        ->where('is_delete','0')
+        ->count();
+        if($cek_participant==0){
+            $tb_training_invitation=DB::table('tb_training_invitation')
+            ->where('tb_training_invitation.id',$id_training_invitation)
+            ->get();
+            foreach($tb_training_invitation as $dt){
+                $add_participant=DB::table('tb_training_participant')->insert([
+                    'id_training_actual'=>$id_training_actual,
+                    'id_training_invitation'=>$dt->id,
+                    'id_employee'=>$dt->id_employee,
+                    'NIK'=>$dt->NIK,
+                    'nama_karyawan'=>$dt->nama_karyawan,
+                    'department'=>$dt->department,
+                    'jabatan'=>$dt->jabatan,
+                    'admin'=>$admin,
+                    'created_at'=>$time
+                ]);
+            }
+        }
+        $id_training_participant=DB::table('tb_training_participant')->where('id_training_invitation',$id_training_invitation)->value('id');
+
+        $tb_questions=DB::table('tb_question as tq')
+        ->leftjoin('tb_related_test as rt','rt.id_test','=','tq.id_training_test')
+        ->leftjoin('tb_training_schedule as ts','ts.id','=','rt.id_training_schedule')
+        ->where('ts.id',$id_training_schedule)->get('tq.*');
+        foreach($tb_questions as $dt2){
+            $add_pre=DB::table('tb_free_test')->insert([
+                'id_participant'=>$id_training_participant,
+                'id_question'=>$dt2->id,
+                'answer_code'=>$dt2->answer_code,
+                'admin'=>$admin
+            ]);
+            $add_post=DB::table('tb_post_test')->insert([
+                'id_participant'=>$id_training_participant,
+                'id_question'=>$dt2->id,
+                'answer_code'=>$dt2->answer_code,
+                'admin'=>$admin
+            ]);
+        }
+        return redirect('/Training/Actual/'.$id_training_actual.'/0');
+        // return redirect()->back();
+
+    }
+    function training_actual($id,$id_doc){
+
+        $tb_training_actual=DB::table('tb_training_actual')->where('id',$id)->get();
+        foreach($tb_training_actual as $dt){
+            $id_training_schedule=$dt->id_training_schedule;
+        }
+        $email=Auth::user()->email;
+        $tb_employee=DB::table('tb_emails')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        ->where('email_address',$email)->get();
+        foreach($tb_employee as $dt){
+            $id_employee=$dt->id_employee;
+            $pin=$dt->PIN;
+        }
+        
+        if (request()->user()->hasRole('ess')){
+            $tb_employee=DB::table('tb_training_invitation')->orderby('nama_karyawan','asc')->get();
+
+            $tb_training_actual=DB::table('tb_training_actual')
+            ->leftjoin('tb_training_schedule','tb_training_schedule.id','=','tb_training_actual.id_training_schedule')
+            ->leftjoin('tb_training_list','tb_training_list.id','=','tb_training_schedule.id_training')
+            ->leftjoin('tb_skill_type','tb_skill_type.id','=','tb_training_list.id_type')
+            ->where('tb_training_actual.id',$id)
+            ->orderby('tb_training_actual.id','desc')->get(['tb_training_actual.*','tb_training_list.training_name','tb_skill_type.skill_type','tb_training_schedule.nara_sumber']);
+            //return $tb_training_actual;
+            foreach($tb_training_actual as $dt){
+                if($dt->nara_sumber=='')$type_training='Virtual';
+                else $type_training='InClass';
+            }
+            $tb_training_participant=DB::table('tb_training_participant')
+            ->where('id_training_actual',$id)
+            ->where('id_employee',$id_employee)
+            ->orderby('id','desc')->get();
+            foreach($tb_training_participant as $dt){
+                $id_participant=$dt->id;
+                $data['pre_test']=$dt->free_test;
+                $data['post_test']=$dt->post_test;
+                $data['grade_status']=$dt->grade_status;
+            }
+
+            $tb_related_document=DB::table('tb_related_document')
+            ->leftjoin('tb_training_document','tb_training_document.id','=','tb_related_document.id_document')
+            ->leftjoin('tb_training_schedule','tb_training_schedule.id','=','tb_related_document.id_training_schedule')
+            ->leftjoin('tb_training_actual','tb_training_actual.id_training_schedule','=','tb_training_schedule.id')
+            ->where('tb_training_actual.id',$id)->orderby('id','desc')->get(['tb_related_document.*','tb_training_document.document_name','tb_training_document.file_name','tb_training_document.id as id_doc']);
+            
+            $related_file=DB::table('tb_related_document')            
+            ->leftjoin('tb_training_document','tb_training_document.id','=','tb_related_document.id_document')
+            ->where('id_document',$id_doc)->get();
+            $file_name='';
+            foreach($related_file as $dt){
+                $file_name=$dt->file_name;
+            }
+            //return $id_doc;
+            $tb_training_test=DB::table('tb_training_test')->orderby('test_name','asc')->get();
+            $tb_related_test=DB::table('tb_related_test')
+            ->leftjoin('tb_training_test','tb_training_test.id','=','tb_related_test.id_test')
+            ->where('id_training_schedule',$id_training_schedule)->get(['tb_related_test.*','tb_training_test.test_name','tb_training_test.minutes','tb_training_test.passing_grade']);
+            
+            return view('page/training/training_participant',['tb_training_participant'=>$tb_training_participant,'data'=>$data,'tb_training_actual'=>$tb_training_actual,'tb_employee'=>$tb_employee,'tb_training_test'=>$tb_training_test,'tb_related_document'=>$tb_related_document,'tb_related_test'=>$tb_related_test,'id_training'=>$id,'id_participant'=>$id_participant,'id_doc'=>$id_doc,'file_name'=>$file_name,'type_training'=>$type_training,'menu'=>'training_activity','juduls'=>'Training Schedule']);
+        }else{
+            return abort(403,'Anda tidak punya akses');
+        }
+    }
+    function free_test($id_participant){
+        $email=Auth::user()->email;
+        $tb_employee=DB::table('tb_emails')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        ->where('email_address',$email)->get();
+        foreach($tb_employee as $dt){
+            $id_employee=$dt->id_employee;
+        }
+        $tb_training_participant=DB::table('tb_training_participant')->where('id',$id_participant)->get();
+        foreach($tb_training_participant as $dt2){
+            $id_employee2=$dt2->id_employee;
+        }
+        if($id_employee==$id_employee2){
+            $tb_training_test=DB::table('tb_training_test')
+            ->leftjoin('tb_related_test','tb_training_test.id','=','tb_related_test.id_test')
+            ->leftjoin('tb_training_schedule','tb_training_schedule.id','=','tb_related_test.id_training_schedule')
+            ->leftjoin('tb_training_actual','tb_training_actual.id_training_schedule','=','tb_training_schedule.id')
+            ->leftjoin('tb_training_participant','tb_training_actual.id','=','tb_training_participant.id_training_actual')
+            ->where('tb_training_participant.id',$id_participant)
+            ->get(['tb_training_test.*','tb_training_actual.tanggal_aktual','tb_training_participant.free_test','tb_training_participant.id as id_participant','tb_training_participant.id_training_actual']);
+            foreach($tb_training_test as $dt){
+                $id_test=$dt->id;
+                $id_training_actual=$dt->id_training_actual;
+            }
+            //return $id_participant;
+            $tb_question=DB::table('tb_question')
+            ->leftjoin('tb_free_test','tb_free_test.id_question','=','tb_question.id')
+            ->leftjoin('tb_training_participant','tb_training_participant.id','=','tb_free_test.id_participant')
+            ->where('id_training_test',$id_test)
+            ->where('tb_training_participant.id',$id_participant)
+            ->orderby('index_question','asc')->get(['tb_question.*','tb_free_test.answer_actual','tb_free_test.answer_status']);
+            foreach($tb_training_test as $dt){
+                $test_name=$dt->test_name;
+                $id_participant=$dt->id_participant;
+                $passing_grade=$dt->passing_grade;
+            }
+            //return $id_participant;
+            return view('page/training/training_free_test',['tb_training_test'=>$tb_training_test,'test_name'=>$test_name,'tb_question'=>$tb_question,'id_test'=>$id_test,'id_participant'=>$id_participant,'passing_grade'=>$passing_grade,'id_training_actual'=>$id_training_actual,'menu'=>'training_tools','juduls'=>'Training Documents']);
+        }else{
+            return abort(403,'Anda tidak punya akses');
+        }
+    }
+    function simpan_free_test(request $data){
+        $hasil="There is no change";
+        date_default_timezone_set("Asia/Jakarta");
+        $now=date('Y-m-d H:i:s');
+        $tb_test=DB::table('tb_free_test')->where('id_participant',$data->idparticipant)->where('id_question',$data->idquestion)->get();
+        #region NEW
+
+        $id_participant = $data->idparticipant;
+        $check_telat = DB::table('tb_training_actual as a')
+        ->leftJoin('tb_training_participant as b','b.id_training_actual','a.id')
+        ->where('b.id',$id_participant)->select('a.tanggal_aktual','a.finish_aktual')->get();
+        foreach($check_telat as $r){
+            $finish_date = $r->tanggal_aktual;
+            $finish_time = $r->finish_aktual; 
+        }
+        $finish = date($finish_date.' '.$finish_time);
+        #endregion
+        // dd($now.'     '.$finish);
+        foreach($tb_test as $dt){
+            $answer_code=$dt->answer_code;
+            if($answer_code==$data->isi)$status='1';
+            else $status='0';
+            $now > $finish ? $telat ='1' : $telat = '0';
+            $update=DB::table('tb_free_test')->where('id_participant',$data->idparticipant)->where('id_question',$data->idquestion)->update([
+                'answer_actual'=>$data->isi,
+                'answer_status'=>$status,
+                'answer_late' => $telat,
+                'created_at'=>$now
+            ]);
+            if($update)$hasil="Sukses";
+        }
+        
+        $id_test=$data->idtest;
+        $passing_grade=$data->passinggrade;
+        $id_participant=$data->idparticipant;
+
+        $email=Auth::user()->email;
+        $tb_employee=DB::connection('mysql')->table('tb_emails')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        ->where('email_address',$email)->get();
+        foreach($tb_employee as $dt){
+            $id_employee=$dt->id_employee;
+        }
+        $tb_question=DB::table('tb_question')
+        ->leftjoin('tb_free_test','tb_free_test.id_question','=','tb_question.id')
+        ->leftjoin('tb_training_participant','tb_training_participant.id','=','tb_free_test.id_participant')
+        ->where('id_training_test',$id_test)
+        ->where('tb_training_participant.id',$id_participant)
+        // ->where('tb_free_test.answer_late',0)
+        ->orderby('index_question','asc')->get(['tb_question.*','tb_free_test.answer_actual','tb_free_test.answer_status','tb_free_test.answer_late']);
+        $no=1;
+        $total=0;
+        $benar=0;
+        $percent='';
+        $status_grade=0;
+        $konten='';
+        // $tokens = Sesion
+        foreach($tb_question as $dt){
+            $no++;
+            $total++;
+            $konten.="<div class='col-md-12 col-lg-12 col-xs-12'>";
+                $konten.="<div class='box box-default'>";
+                    $konten.="<div class='box-header with-border'>";
+                        $konten.="<h3 class='box-title'>";
+                            $konten.="<b class='label label-info'>".$dt->index_question."</b>";
+                        $konten.="</h3>";
+                        $konten.="<div class='pull-right'>";	
+
+                        if($dt->answer_code==$dt->answer_actual && $dt->answer_late == 0){
+                            $benar++;
+                            //$konten.="<i class='fa fa-thumbs-o-up'></i> ";
+                            // $konten.="<b class='badge bg-green'>".$dt->answer_actual."</b>";
+                        }elseif($dt->answer_code!=$dt->answer_actual&&$dt->answer_actual!=''){
+                            // $konten.="<b class='badge bg-red'>".$dt->answer_actual."</b>";
+                        }
+                        $percent=$benar*100/$total;
+                        if($percent>=$passing_grade)$status_grade=1;
+                        else $status_grade=0;
+                        $konten.="</div>";
+                    $konten.="</div>";
+                    $konten.="<div class='box-body row'>";
+                        $konten.=$dt->question;
+                            $konten.="<div class='form-group'>";
+                                $konten.="<div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='A'><label><input type='radio' name='pilihan' id='".$dt->index_question."#".$id_participant."' value='A'";if($dt->answer_actual=='A')$konten.=' checked';$konten.=">".$dt->option_a."</label></div>";
+                                $konten.="<div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='B'><label><input type='radio' name='pilihan' id='".$dt->index_question."#".$id_participant."' value='B'";if($dt->answer_actual=='B')$konten.=' checked';$konten.=">".$dt->option_b."</label></div>";
+                                $konten.="<div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='C'><label><input type='radio' name='pilihan' id='".$dt->index_question."#".$id_participant."' value='C'";if($dt->answer_actual=='C')$konten.=' checked';$konten.=">".$dt->option_c."</label></div>";
+                                $konten.="<div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='D'><label><input type='radio' name='pilihan' id='".$dt->index_question."#".$id_participant."' value='D'";if($dt->answer_actual=='D')$konten.=' checked';$konten.=">".$dt->option_d."</label></div>";
+                            $konten.="</div>";
+                    $konten.="</div>";
+                $konten.="</div>";
+            $konten.="</div>";
+        }
+        $konten.="<input type='hidden' value='".$percent."' id='percent'>";
+        $konten.="<input type='hidden' value='".$status_grade."' id='statusgrade'>";
+        $progress = 2;
+        
+         DB::table('tb_training_participant')->where('id',$data->idparticipant)->update([
+            'free_test'=>$percent,
+            'progress'=>$progress,
+            'passing_grade'=>$passing_grade,
+            'grade_status'=>$status_grade
+        ]);
+        return $konten;
+    }
+    function post_test($id_participant){
+        $email=Auth::user()->email;
+        $tb_employee=DB::connection('mysql')->table('tb_emails')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        ->where('email_address',$email)->get();
+        foreach($tb_employee as $dt){
+            $id_employee=$dt->id_employee;
+        }
+        $tb_training_participant=DB::connection('training')->table('tb_training_participant')->where('id',$id_participant)->get();
+        //return $tb_training_participant;
+        foreach($tb_training_participant as $dt2){
+            $id_employee2=$dt2->id_employee;
+        }
+        if($id_employee==$id_employee2){
+            $tb_training_test=DB::connection('training')->table('tb_training_test')
+            ->leftjoin('tb_related_test','tb_training_test.id','=','tb_related_test.id_test')
+            ->leftjoin('tb_training_schedule','tb_training_schedule.id','=','tb_related_test.id_training_schedule')
+            ->leftjoin('tb_training_actual','tb_training_actual.id_training_schedule','=','tb_training_schedule.id')
+            ->leftjoin('tb_training_participant','tb_training_actual.id','=','tb_training_participant.id_training_actual')
+            ->where('tb_training_participant.id',$id_participant)
+            ->get(['tb_training_test.*','tb_training_actual.tanggal_aktual','tb_training_participant.post_test','tb_training_participant.id as id_participant','tb_training_participant.id_training_actual']);
+            foreach($tb_training_test as $dt){
+                $id_test=$dt->id;
+                $id_training_actual=$dt->id_training_actual;
+            }
+            $tb_question=DB::connection('training')->table('tb_question')
+            ->leftjoin('tb_post_test','tb_post_test.id_question','=','tb_question.id')
+            ->leftjoin('tb_training_participant','tb_training_participant.id','=','tb_post_test.id_participant')
+            ->where('id_training_test',$id_test)
+            ->where('tb_training_participant.id',$id_participant)
+            ->orderby('index_question','asc')->get(['tb_question.*','tb_post_test.answer_actual','tb_post_test.answer_status']);
+            foreach($tb_training_test as $dt){
+                $test_name=$dt->test_name;
+                $id_participant=$dt->id_participant;
+                $passing_grade=$dt->passing_grade;
+            }
+            //return $tb_question;
+            return view('page/training/training_post_test',['tb_training_test'=>$tb_training_test,'test_name'=>$test_name,'tb_question'=>$tb_question,'id_test'=>$id_test,'id_participant'=>$id_participant,'passing_grade'=>$passing_grade,'id_training_actual'=>$id_training_actual,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
+        }else{
+            return abort(403,'Anda tidak punya akses');
+        }
+    }
+    function simpan_post_test(request $data){
+        $hasil="There is no change";
+        date_default_timezone_set("Asia/Jakarta");
+        $now=date('Y-m-d H:i:s');
+        #region NEW
+        $id_participant = $data->idparticipant;
+        $check_telat = DB::connection('training')->table('tb_training_actual as a')
+        ->leftJoin('tb_training_participant as b','b.id_training_actual','a.id')
+        ->where('b.id',$id_participant)->select('a.tanggal_aktual','a.finish_aktual')->get();
+        foreach($check_telat as $r){
+            $finish_date = $r->tanggal_aktual;
+            $finish_time = $r->finish_aktual; 
+        }
+        $finish = date($finish_date.' '.$finish_time);
+        #endregion
+        $tb_test=DB::connection('training')->table('tb_post_test')->where('id_participant',$data->idparticipant)->where('id_question',$data->idquestion)->get();
+        foreach($tb_test as $dt){
+            $answer_code=$dt->answer_code;
+            if($answer_code==$data->isi)$status='1';
+            else $status='0';
+            $now > $finish ? $telat ='1' : $telat = '0';
+
+            $update=DB::connection('training')->table('tb_post_test')->where('id_participant',$data->idparticipant)->where('id_question',$data->idquestion)->update([
+                'answer_actual'=>$data->isi,
+                'answer_status'=>$status,
+                'answer_late' => $telat,
+                'created_at'=>$now
+            ]);
+            if($update)$hasil="Sukses";
+        }
+        
+        $id_test=$data->idtest;
+        $passing_grade=$data->passinggrade;
+        $id_participant=$data->idparticipant;
+
+        $email=Auth::user()->email;
+        $tb_employee=DB::connection('mysql')->table('tb_emails')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        ->where('email_address',$email)->get();
+        foreach($tb_employee as $dt){
+            $id_employee=$dt->id_employee;
+        }
+        $tb_question=DB::connection('training')->table('tb_question')
+        ->leftjoin('tb_post_test','tb_post_test.id_question','=','tb_question.id')
+        ->leftjoin('tb_training_participant','tb_training_participant.id','=','tb_post_test.id_participant')
+        ->where('id_training_test',$id_test)
+        ->where('tb_training_participant.id',$id_participant)
+        ->orderby('index_question','asc')->get(['tb_question.*','tb_post_test.answer_actual','tb_post_test.answer_status']);
+        $no=1;
+        $total=0;
+        $benar=0;
+        $percent='';
+        $status_grade=0;
+        $konten='';
+        foreach($tb_question as $dt){
+            $no++;
+            $total++;
+            $konten.= "<div class='col-md-12 col-lg-12 col-xs-12'>";
+                $konten.="<div class='box box-default'>";
+                    $konten.="<div class='box-header with-border'>";
+                        $konten.="<h3 class='box-title'>";
+                            $konten.="<b class='label label-info'>".$dt->index_question."</b>";
+                        $konten.="</h3>";
+                        $konten.=$dt->question;
+                        $konten.="<div class='pull-right'>";	
+
+                        if($dt->answer_code==$dt->answer_actual){
+                            $benar++;
+                            //$konten.="<i class='fa fa-thumbs-o-up'></i> ";
+                            // $konten.="<b class='badge bg-green'>".$dt->answer_actual."</b>";
+                        }elseif($dt->answer_code!=$dt->answer_actual&&$dt->answer_actual!=''){
+                            // $konten.="<b class='badge bg-red'>".$dt->answer_actual."</b>";
+                        }
+                        $percent=$benar*100/$total;
+                        if($percent>=$passing_grade)$status_grade=1;
+                        else $status_grade=0;
+                        $konten.="</div>";
+                    $konten.="</div>";
+                    $konten.="<div class='box-body'>";
+                        $konten.="<div class='form-group col-lg-6'>";
+                        $konten.="<b>A</b> <div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='A'><label><input type='radio' name='pilihan".$dt->index_question."' id='".$dt->index_question."#".$id_participant."' value='A'";if($dt->answer_actual=='A')$konten.=' checked';$konten.=">".$dt->option_a."</label></div></div>";
+                        $konten.=" <div class='form-group col-lg-6'><b>B</b><div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='B'><label class=''><input type='radio' name='pilihan".$dt->index_question."' id='".$dt->index_question."#".$id_participant."' value='B'";if($dt->answer_actual=='B')$konten.= ' checked';$konten.= ">".$dt->option_b."</label></div></div>";
+                        $konten.="<div class='form-group col-lg-6'><b>C</b><div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='C'><label><input type='radio' name='pilihan".$dt->index_question."' id='".$dt->index_question."#".$id_participant."' value='C'";if($dt->answer_actual=='C')$konten.=' checked';$konten.=">".$dt->option_c."</label></div></div>";
+                        $konten.="<div class='form-group col-lg-6'><b>D</b><div class='radio pilihan' data-idquestion='".$dt->id."' data-isi='D'><label><input type='radio' name='pilihan".$dt->index_question."' id='".$dt->index_question."#".$id_participant."' value='D'";if($dt->answer_actual=='D')$konten.=' checked';$konten.=">".$dt->option_d."</label></div></div>";
+                    $konten.="</div>";
+                $konten.="</div>";
+            $konten.="</div>";
+        }
+        $konten.="<input type='hidden' value='".$percent."' id='percent'>";
+        $konten.="<input type='hidden' value='".$status_grade."' id='statusgrade'>";
+
+        $tb_participant=DB::connection('training')->table('tb_training_participant')->where('id',$data->idparticipant)->get();
+        foreach($tb_participant as $dt){
+            if($percent < $dt->free_test){
+                $progress='-1';
+            }
+            elseif($dt->free_test==$percent){$progress='0';}
+            else {$progress='1';}
+        }
+        $update_participant=DB::connection('training')->table('tb_training_participant')->where('id',$data->idparticipant)->update([
+            'post_test'=>$percent,
+            'passing_grade'=>$passing_grade,
+            'progress'=>$progress,
+            'grade_status'=>$status_grade
+        ]);
+
+        return $konten;
     }
 
 }

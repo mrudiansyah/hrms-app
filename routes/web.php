@@ -4,10 +4,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return redirect('/Dashboard');
 });
-Route::get('/Reset', function () {
-    Artisan::call('cache:clear');
-    dd("Cache Clear All");
-});
 
 Auth::routes(['verify' => true]);
 
@@ -100,6 +96,10 @@ Route::post('/Document/Upload',[App\Http\Controllers\ess_controller::class,'docu
 Route::post('/Delete/Document',[App\Http\Controllers\ess_controller::class,'delete_document']);
 Route::get('/Document/Download/{id}',[App\Http\Controllers\ess_controller::class,'document_download']);
 Route::get('/Training/Invitation',[App\Http\Controllers\ess_controller::class,'training_invitation']);
+Route::get('/Training/Schedule/{id}',[App\Http\Controllers\ess_controller::class,'training_schedule']);
+Route::get('/Training/Actual/{id}/{id_doc}',[App\Http\Controllers\ess_controller::class,'training_actual']);
+Route::get('/FreeTest/{id_participant}',[App\Http\Controllers\ess_controller::class,'free_test']);
+Route::post('/Simpan/FreeTest',[App\Http\Controllers\ess_controller::class,'simpan_free_test']);
 
 
 //ESS End
@@ -202,5 +202,27 @@ Route::get('/renewal/{id}/print', [App\Http\Controllers\RenewalController::class
     Route::get('/Setup', [App\Http\Controllers\setup_controller::class, 'index']);
     Route::post('/Setup/Update', [App\Http\Controllers\setup_controller::class, 'setup_update']);
     Route::post('/Setup/UpdateLimit', [App\Http\Controllers\setup_controller::class, 'setup_limit']);
+
+    Route::get('/Training/List/{type}/{category}', [App\Http\Controllers\training_controller::class, 'index']);
+    Route::post('/Training/Simpan/List', [App\Http\Controllers\training_controller::class, 'simpan_list']);
+    Route::get('/Training/Delete/List/{id}', [App\Http\Controllers\training_controller::class, 'delete_list']);
+    Route::get('/Training/Document/{id_doc}', [App\Http\Controllers\training_controller::class, 'training_document']);
+    Route::get('/Training/Examination', [App\Http\Controllers\training_controller::class, 'training_examination']);
+    Route::post('/Training/Simpan/Examination', [App\Http\Controllers\training_controller::class, 'simpan_examination']);
+    Route::post('/Training/Delete/Examination', [App\Http\Controllers\training_controller::class, 'delete_examination']);
+    Route::get('/Training/Question/{id}', [App\Http\Controllers\training_controller::class, 'training_question']);
+    Route::post('/Training/Simpan/Question', [App\Http\Controllers\training_controller::class, 'simpan_question']);
+    Route::post('/Training/Delete/Question', [App\Http\Controllers\training_controller::class, 'delete_question']);
+    Route::get('/Training/Periode/{periode}', [App\Http\Controllers\training_controller::class, 'training_periode']);
+    Route::post('/Training/Simpan/Plan', [App\Http\Controllers\training_controller::class, 'simpan_plan']);
+    Route::get('/Training/Plan/{id}', [App\Http\Controllers\training_controller::class, 'training_plan_participant']);
+    Route::post('/Training/Simpan/Supporting', [App\Http\Controllers\training_controller::class, 'simpan_supporting']);
+    Route::post('/Training/Delete/Supporting', [App\Http\Controllers\training_controller::class, 'delete_supporting']);
+    Route::post('/Training/Simpan/Supporting/Test', [App\Http\Controllers\training_controller::class, 'simpan_supporting_test']);
+    Route::get('/Training/Delete/Supporting/Test/{id}', [App\Http\Controllers\training_controller::class, 'delete_supporting_test']);
+    Route::post('/Training/Simpan/Plan/Participant', [App\Http\Controllers\training_controller::class, 'simpan_plan_participant']);
+    Route::post('/Training/Delete/Plan/Participant', [App\Http\Controllers\training_controller::class, 'delete_plan_participant']);
+    Route::get('/Training/Actual/{id}', [App\Http\Controllers\training_controller::class, 'training_actual_participant']);
+
 
 //End Migration

@@ -676,7 +676,6 @@ class admin_employee extends Controller
             'receive_slip_ot'=>$data->receive_slipot
         ]);
         if($simpan){
-            $pwd='sai 2021';
             $cek_user=DB::connection('mysql')->table('users')->where('nik',$NIK)->count();
             if($cek_user==0){
                 $add_user=DB::connection('mysql')->table('users')->insert([
@@ -684,7 +683,7 @@ class admin_employee extends Controller
                     'email' => $data->email_address,
                     'email_verified_at'=>$tgl_sekarang,
                     'nik'=>$NIK,
-                    'password' => Hash::make($pwd),
+                    'password' =>'$2y$10$rHOAhWixGqy58KbLaqappOs8atW8JfGfScoSzbEcfugSQCTHyqMJO',
                     'hint'=>$NIK,
                 ]);
             }

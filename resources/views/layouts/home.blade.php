@@ -191,7 +191,7 @@
                             <a href="/Dashboard" style="padding:8px 8px 8px 0px;" title="ESS Portal"
                                 class="dropdown-item">
                                 <button class="btn btn-success btn-md">
-                                    <i class="fa fa-dashboard" style="color:white;"></i> Dashboard
+                                    <i class="fa fa-building" style="color:white;"></i> HRMS
                                 </button>
                             </a>
                         </li>

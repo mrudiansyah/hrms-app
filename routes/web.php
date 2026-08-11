@@ -91,15 +91,15 @@ Route::get('/SlipOT', [App\Http\Controllers\ess_controller::class, 'employee_sli
 Route::get('/payroll/slip/overtime_personal/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_overtime_personal']);
 Route::get('/payroll/slip/assignment/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_assignment']);
 
-Route::get('/Documents/{id}',[App\Http\Controllers\ess_controller::class,'document']);
-Route::post('/Document/Upload',[App\Http\Controllers\ess_controller::class,'document_upload']);
-Route::post('/Delete/Document',[App\Http\Controllers\ess_controller::class,'delete_document']);
-Route::get('/Document/Download/{id}',[App\Http\Controllers\ess_controller::class,'document_download']);
-Route::get('/Training/Invitation',[App\Http\Controllers\ess_controller::class,'training_invitation']);
-Route::get('/Training/Schedule/{id}',[App\Http\Controllers\ess_controller::class,'training_schedule']);
-Route::get('/Training/Actual/{id}/{id_doc}',[App\Http\Controllers\ess_controller::class,'training_actual']);
-Route::get('/FreeTest/{id_participant}',[App\Http\Controllers\ess_controller::class,'free_test']);
-Route::post('/Simpan/FreeTest',[App\Http\Controllers\ess_controller::class,'simpan_free_test']);
+Route::get('/Documents/{id}', [App\Http\Controllers\ess_controller::class, 'document']);
+Route::post('/Document/Upload', [App\Http\Controllers\ess_controller::class, 'document_upload']);
+Route::post('/Delete/Document', [App\Http\Controllers\ess_controller::class, 'delete_document']);
+Route::get('/Document/Download/{id}', [App\Http\Controllers\ess_controller::class, 'document_download']);
+Route::get('/Training/Invitation', [App\Http\Controllers\ess_controller::class, 'training_invitation']);
+Route::get('/Training/Schedule/{id}', [App\Http\Controllers\ess_controller::class, 'training_schedule']);
+Route::get('/Training/Actual/{id}/{id_doc}', [App\Http\Controllers\ess_controller::class, 'training_actual']);
+Route::get('/FreeTest/{id_participant}', [App\Http\Controllers\ess_controller::class, 'free_test']);
+Route::post('/Simpan/FreeTest', [App\Http\Controllers\ess_controller::class, 'simpan_free_test']);
 
 
 //ESS End
@@ -128,101 +128,110 @@ Route::post('/renewal/approve/{id}', [App\Http\Controllers\RenewalController::cl
 Route::get('/renewal/{id}/print', [App\Http\Controllers\RenewalController::class, 'print'])->name('renewal.print');
 
 //Migration
-    Route::get('/Admin/Employee', [App\Http\Controllers\admin_employee::class, 'index']);
-    Route::get('/Admin/Employee/Create', [App\Http\Controllers\admin_employee::class, 'createData']);
+Route::get('/Admin/Employee', [App\Http\Controllers\admin_employee::class, 'index']);
+Route::get('/Admin/Employee/Create', [App\Http\Controllers\admin_employee::class, 'createData']);
 
-    Route::post('/Admin/Employee/SelectDept', [App\Http\Controllers\admin_employee::class, 'selectDept']);
-    Route::post('/Admin/Employee/Select', [App\Http\Controllers\admin_employee::class, 'selectLeader']);
-    Route::post('/Admin/Employee/SelectCC', [App\Http\Controllers\admin_employee::class, 'selectCC']);
-    Route::post('/AgreementCheck2', [App\Http\Controllers\contract_controller::class, 'AgreementCheck2']);
-    Route::post('/Admin/Employee/Create/Submit', [App\Http\Controllers\admin_employee::class, 'insertData']);
-    Route::get('/Admin/Employee/Update/{id}', [App\Http\Controllers\admin_employee::class, 'updateData']);
-    Route::post('/Admin/Employee/Update/Submit', [App\Http\Controllers\admin_employee::class, 'saveData']);
-    Route::get('/Admin/Employee/Create/Delete/{id}/{id2}', [App\Http\Controllers\admin_employee::class, 'selectDelete']);
-    Route::post('/Admin/Employee/Create/Posisi', [App\Http\Controllers\admin_employee::class, 'saveBagian']);
-    Route::post('/Admin/Employee/Create/Detail', [App\Http\Controllers\admin_employee::class, 'saveDetail']);
-    Route::post('/Admin/Employee/Create/Family', [App\Http\Controllers\admin_employee::class, 'saveFamily']);
-    Route::post('/Admin/Employee/Kabupaten', [App\Http\Controllers\admin_employee::class, 'selectKab']);
-    Route::post('/Admin/Employee/Kecamatan', [App\Http\Controllers\admin_employee::class, 'selectKec']);
-    Route::post('/Admin/Employee/Desa', [App\Http\Controllers\admin_employee::class, 'selectDes']);
-    Route::post('/Admin/Employee/Link', [App\Http\Controllers\admin_employee::class, 'selectLink']);
-    Route::post('/Admin/Employee/Create/Address', [App\Http\Controllers\admin_employee::class, 'saveAddress']);
-    Route::post('/Admin/Employee/Create/Domicile', [App\Http\Controllers\admin_employee::class, 'saveDomicile']);
-    Route::post('/Admin/Employee/Create/Kontak', [App\Http\Controllers\admin_employee::class, 'saveKontak']);
-    Route::post('/Admin/Employee/Create/Education', [App\Http\Controllers\admin_employee::class, 'saveEducation']);
-    Route::post('/Admin/Employee/Create/Experience', [App\Http\Controllers\admin_employee::class, 'saveExperience']);
-    Route::post('/Admin/Employee/Create/Skill', [App\Http\Controllers\admin_employee::class, 'saveSkill']);
-    Route::get('/Admin/EmployeeBPJS', [App\Http\Controllers\admin_employee::class, 'bpjs']);
-    Route::post('/Admin/EmployeeBPJS', [App\Http\Controllers\admin_employee::class, 'bpjsUpdate']);
-    Route::post('/Admin/EmployeeBPJS/Kes', [App\Http\Controllers\admin_employee::class, 'bpjsUpdateKes']);
-    Route::post('/Admin/EmployeeBPJS/TK', [App\Http\Controllers\admin_employee::class, 'bpjsUpdateTK']);
-    Route::get('/Admin/Employee/Domiciles', [App\Http\Controllers\admin_employee::class, 'employeeDomiciles']);
-    Route::get('/Admin/Employee/Address', [App\Http\Controllers\admin_employee::class, 'employeeAddress']);
-    Route::get('/Admin/Employee/PSAB', [App\Http\Controllers\admin_employee::class, 'psab_list']);
-    Route::get('/Admin/Employee/Other/{tipe}', [App\Http\Controllers\admin_employee::class, 'otherEmployee']);
-    Route::post('/Admin/Employee/Other', [App\Http\Controllers\admin_employee::class, 'otherEmployeeSave']);
-    Route::get('/Admin/Employee/Record/Show/{periode}', [App\Http\Controllers\admin_employee::class, 'recordShow']);
-    Route::post('/Admin/Employee/Record/Submit', [App\Http\Controllers\admin_employee::class, 'recordSave']);
-    Route::post('/Admin/Employee/Record/Update', [App\Http\Controllers\admin_employee::class, 'recordUpdate']);
-    Route::get('/Admin/Employee/Other/{tipe}', [App\Http\Controllers\admin_employee::class, 'otherEmployee']);
-    Route::get('/Admin/Employee/Education', [App\Http\Controllers\admin_employee::class, 'education']);
-    Route::get('/Admin/Department/{id}/{periode}', [App\Http\Controllers\admin_employee::class, 'department']);
+Route::post('/Admin/Employee/SelectDept', [App\Http\Controllers\admin_employee::class, 'selectDept']);
+Route::post('/Admin/Employee/Select', [App\Http\Controllers\admin_employee::class, 'selectLeader']);
+Route::post('/Admin/Employee/SelectCC', [App\Http\Controllers\admin_employee::class, 'selectCC']);
+Route::post('/AgreementCheck2', [App\Http\Controllers\contract_controller::class, 'AgreementCheck2']);
+Route::post('/Admin/Employee/Create/Submit', [App\Http\Controllers\admin_employee::class, 'insertData']);
+Route::get('/Admin/Employee/Update/{id}', [App\Http\Controllers\admin_employee::class, 'updateData']);
+Route::post('/Admin/Employee/Update/Submit', [App\Http\Controllers\admin_employee::class, 'saveData']);
+Route::get('/Admin/Employee/Create/Delete/{id}/{id2}', [App\Http\Controllers\admin_employee::class, 'selectDelete']);
+Route::post('/Admin/Employee/Create/Posisi', [App\Http\Controllers\admin_employee::class, 'saveBagian']);
+Route::post('/Admin/Employee/Create/Detail', [App\Http\Controllers\admin_employee::class, 'saveDetail']);
+Route::post('/Admin/Employee/Create/Family', [App\Http\Controllers\admin_employee::class, 'saveFamily']);
+Route::post('/Admin/Employee/Kabupaten', [App\Http\Controllers\admin_employee::class, 'selectKab']);
+Route::post('/Admin/Employee/Kecamatan', [App\Http\Controllers\admin_employee::class, 'selectKec']);
+Route::post('/Admin/Employee/Desa', [App\Http\Controllers\admin_employee::class, 'selectDes']);
+Route::post('/Admin/Employee/Link', [App\Http\Controllers\admin_employee::class, 'selectLink']);
+Route::post('/Admin/Employee/Create/Address', [App\Http\Controllers\admin_employee::class, 'saveAddress']);
+Route::post('/Admin/Employee/Create/Domicile', [App\Http\Controllers\admin_employee::class, 'saveDomicile']);
+Route::post('/Admin/Employee/Create/Kontak', [App\Http\Controllers\admin_employee::class, 'saveKontak']);
+Route::post('/Admin/Employee/Create/Education', [App\Http\Controllers\admin_employee::class, 'saveEducation']);
+Route::post('/Admin/Employee/Create/Experience', [App\Http\Controllers\admin_employee::class, 'saveExperience']);
+Route::post('/Admin/Employee/Create/Skill', [App\Http\Controllers\admin_employee::class, 'saveSkill']);
+Route::get('/Admin/EmployeeBPJS', [App\Http\Controllers\admin_employee::class, 'bpjs']);
+Route::post('/Admin/EmployeeBPJS', [App\Http\Controllers\admin_employee::class, 'bpjsUpdate']);
+Route::post('/Admin/EmployeeBPJS/Kes', [App\Http\Controllers\admin_employee::class, 'bpjsUpdateKes']);
+Route::post('/Admin/EmployeeBPJS/TK', [App\Http\Controllers\admin_employee::class, 'bpjsUpdateTK']);
+Route::get('/Admin/Employee/Domiciles', [App\Http\Controllers\admin_employee::class, 'employeeDomiciles']);
+Route::get('/Admin/Employee/Address', [App\Http\Controllers\admin_employee::class, 'employeeAddress']);
+Route::get('/Admin/Employee/PSAB', [App\Http\Controllers\admin_employee::class, 'psab_list']);
+Route::get('/Admin/Employee/Other/{tipe}', [App\Http\Controllers\admin_employee::class, 'otherEmployee']);
+Route::post('/Admin/Employee/Other', [App\Http\Controllers\admin_employee::class, 'otherEmployeeSave']);
+Route::get('/Admin/Employee/Record/Show/{periode}', [App\Http\Controllers\admin_employee::class, 'recordShow']);
+Route::post('/Admin/Employee/Record/Submit', [App\Http\Controllers\admin_employee::class, 'recordSave']);
+Route::post('/Admin/Employee/Record/Update', [App\Http\Controllers\admin_employee::class, 'recordUpdate']);
+Route::get('/Admin/Employee/Other/{tipe}', [App\Http\Controllers\admin_employee::class, 'otherEmployee']);
+Route::get('/Admin/Employee/Education', [App\Http\Controllers\admin_employee::class, 'education']);
+Route::get('/Admin/Department/{id}/{periode}', [App\Http\Controllers\admin_employee::class, 'department']);
 
-    Route::get('/Status/Active', [App\Http\Controllers\contract_controller::class, 'active']);
-    Route::post('/Status/New', [App\Http\Controllers\contract_controller::class, 'newContract']);
-    Route::get('/Status/Permanen', [App\Http\Controllers\contract_controller::class, 'permanen']);
-    Route::get('/Status/Kontrak', [App\Http\Controllers\contract_controller::class, 'kontrak']);
-    Route::get('/Status/Magang', [App\Http\Controllers\contract_controller::class, 'magang']);
-    Route::get('/Status/Other', [App\Http\Controllers\contract_controller::class, 'other']);
-    Route::get('/Status/SAB', [App\Http\Controllers\contract_controller::class, 'SAB']);
-    Route::get('/Status/Draft', [App\Http\Controllers\contract_controller::class, 'draft']);
-    Route::get('/Status/NonActive/{periode}', [App\Http\Controllers\contract_controller::class, 'nonactive']);
-    Route::get('/Status/Reactive/{id}', [App\Http\Controllers\contract_controller::class, 'reactive']);
-    Route::get('/Status/Deactive/{id}', [App\Http\Controllers\contract_controller::class, 'deactive']);
-    Route::get('/Status/Delete/{id}', [App\Http\Controllers\contract_controller::class, 'delete']);
-    Route::get('/Status/Arsif/{periode}', [App\Http\Controllers\contract_controller::class, 'arsif']);
+Route::get('/Status/Active', [App\Http\Controllers\contract_controller::class, 'active']);
+Route::post('/Status/New', [App\Http\Controllers\contract_controller::class, 'newContract']);
+Route::get('/Status/Permanen', [App\Http\Controllers\contract_controller::class, 'permanen']);
+Route::get('/Status/Kontrak', [App\Http\Controllers\contract_controller::class, 'kontrak']);
+Route::get('/Status/Magang', [App\Http\Controllers\contract_controller::class, 'magang']);
+Route::get('/Status/Other', [App\Http\Controllers\contract_controller::class, 'other']);
+Route::get('/Status/SAB', [App\Http\Controllers\contract_controller::class, 'SAB']);
+Route::get('/Status/Draft', [App\Http\Controllers\contract_controller::class, 'draft']);
+Route::get('/Status/NonActive/{periode}', [App\Http\Controllers\contract_controller::class, 'nonactive']);
+Route::get('/Status/Reactive/{id}', [App\Http\Controllers\contract_controller::class, 'reactive']);
+Route::get('/Status/Deactive/{id}', [App\Http\Controllers\contract_controller::class, 'deactive']);
+Route::get('/Status/Delete/{id}', [App\Http\Controllers\contract_controller::class, 'delete']);
+Route::get('/Status/Arsif/{periode}', [App\Http\Controllers\contract_controller::class, 'arsif']);
 
-    Route::get('/Status/KSK/{id}', [App\Http\Controllers\contract_controller::class, 'ksk']);
-    Route::get('/Status/KSK/Create/{id}', [App\Http\Controllers\contract_controller::class, 'kskCreate']);
-    Route::get('/Status/KSK/Refresh/{id}', [App\Http\Controllers\contract_controller::class, 'kskRefresh']);
-    Route::get('/Employee/KSK/Print/{id_ksk}', [App\Http\Controllers\employee_controller::class, 'kskPrint']);
-    Route::post('/Status/KSK/Target', [App\Http\Controllers\contract_controller::class, 'kskTarget']);
-    Route::get('/Status/KSK/Detail/{id}/{id2}', [App\Http\Controllers\contract_controller::class, 'kskDetail']);
-    Route::get('/Status/KSK/Print/{id}', [App\Http\Controllers\contract_controller::class, 'kskPrint']);
-    Route::get('/Status/KSK/Performance/{id}/{id2}', [App\Http\Controllers\contract_controller::class, 'kskPerformance']);
-    Route::post('/Status/KSK/Update', [App\Http\Controllers\contract_controller::class, 'kskUpdate']);
-    Route::post('/Status/KSKDetail/Refresh', [App\Http\Controllers\contract_controller::class, 'kskDetailRefresh']);
+Route::get('/Status/KSK/{id}', [App\Http\Controllers\contract_controller::class, 'ksk']);
+Route::get('/Status/KSK/Create/{id}', [App\Http\Controllers\contract_controller::class, 'kskCreate']);
+Route::get('/Status/KSK/Refresh/{id}', [App\Http\Controllers\contract_controller::class, 'kskRefresh']);
+Route::get('/Employee/KSK/Print/{id_ksk}', [App\Http\Controllers\employee_controller::class, 'kskPrint']);
+Route::post('/Status/KSK/Target', [App\Http\Controllers\contract_controller::class, 'kskTarget']);
+Route::get('/Status/KSK/Detail/{id}/{id2}', [App\Http\Controllers\contract_controller::class, 'kskDetail']);
+Route::get('/Status/KSK/Print/{id}', [App\Http\Controllers\contract_controller::class, 'kskPrint']);
+Route::get('/Status/KSK/Performance/{id}/{id2}', [App\Http\Controllers\contract_controller::class, 'kskPerformance']);
+Route::post('/Status/KSK/Update', [App\Http\Controllers\contract_controller::class, 'kskUpdate']);
+Route::post('/Status/KSKDetail/Refresh', [App\Http\Controllers\contract_controller::class, 'kskDetailRefresh']);
 
-    Route::get('/Employee/{id}/{id2}', [App\Http\Controllers\employee_controller::class, 'employee']);
+Route::get('/Employee/{id}/{id2}', [App\Http\Controllers\employee_controller::class, 'employee']);
 
-    Route::get('/Leader', [App\Http\Controllers\employee_controller::class, 'leader']);
-    Route::get('/Leader/{id}', [App\Http\Controllers\employee_controller::class, 'updateLeader']);
-    Route::post('/LeaderUpdate', [App\Http\Controllers\employee_controller::class, 'saveData']);
+Route::get('/Leader', [App\Http\Controllers\employee_controller::class, 'leader']);
+Route::get('/Leader/{id}', [App\Http\Controllers\employee_controller::class, 'updateLeader']);
+Route::post('/LeaderUpdate', [App\Http\Controllers\employee_controller::class, 'saveData']);
 
-    Route::get('/Setup', [App\Http\Controllers\setup_controller::class, 'index']);
-    Route::post('/Setup/Update', [App\Http\Controllers\setup_controller::class, 'setup_update']);
-    Route::post('/Setup/UpdateLimit', [App\Http\Controllers\setup_controller::class, 'setup_limit']);
+Route::get('/Setup', [App\Http\Controllers\setup_controller::class, 'index']);
+Route::post('/Setup/Update', [App\Http\Controllers\setup_controller::class, 'setup_update']);
+Route::post('/Setup/UpdateLimit', [App\Http\Controllers\setup_controller::class, 'setup_limit']);
 
-    Route::get('/Training/List/{type}/{category}', [App\Http\Controllers\training_controller::class, 'index']);
-    Route::post('/Training/Simpan/List', [App\Http\Controllers\training_controller::class, 'simpan_list']);
-    Route::get('/Training/Delete/List/{id}', [App\Http\Controllers\training_controller::class, 'delete_list']);
-    Route::get('/Training/Document/{id_doc}', [App\Http\Controllers\training_controller::class, 'training_document']);
-    Route::get('/Training/Examination', [App\Http\Controllers\training_controller::class, 'training_examination']);
-    Route::post('/Training/Simpan/Examination', [App\Http\Controllers\training_controller::class, 'simpan_examination']);
-    Route::post('/Training/Delete/Examination', [App\Http\Controllers\training_controller::class, 'delete_examination']);
-    Route::get('/Training/Question/{id}', [App\Http\Controllers\training_controller::class, 'training_question']);
-    Route::post('/Training/Simpan/Question', [App\Http\Controllers\training_controller::class, 'simpan_question']);
-    Route::post('/Training/Delete/Question', [App\Http\Controllers\training_controller::class, 'delete_question']);
-    Route::get('/Training/Periode/{periode}', [App\Http\Controllers\training_controller::class, 'training_periode']);
-    Route::post('/Training/Simpan/Plan', [App\Http\Controllers\training_controller::class, 'simpan_plan']);
-    Route::get('/Training/Plan/{id}', [App\Http\Controllers\training_controller::class, 'training_plan_participant']);
-    Route::post('/Training/Simpan/Supporting', [App\Http\Controllers\training_controller::class, 'simpan_supporting']);
-    Route::post('/Training/Delete/Supporting', [App\Http\Controllers\training_controller::class, 'delete_supporting']);
-    Route::post('/Training/Simpan/Supporting/Test', [App\Http\Controllers\training_controller::class, 'simpan_supporting_test']);
-    Route::get('/Training/Delete/Supporting/Test/{id}', [App\Http\Controllers\training_controller::class, 'delete_supporting_test']);
-    Route::post('/Training/Simpan/Plan/Participant', [App\Http\Controllers\training_controller::class, 'simpan_plan_participant']);
-    Route::post('/Training/Delete/Plan/Participant', [App\Http\Controllers\training_controller::class, 'delete_plan_participant']);
-    Route::get('/Training/Actual/{id}', [App\Http\Controllers\training_controller::class, 'training_actual_participant']);
+Route::get('/Training/List/{type}/{category}', [App\Http\Controllers\training_controller::class, 'index']);
+Route::post('/Training/Simpan/List', [App\Http\Controllers\training_controller::class, 'simpan_list']);
+Route::get('/Training/Delete/List/{id}', [App\Http\Controllers\training_controller::class, 'delete_list']);
+Route::get('/Training/Document/{id_doc}', [App\Http\Controllers\training_controller::class, 'training_document']);
+Route::get('/Training/Examination', [App\Http\Controllers\training_controller::class, 'training_examination']);
+Route::post('/Training/Simpan/Examination', [App\Http\Controllers\training_controller::class, 'simpan_examination']);
+Route::post('/Training/Delete/Examination', [App\Http\Controllers\training_controller::class, 'delete_examination']);
+Route::get('/Training/Question/{id}', [App\Http\Controllers\training_controller::class, 'training_question']);
+Route::post('/Training/Simpan/Question', [App\Http\Controllers\training_controller::class, 'simpan_question']);
+Route::post('/Training/Delete/Question', [App\Http\Controllers\training_controller::class, 'delete_question']);
+Route::get('/Training/Periode/{periode}', [App\Http\Controllers\training_controller::class, 'training_periode']);
+Route::post('/Training/Simpan/Plan', [App\Http\Controllers\training_controller::class, 'simpan_plan']);
+Route::get('/Training/Plan/{id}', [App\Http\Controllers\training_controller::class, 'training_plan_participant']);
+Route::post('/Training/Simpan/Supporting', [App\Http\Controllers\training_controller::class, 'simpan_supporting']);
+Route::post('/Training/Delete/Supporting', [App\Http\Controllers\training_controller::class, 'delete_supporting']);
+Route::post('/Training/Simpan/Supporting/Test', [App\Http\Controllers\training_controller::class, 'simpan_supporting_test']);
+Route::get('/Training/Delete/Supporting/Test/{id}', [App\Http\Controllers\training_controller::class, 'delete_supporting_test']);
+Route::post('/Training/Simpan/Plan/Participant', [App\Http\Controllers\training_controller::class, 'simpan_plan_participant']);
+Route::post('/Training/Delete/Plan/Participant', [App\Http\Controllers\training_controller::class, 'delete_plan_participant']);
+Route::get('/Training/Actual/{id}', [App\Http\Controllers\training_controller::class, 'training_actual_participant']);
 
 
 //End Migration
+
+// HCMIS UI test page (protected)
+Route::get('/hcmis', function () {
+    return view('hcmis.index');
+})->middleware('auth');
+
+Route::get('/hcmis/employees', function () {
+    return view('hcmis.employee');
+})->middleware('auth');

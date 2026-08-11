@@ -14,6 +14,8 @@ use PDF;
 use Auth;
 use App\Mail\ksk_distribute;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\HcmisController;
+use Illuminate\Http\Request as HttpRequest;
 
 
 class contract_controller extends Controller
@@ -87,6 +89,90 @@ class contract_controller extends Controller
       ->orderby('tb_employees.employee_name','asc')
       ->orderby('active','desc')
       ->get(['tb_employees.PIN','tb_employees.id as idemployee','tb_employees.join_date as joindate','tb_employees.NIK','tb_employees.employee_name','tb_employees.gender','tb_employees.status','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_statuses.*']);
+
+      $tb=DB::table('view_migration_hcmis')->where('hcmis_id','!=','0')->where('hcmis_status','=',0)->orderby('id_employee','asc')->skip(3)->take(50)->get();
+      foreach($tb as $data){
+
+          //HCMIS
+          $sync_hcmis=1;
+          if ($sync_hcmis==1) {
+            if($data->contract_name=='Permanen')$contract_type='PKWTT';
+            else $contract_type='PKWT';
+            if($data->contract_name=='Permanen')$employement='1';
+            elseif($data->contract_name=='Kontrak')$employement='2';
+            elseif($data->contract_name=='Other')$employement='3';
+            elseif($data->contract_name=='Magang')$employement='4';
+            elseif($data->contract_name=='Pensiun Dini')$employement='5';
+            else $employement='7';
+            $tb1=DB::table('tb_employees')->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')->where('tb_employees.id',$data->id_employee)->get(['tb_employees.*','tb_departments.hcmis_id','tb_departments.division_id']);
+            try {
+                foreach($tb1 as $dt){
+                // normalize gender to 'male'|'female'
+                $g = strtolower(trim($dt->gender ?? ''));
+                if ($g === 'laki-laki' || $g === 'male') $gender = 'male';
+                else $gender = 'female';
+
+                $employee_number = $dt->NIK ?? ($data->NIK ?? null);
+                $full_name = $dt->employee_name ?? ($data->employee_name ?? null);
+
+                // normalize and validate dates for HCMIS
+                $start_date = $data->start_contract ?? null;
+                $end_date = $data->finish_contract ?? null;
+                if ($data->contract_name == 'Permanen') {
+                  // permanen may not require end_date
+                  $end_date = null;
+                } else {
+                  // if end_date missing or earlier than start_date, set end_date = start_date
+                  if (empty($end_date) && !empty($start_date)) {
+                    $end_date = $start_date;
+                    Log::warning('HCMIS date normalization: end_date missing, set to start_date', ['start_date' => $start_date, 'end_date' => $end_date, 'employee_number' => $employee_number]);
+                  } elseif (!empty($start_date) && !empty($end_date) && strtotime($end_date) < strtotime($start_date)) {
+                    Log::warning('HCMIS date normalization: end_date earlier than start_date, adjusting end_date to start_date', ['start_date' => $start_date, 'original_end_date' => $end_date, 'employee_number' => $employee_number]);
+                    $end_date = $start_date;
+                  }
+                }
+
+                $payload = [
+                  'company_code'      => config('hcmis.company_code'),
+                  'org_code'          => config('hcmis.org_code'),
+                  'username'          => config('hcmis.username'),
+                  'password'          => config('hcmis.password'),
+                  'employee_number'   => $employee_number,
+                  'full_name'         => $full_name,
+                  'gender'            => $gender,
+                  'contract_type'     => $contract_type,
+                  'employment_status_id' => $employement,
+                  'start_date'        => $start_date,
+                  'end_date'          => $end_date,
+                  'division_id'       => $dt->division_id,
+                  'department_id'     => $dt->hcmis_id,
+                ];
+
+                // if required fields missing, log and skip HCMIS call
+                if (empty($payload['employee_number']) || empty($payload['full_name'])) {
+                  Log::warning('HCMIS sync skipped: missing required fields', $payload);
+                  continue;
+                }
+
+                Log::info('HCMIS sync payload', $payload);
+
+                $hcmisController = app(HcmisController::class);
+                // Insert-only: always try to create the employee in HCMIS.
+                $response = $hcmisController->employeesStore(new HttpRequest($payload));
+                $hcmisResult = json_decode($response->getContent(), true);
+                Log::info('HCMIS insertContract response', (array) $hcmisResult);
+
+                // If HCMIS reports the record already exists, just log and continue.
+                if (!empty($hcmisResult['status_code']) && $hcmisResult['status_code'] === 422 && strpos(strtolower($hcmisResult['message'] ?? ''), 'already been taken') !== false) {
+                  Log::info('HCMIS insert conflict: record already exists, skipping update', ['employees_number' => $employee_number, 'hcmis_result' => $hcmisResult]);
+                }
+              }
+            } catch (\Exception $e) {
+              Log::error('HCMIS sync exception: '.$e->getMessage());
+            }
+
+          }
+      }
 
       return view('page/admin/m_employee/contract',['tb_employee'=>$tb_employee,'menu'=>'employee','submenu'=>'contract','submenu'=>'contract','Judul'=>'Employee (Active)']);
     }
@@ -402,6 +488,89 @@ class contract_controller extends Controller
             $reaktif=DB::table('tb_employees')->where('id',$data->id_employee)->update(['status'=>'1']);
           }
 
+          //HCMIS
+          $sync_hcmis=1;
+          if ($sync_hcmis==1) {
+            if($data->contract_name=='Permanen')$contract_type='PKWTT';
+            else $contract_type='PKWT';
+            if($data->contract_name=='Permanen')$employement='1';
+            elseif($data->contract_name=='Kontrak')$employement='2';
+            elseif($data->contract_name=='Other')$employement='3';
+            elseif($data->contract_name=='Magang')$employement='4';
+            elseif($data->contract_name=='Pensiun Dini')$employement='5';
+            else $employement='7';
+            $tb1=DB::table('tb_employees')->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')->where('tb_employees.id',$data->id_employee)->get(['tb_employees.*','tb_departments.hcmis_id','tb_departments.division_id']);
+            try {
+                foreach($tb1 as $dt){
+                // normalize gender to 'male'|'female'
+                $g = strtolower(trim($dt->gender ?? ''));
+                if ($g === 'laki-laki' || $g === 'male') $gender = 'male';
+                else $gender = 'female';
+
+                $employee_number = $dt->NIK ?? ($data->NIK ?? null);
+                $full_name = $dt->employee_name ?? ($data->employee_name ?? null);
+
+                // normalize and validate dates for HCMIS
+                $start_date = $data->start_contract ?? null;
+                $end_date = $data->finish_contract ?? null;
+                if ($data->contract_name == 'Permanen') {
+                  // permanen may not require end_date
+                  $end_date = null;
+                } else {
+                  // if end_date missing or earlier than start_date, set end_date = start_date
+                  if (empty($end_date) && !empty($start_date)) {
+                    $end_date = $start_date;
+                    Log::warning('HCMIS date normalization: end_date missing, set to start_date', ['start_date' => $start_date, 'end_date' => $end_date, 'employee_number' => $employee_number]);
+                  } elseif (!empty($start_date) && !empty($end_date) && strtotime($end_date) < strtotime($start_date)) {
+                    Log::warning('HCMIS date normalization: end_date earlier than start_date, adjusting end_date to start_date', ['start_date' => $start_date, 'original_end_date' => $end_date, 'employee_number' => $employee_number]);
+                    $end_date = $start_date;
+                  }
+                }
+
+                $payload = [
+                  'company_code'      => config('hcmis.company_code'),
+                  'org_code'          => config('hcmis.org_code'),
+                  'username'          => config('hcmis.username'),
+                  'password'          => config('hcmis.password'),
+                  'employee_number'   => $employee_number,
+                  'full_name'         => $full_name,
+                  'gender'            => $gender,
+                  'contract_type'     => $contract_type,
+                  'employment_status_id' => $employement,
+                  'start_date'        => $start_date,
+                  'end_date'          => $end_date,
+                  'division_id'       => $dt->division_id,
+                  'department_id'     => $dt->hcmis_id,
+                ];
+
+                // if required fields missing, log and skip HCMIS call
+                if (empty($payload['employee_number']) || empty($payload['full_name'])) {
+                  Log::warning('HCMIS sync skipped: missing required fields', $payload);
+                  continue;
+                }
+
+                Log::info('HCMIS sync payload', $payload);
+
+                $hcmisController = app(HcmisController::class);
+                // Insert-only: always try to create the employee in HCMIS.
+                $response = $hcmisController->employeesStore(new HttpRequest($payload));
+                $hcmisResult = json_decode($response->getContent(), true);
+                Log::info('HCMIS insertContract response', (array) $hcmisResult);
+
+                // If HCMIS reports the record already exists, just log and continue.
+                if (!empty($hcmisResult['status_code']) && $hcmisResult['status_code'] === 422 && strpos(strtolower($hcmisResult['message'] ?? ''), 'already been taken') !== false) {
+                  Log::info('HCMIS insert conflict: record already exists, skipping update', ['employees_number' => $employee_number, 'hcmis_result' => $hcmisResult]);
+                }
+              }
+            } catch (\Exception $e) {
+              Log::error('HCMIS sync exception: '.$e->getMessage());
+            }
+
+          }
+
+          // send to HCMIS for sync and log payload/response for debugging
+
+          //End HCMIS
 
           $fields='contract_name';
           $before='';

@@ -14,6 +14,7 @@ use App\Http\Controllers\WhatsappController;
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
+|
 */
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
@@ -21,3 +22,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('/send-message', [WhatsappController::class, 'sendMessage']);
+
+// HCMIS proxy routes
+Route::prefix('hcmis')->group(function () {
+    Route::post('/login', [\App\Http\Controllers\HcmisController::class, 'login']);
+    Route::get('/employees/datatables', [\App\Http\Controllers\HcmisController::class, 'employeesDatatables']);
+    Route::post('/employees/datatables', [\App\Http\Controllers\HcmisController::class, 'employeesDatatables']);
+    Route::post('/employees/show', [\App\Http\Controllers\HcmisController::class, 'employeesShow']);
+    Route::post('/employees/store', [\App\Http\Controllers\HcmisController::class, 'employeesStore']);
+    Route::put('/employees/update', [\App\Http\Controllers\HcmisController::class, 'employeesUpdate']);
+    Route::delete('/employees/delete', [\App\Http\Controllers\HcmisController::class, 'employeesDelete']);
+});

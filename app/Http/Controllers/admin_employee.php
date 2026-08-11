@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\DB;
 use DateTime;
 use Image;
 use Auth;
+use App\Http\Controllers\HcmisController;
+use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;

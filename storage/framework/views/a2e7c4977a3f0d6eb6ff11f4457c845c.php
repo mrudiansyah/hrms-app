@@ -415,6 +415,7 @@
 			$('#idemployee').val($(this).data('idemployee'));
 			$('#nmemployee').val($(this).data('nmemployee'));
 			$('#joindate').val($(this).data('joindate'));
+
 			$('#startcontract').val($(this).data('tglawal'));
 			$('#statusawal').val($(this).data('statusawal'));
 			if($(this).data('statusawal')==''){

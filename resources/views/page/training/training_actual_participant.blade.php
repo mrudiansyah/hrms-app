@@ -291,6 +291,43 @@
 						</div>
 						<!-- /.box-body -->
 					</div>
+					<div class="box box-warning" style="background:#FFF;">
+						<div class="box-header">
+							<i class="fa fa-tasks"></i>
+							<h3 class="box-title">Training Assignment</h3>
+							<div class="box-tools pull-right">
+								<button type="button" class="btn btn-warning btn-xs assignment"><i class="fa fa-plus"></i> &nbsp;Add New</button>
+							</div>
+						</div>
+						<div class="box-body" style="overflow-x: scroll;">
+							<table id="table6" class="table table-hover">
+								<thead>
+									<tr>
+										<th style="width:30px;">No</th>
+										<th>Assignment</th>
+										<th>Due Date</th>
+									</tr>
+								</thead>
+								<tbody id="supporting">
+									<?php $assign=0;?>
+									@foreach($tb_training_assignment as $dt)
+									<tr>
+										<td><?php $assign++;echo $assign;?></td>
+										<td>{{$dt->assignment}}</td>
+										<td>
+											{{$dt->duedate}}
+											<div class="pull-right">
+												<button title="Edit" type="button" class="assignment-edit btn btn-primary btn-xs" data-id="{{$dt->id}}" data-assignment="{{$dt->assignment}}" data-duedate="{{$dt->duedate}}"><i class="fa fa-edit"></i></button>
+												<button title="Delete" type="button" class="assignment-delete btn btn-danger btn-xs" data-id="{{$dt->id}}" data-assignment="{{$dt->assignment}}"><i class="fa fa-trash"></i></button>
+											</div>
+										</td>
+									</tr>
+									@endforeach
+								</tbody>
+							</table>
+						</div>
+						<!-- /.box-body -->
+					</div>
 				</div>
 			</div>
 			<!-- /.row -->
@@ -327,6 +364,38 @@
 			<!-- /.modal-content -->
 		</div>
 		<!-- /.modal-dialog -->
+	</div>
+
+	<div class="modal fade" id="modal-assignment">
+		<div class="modal-dialog box box-warning" style="width:400px;">
+			<div class="modal-content">
+				<form id="assignment-form">
+					{{ csrf_field() }}
+					<div class="modal-header">
+						<b id="assignment-modal-title">ADD TRAINING ASSIGNMENT</b>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" id="assignment-id" name="id_assignment">
+						<input type="hidden" name="id_training_actual" value="{{$id_training}}">
+						<div class="form-group">
+							<label>Assignment</label>
+							<textarea class="form-control" id="assignment-name" name="assignment" rows="3" required></textarea>
+						</div>
+						<div class="form-group">
+							<label>Due Date</label>
+							<input type="date" class="form-control" id="assignment-due-date" name="duedate" required>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-warning pull-right">Save</button>
+					</div>
+				</form>
+			</div>
+		</div>
 	</div>
 
 	<div class="modal fade" id="modal-delete">
@@ -391,6 +460,17 @@
 		})
 		$(function () {
 			$('#table5').DataTable({
+				'paging': false,
+				'lengthChange': true,
+				'searching': false,
+				'ordering': true,
+				'info': true,
+				"pageLength": 10,
+				'autoWidth': false,
+			})
+		})
+		$(function () {
+			$('#table6').DataTable({
 				'paging': false,
 				'lengthChange': true,
 				'searching': false,
@@ -532,6 +612,66 @@
 					}
 				}
 			})
+		});
+		$(document).on('click', '.assignment', function () {
+			$('#assignment-form')[0].reset();
+			$('#assignment-id').val('');
+			$('#assignment-modal-title').text('ADD TRAINING ASSIGNMENT');
+			$('#modal-assignment').modal('show');
+		});
+
+		$(document).on('click', '.assignment-edit', function () {
+			var button = $(this);
+			$('#assignment-id').val(button.data('id'));
+			$('#assignment-name').val(button.data('assignment'));
+			$('#assignment-due-date').val(String(button.data('duedate')).substring(0, 10));
+			$('#assignment-modal-title').text('EDIT TRAINING ASSIGNMENT');
+			$('#modal-assignment').modal('show');
+		});
+
+		$('#assignment-form').on('submit', function (event) {
+			event.preventDefault();
+			$.ajax({
+				url: '/Training/Simpan/Assignment',
+				type: 'POST',
+				data: $(this).serialize(),
+				headers: {
+					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+				},
+				success: function () {
+					window.location.reload();
+				},
+				error: function (xhr) {
+					var message = xhr.responseJSON && xhr.responseJSON.message
+						? xhr.responseJSON.message
+						: 'Assignment gagal disimpan.';
+					alert(message);
+				}
+			});
+		});
+
+		$(document).on('click', '.assignment-delete', function () {
+			var button = $(this);
+			if (!confirm('Hapus assignment ' + button.data('assignment') + '?')) {
+				return;
+			}
+			$.ajax({
+				url: '/Training/Delete/Assignment',
+				type: 'POST',
+				data: {
+					id_assignment: button.data('id'),
+					id_training_actual: "{{$id_training}}"
+				},
+				headers: {
+					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+				},
+				success: function () {
+					window.location.reload();
+				},
+				error: function () {
+					alert('Assignment gagal dihapus.');
+				}
+			});
 		});
 
 	</script>

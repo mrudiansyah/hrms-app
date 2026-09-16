@@ -151,7 +151,7 @@
 				<li><a href="/Setup"><i class="fa fa-gear text-red"></i> SetUp Utility</a></li>
 			@endif
 			@if (request()->user()->hasRole('training') || request()->user()->hasRole('competence') || request()->user()->hasRole('hr_access') || request()->user()->hasRole('performance') || request()->user()->hasRole('leader'))
-					<li class="treeview<?php if (isset($menu) && ($menu == 'training' || $menu == 'training_activity' || $menu == 'training_tools' || $menu == 'training_actual' || $menu == 'competence' || $menu == 'master' || $menu == 'aktual' || $menu == 'performanceAll'))
+					<li class="treeview<?php if (isset($menu) && ($menu == 'training' || $menu == 'training_activity' || $menu == 'training_tools' || $menu == 'training_actual' || $menu == 'competence' || $menu == 'master' || $menu == 'aktual' || $menu == 'performanceAll'|| $menu == 'elibrary'))
 				echo ' active';?>">
 						<a href="#">
 							<i class="fa fa-graduation-cap text-green"></i> <span>Depelovement</span>
@@ -160,12 +160,13 @@
 							</span>
 						</a>
 						<ul class="treeview-menu">
+							<li><a href="/Training/Document/0"><i class="fa fa-book"></i> e-Library</a></li>
 
 							<?php if (request()->user()->hasRole('training')) {?>
 							<li class="treeview<?php if (isset($menu) && ($menu == 'training' || $menu == 'training_activity' || $menu == 'training_tools' || $menu == 'training_actual'))
 					echo ' active';?>">
 								<a href="#">
-									<i class="fa fa-book"></i> <span>Training</span>
+										<i class="fa fa-graduation-cap"></i> <span>Training</span>
 									<span class="pull-right-container">
 										<i class="fa fa-angle-left pull-right"></i>
 									</span>
@@ -181,7 +182,6 @@
 										</a>
 										<ul class="treeview-menu">
 											<li><a href="/Training/List/0/0"><i class="fa fa-circle-o"></i> Training</a></li>
-											<li><a href="/Training/Document/0"><i class="fa fa-circle-o"></i> Documents</a></li>
 											<li><a href="/Training/Examination"><i class="fa fa-circle-o"></i> Test</a></li>
 										</ul>
 									</li>

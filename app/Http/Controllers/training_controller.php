@@ -255,19 +255,43 @@ class training_controller extends Controller
                 ->leftjoin('tb_training_actual', 'tb_training_actual.id_training_schedule', '=', 'tb_training_schedule.id')
                 ->where('tb_training_actual.id', $id)->orderby('id', 'desc')->get(['tb_related_document.*', 'tb_training_document.id as id_doc', 'tb_training_document.document_name', 'tb_training_document.file_name']);
 
-            return $id_training_schedule;
             $tb_training_test = DB::table('tb_training_test')->orderby('test_name', 'asc')->get();
             $tb_related_test = DB::table('tb_related_test')
                 ->leftjoin('tb_training_test', 'tb_training_test.id', '=', 'tb_related_test.id_test')
                 ->where('id_training_schedule', $id_training_schedule)->get(['tb_related_test.*', 'tb_training_test.test_name', 'tb_training_test.minutes', 'tb_training_test.passing_grade']);
-            return view('page/training/training_actual_participant', ['tb_training_participant' => $tb_training_participant, 'tb_training_actual' => $tb_training_actual, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'in_class' => $in_class, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
+            $tb_training_assignment = DB::table('tb_training_assignment')
+                ->where('id_training_actual', $id)
+                ->orderby('id', 'desc')
+                ->get(['id', 'id_training_actual', 'assignment', 'duedate']);
+            return view('page/training/training_actual_participant', ['tb_training_participant' => $tb_training_participant, 'tb_training_actual' => $tb_training_actual,'tb_training_assignment' => $tb_training_assignment, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'in_class' => $in_class, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
     }
     function training_document($id_doc)
     {
-        $tb_training_document = DB::table('tb_training_document')->where('doc_level', '0')->orderby('id', 'desc')->get();
+        $tb_training_document = DB::table('tb_training_document')->where('doc_level', '0')->where('status', '1')->orderby('id', 'desc')->get();
+        $documentIds = $tb_training_document->pluck('id');
+        $keywordsByDocument = DB::table('tb_training_dockeyword')
+            ->whereIn('id_training_document', $documentIds)
+            ->orderBy('keyword', 'asc')
+            ->get(['id_training_document', 'keyword'])
+            ->groupBy('id_training_document');
+        foreach ($tb_training_document as $document) {
+            $document->keywords = isset($keywordsByDocument[$document->id])
+                ? $keywordsByDocument[$document->id]->pluck('keyword')->implode(', ')
+                : '';
+        }
+        $tb_skill_type = DB::table('tb_skill_type')->select('skill_code')->distinct()->orderby('skill_code', 'asc')->get();
+        $tb_department = DB::table('tb_departments')->where('isDelete', '0')->select('dept_code')->orderby('dept_code', 'asc')->get();
+        $tb_training_document_numbers = DB::table('tb_training_document')
+            ->where('doc_level', '0')
+            ->select('category', 'skill', 'nomor')
+            ->distinct()
+            ->orderby('category', 'asc')
+            ->orderby('skill', 'asc')
+            ->orderby('nomor', 'asc')
+            ->get();
         $related_file = DB::table('tb_training_document')->where('id', $id_doc)->get();
         $file_name = '';
         $document_name = '';
@@ -276,7 +300,63 @@ class training_controller extends Controller
             $document_name = $dt->document_name;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'training_tools', 'juduls' => 'Training Documents']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Training Documents']);
+            //}elseif (request()->user()->hasRole('ess')){
+            //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function training_document_draft($id_doc)
+    {
+        $tb_training_document = DB::table('tb_training_document')->where('doc_level', '0')->where('status', '0')->orderby('id', 'desc')->get();
+        $tb_skill_type = DB::table('tb_skill_type')->select('skill_code')->distinct()->orderby('skill_code', 'asc')->get();
+        $tb_department = DB::table('tb_departments')->where('isDelete', '0')->select('dept_code')->orderby('dept_code', 'asc')->get();
+        $tb_training_document_numbers = DB::table('tb_training_document')
+            ->where('doc_level', '0')
+            ->select('category', 'skill', 'nomor')
+            ->distinct()
+            ->orderby('category', 'asc')
+            ->orderby('skill', 'asc')
+            ->orderby('nomor', 'asc')
+            ->get();
+        $related_file = DB::table('tb_training_document')->where('id', $id_doc)->get();
+        $file_name = '';
+        $document_name = '';
+        foreach ($related_file as $dt) {
+            $file_name = $dt->file_name;
+            $document_name = $dt->document_name;
+        }
+        if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Training Documents']);
+            //}elseif (request()->user()->hasRole('ess')){
+            //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function training_document_archieve($id_doc)
+    {
+        $tb_training_document = DB::table('tb_training_document')->where('doc_level', '0')->where('status', '2')->orderby('id', 'desc')->get();
+        $tb_skill_type = DB::table('tb_skill_type')->select('skill_code')->distinct()->orderby('skill_code', 'asc')->get();
+        $tb_department = DB::table('tb_departments')->where('isDelete', '0')->select('dept_code')->orderby('dept_code', 'asc')->get();
+        $tb_training_document_numbers = DB::table('tb_training_document')
+            ->where('doc_level', '0')
+            ->select('category', 'skill', 'nomor')
+            ->distinct()
+            ->orderby('category', 'asc')
+            ->orderby('skill', 'asc')
+            ->orderby('nomor', 'asc')
+            ->get();
+        $related_file = DB::table('tb_training_document')->where('id', $id_doc)->get();
+        $file_name = '';
+        $document_name = '';
+        foreach ($related_file as $dt) {
+            $file_name = $dt->file_name;
+            $document_name = $dt->document_name;
+        }
+        if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Training Documents']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -304,6 +384,74 @@ class training_controller extends Controller
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
+    }
+    function training_question_template($id)
+    {
+        if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
+            return Excel::download(new \App\Exports\TrainingQuestionTemplateExport($id), 'template_question_' . $id . '.xlsx');
+        }
+
+        return abort(403, 'Anda tidak punya akses');
+    }
+    function import_training_question(Request $request)
+    {
+        if (!request()->user()->hasRole('root') && !request()->user()->hasRole('training')) {
+            return abort(403, 'Anda tidak punya akses');
+        }
+
+        $this->validate($request, [
+            'id_test' => 'required|integer',
+            'file' => 'required|mimes:csv,xls,xlsx',
+        ]);
+
+        $rows = Excel::toArray([], $request->file('file'))[0] ?? [];
+        $admin = Auth::user()->name;
+        $questions = [];
+
+        foreach ($rows as $index => $row) {
+            if ($index === 0 && strtolower(trim((string) ($row[0] ?? ''))) === 'id_test') {
+                continue;
+            }
+
+            if (count(array_filter($row, function ($value) {
+                return $value !== null && trim((string) $value) !== '';
+            })) === 0) {
+                continue;
+            }
+
+            if ((string) ($row[0] ?? '') !== (string) $request->id_test) {
+                return redirect()->back()->with('error', 'ID test pada file tidak sesuai dengan halaman ini.');
+            }
+
+            if (trim((string) ($row[2] ?? '')) === '' || trim((string) ($row[3] ?? '')) === '' || trim((string) ($row[7] ?? '')) === '') {
+                return redirect()->back()->with('error', 'Kolom question, option_a, dan answer_code wajib diisi.');
+            }
+
+            $answerCode = strtoupper(trim((string) $row[7]));
+            if (!in_array($answerCode, ['A', 'B', 'C', 'D'])) {
+                return redirect()->back()->with('error', 'Answer code hanya boleh A, B, C, atau D.');
+            }
+
+            $questions[] = [
+                'index_question' => (int) ($row[1] ?? count($questions) + 1),
+                'id_training_test' => $request->id_test,
+                'question' => trim((string) $row[2]),
+                'option_a' => trim((string) ($row[3] ?? '')),
+                'option_b' => trim((string) ($row[4] ?? '')),
+                'option_c' => trim((string) ($row[5] ?? '')),
+                'option_d' => trim((string) ($row[6] ?? '')),
+                'answer_code' => $answerCode,
+                'admin' => $admin,
+            ];
+        }
+
+        if (count($questions) === 0) {
+            return redirect()->back()->with('error', 'File tidak memiliki data question.');
+        }
+
+        DB::table('tb_question')->insert($questions);
+
+        return redirect()->back()->with('success', count($questions) . ' question berhasil diimport.');
     }
     function training_question_show($id)
     {
@@ -647,6 +795,50 @@ class training_controller extends Controller
         }
         return $hasil;
 
+    }
+    function simpan_assignment(Request $data)
+    {
+        if (!request()->user()->hasRole('root') && !request()->user()->hasRole('training')) {
+            return response()->json(['message' => 'Anda tidak punya akses'], 403);
+        }
+
+        $this->validate($data, [
+            'id_training_actual' => 'required|integer',
+            'assignment' => 'required|string|max:255',
+            'duedate' => 'required|date',
+        ]);
+
+        $assignmentData = [
+            'assignment' => trim($data->assignment),
+            'duedate' => $data->duedate,
+            'created_at' => now(),
+            'created_by' => Auth::user()->name,
+        ];
+
+        if ($data->filled('id_assignment')) {
+            DB::table('tb_training_assignment')
+                ->where('id', $data->id_assignment)
+                ->where('id_training_actual', $data->id_training_actual)
+                ->update($assignmentData);
+        } else {
+            $assignmentData['id_training_actual'] = $data->id_training_actual;
+            DB::table('tb_training_assignment')->insert($assignmentData);
+        }
+
+        return response()->json(['message' => 'Assignment berhasil disimpan']);
+    }
+    function delete_assignment(Request $data)
+    {
+        if (!request()->user()->hasRole('root') && !request()->user()->hasRole('training')) {
+            return response()->json(['message' => 'Anda tidak punya akses'], 403);
+        }
+
+        DB::table('tb_training_assignment')
+            ->where('id', $data->id_assignment)
+            ->where('id_training_actual', $data->id_training_actual)
+            ->delete();
+
+        return response()->json(['message' => 'Assignment berhasil dihapus']);
     }
     function document_upload(request $data)
     {

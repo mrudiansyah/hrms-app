@@ -324,6 +324,8 @@ class ess_controller extends Controller
         if ($data->document_name == '')
             return redirect()->back()->with(['success' => 'Document Name can not be null']);
         if ($data->id_document == '') {
+            if ($data->skill == '' || $data->department == '')
+                return redirect()->back()->with(['success' => 'Skill and Department can not be null']);
             $file = $data->file('training_doc');
             if ($file == '')
                 return redirect()->back()->with(['success' => 'File can not be null']);
@@ -334,21 +336,70 @@ class ess_controller extends Controller
 
             $terupload = $file->move(storage_path('app/public'), $namaFile);
             if ($terupload) {
-                $add = DB::table('tb_training_document')->insert([
-                    'document_name' => $data->document_name,
-                    'file_name' => $namaFile,
-                    'doc_level' => '0',
-                    'admin' => $admin,
-                ]);
+                $add = DB::transaction(function () use ($data, $namaFile, $admin) {
+                    $category = 'TRN';
+                    $skill = trim($data->skill);
+                    $selectedNomor = trim((string) $data->nomor);
+                    $documentQuery = DB::table('tb_training_document')
+                        ->where('category', $category)
+                        ->where('skill', $skill)
+                        ->where('doc_level', '0')
+                        ->lockForUpdate();
+
+                    if ($selectedNomor !== '') {
+                        $nomor = (int) $selectedNomor;
+                        if (!$documentQuery->where('nomor', $nomor)->exists()) {
+                            return false;
+                        }
+                        $revision = ((int) DB::table('tb_training_document')
+                            ->where('category', $category)
+                            ->where('skill', $skill)
+                            ->where('nomor', $nomor)
+                            ->where('doc_level', '0')
+                            ->lockForUpdate()
+                            ->max('revision')) + 1;
+                    } else {
+                        $nomor = ((int) $documentQuery->max('nomor')) + 1;
+                        $revision = 1;
+                    }
+                    $codeDocument = $category . '-' . $skill . '-' . str_pad($nomor, 3, '0', STR_PAD_LEFT) . '-' . str_pad($revision, 2, '0', STR_PAD_LEFT);
+
+                    return DB::table('tb_training_document')->insert([
+                        'document_name' => $data->document_name,
+                        'file_name' => $namaFile,
+                        'doc_level' => '0',
+                        'category' => $category,
+                        'skill' => $skill,
+                        'revision' => $revision,
+                        'nomor' => $nomor,
+                        'code_document' => $codeDocument,
+                        'training_name' => $data->training_name,
+                        'department' => $data->department,
+                        'author' => $admin,
+                        'status' => 2,
+                        'information' => $data->information,
+                        'admin' => $admin,
+                    ]);
+                });
+                if (!$add) {
+                    return redirect()->back()->with(['success' => 'Nomor tidak tersedia untuk skill yang dipilih']);
+                }
                 if ($add) {
                     return redirect()->back()->with(['success' => 'Upload Sukses']);
                 }
             }
         } else {
-            $update = DB::table('tb_training_document')->where('id', $data->id_document)->update([
+            $updateData = [
                 'document_name' => $data->document_name,
+                'training_name' => $data->training_name,
+                'department' => $data->department,
+                'information' => $data->information,
                 'admin' => $admin,
-            ]);
+            ];
+            if (request()->user()->hasRole('training')) {
+                $updateData['status'] = $data->status;
+            }
+            $update = DB::table('tb_training_document')->where('id', $data->id_document)->update($updateData);
             if ($update)
                 return redirect()->back()->with(['success' => 'Update Sukses']);
         }
@@ -369,6 +420,61 @@ class ess_controller extends Controller
         } else
             $hasil = 'Gagal';
         return $hasil;
+    }
+    function document_keyword($id)
+    {
+        if (!request()->user()->hasRole('root') && !request()->user()->hasRole('training')) {
+            return response()->json(['message' => 'Anda tidak punya akses'], 403);
+        }
+
+        $document = DB::table('tb_training_document')->where('id', $id)->first(['id', 'document_name']);
+        if (!$document) {
+            return response()->json(['message' => 'Document tidak ditemukan'], 404);
+        }
+
+        $keywords = DB::table('tb_training_dockeyword')
+            ->where('id_training_document', $id)
+            ->orderBy('keyword', 'asc')
+            ->get(['id', 'keyword']);
+
+        return response()->json(['document' => $document, 'keywords' => $keywords]);
+    }
+    function document_keyword_save(Request $data)
+    {
+        if (!request()->user()->hasRole('root') && !request()->user()->hasRole('training')) {
+            return response()->json(['message' => 'Anda tidak punya akses'], 403);
+        }
+
+        $documentId = $data->input('id_training_document');
+        if (!DB::table('tb_training_document')->where('id', $documentId)->exists()) {
+            return response()->json(['message' => 'Document tidak ditemukan'], 404);
+        }
+
+        DB::transaction(function () use ($data, $documentId) {
+            $deleteIds = $data->input('delete_ids', []);
+            if (is_array($deleteIds) && count($deleteIds) > 0) {
+                DB::table('tb_training_dockeyword')
+                    ->where('id_training_document', $documentId)
+                    ->whereIn('id', $deleteIds)
+                    ->delete();
+            }
+
+            $keyword = trim((string) $data->input('keyword'));
+            if ($keyword !== '') {
+                $exists = DB::table('tb_training_dockeyword')
+                    ->where('id_training_document', $documentId)
+                    ->where('keyword', $keyword)
+                    ->exists();
+                if (!$exists) {
+                    DB::table('tb_training_dockeyword')->insert([
+                        'id_training_document' => $documentId,
+                        'keyword' => $keyword,
+                    ]);
+                }
+            }
+        });
+
+        return response()->json(['message' => 'Keyword berhasil diperbarui']);
     }
     function document_download($id)
     {
@@ -445,14 +551,16 @@ class ess_controller extends Controller
         $cek_participant = DB::table('tb_training_participant')
             ->where('id_training_invitation', $id_training_invitation)
             ->where('is_delete', '0')
+            ->where('id_employee', $id_employee)
+            ->where('id_training_actual', $id_training_actual)
             ->count();
         if ($cek_participant == 0) {
             $tb_training_invitation = DB::table('tb_training_invitation')
                 ->where('tb_training_invitation.id', $id_training_invitation)
                 ->get();
             foreach ($tb_training_invitation as $dt) {
-                $id_test = DB::table('tb_training_schedule')->where('id', $id_training_schedule)->value('id_test');
-                $passing_grade = DB::table('tb_test')->where('id', $id_test)->value('passing_grade');
+                $id_test = DB::table('tb_related_test')->where('id_training_schedule', $id_training_schedule)->value('id_test');
+                $passing_grade = DB::table('tb_training_test')->where('id', $id_test)->value('passing_grade');
                 $add_participant = DB::table('tb_training_participant')->insert([
                     'id_training_actual' => $id_training_actual,
                     'id_training_invitation' => $dt->id,
@@ -495,7 +603,6 @@ class ess_controller extends Controller
     }
     function training_actual($id, $id_doc)
     {
-
         $tb_training_actual = DB::table('tb_training_actual')->where('id', $id)->get();
         foreach ($tb_training_actual as $dt) {
             $id_training_schedule = $dt->id_training_schedule;

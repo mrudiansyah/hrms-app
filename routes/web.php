@@ -94,6 +94,8 @@ Route::get('/payroll/slip/assignment/{start}/{end}/{id_employee}', [App\Http\Con
 Route::get('/Documents/{id}', [App\Http\Controllers\ess_controller::class, 'document']);
 Route::post('/Document/Upload', [App\Http\Controllers\ess_controller::class, 'document_upload']);
 Route::post('/Delete/Document', [App\Http\Controllers\ess_controller::class, 'delete_document']);
+Route::get('/Document/Keyword/{id}', [App\Http\Controllers\ess_controller::class, 'document_keyword']);
+Route::post('/Document/Keyword/Save', [App\Http\Controllers\ess_controller::class, 'document_keyword_save']);
 Route::get('/Document/Download/{id}', [App\Http\Controllers\ess_controller::class, 'document_download']);
 Route::get('/Training/Invitation', [App\Http\Controllers\ess_controller::class, 'training_invitation']);
 Route::get('/Training/Schedule/{id}', [App\Http\Controllers\ess_controller::class, 'training_schedule']);
@@ -209,9 +211,13 @@ Route::get('/Training/List/{type}/{category}', [App\Http\Controllers\training_co
 Route::post('/Training/Simpan/List', [App\Http\Controllers\training_controller::class, 'simpan_list']);
 Route::get('/Training/Delete/List/{id}', [App\Http\Controllers\training_controller::class, 'delete_list']);
 Route::get('/Training/Document/{id_doc}', [App\Http\Controllers\training_controller::class, 'training_document']);
+Route::get('/Training/DocumentDraft/{id_doc}', [App\Http\Controllers\training_controller::class, 'training_document_draft']);
+Route::get('/Training/DocumentArchieve/{id_doc}', [App\Http\Controllers\training_controller::class, 'training_document_archieve']);
 Route::get('/Training/Examination', [App\Http\Controllers\training_controller::class, 'training_examination']);
 Route::post('/Training/Simpan/Examination', [App\Http\Controllers\training_controller::class, 'simpan_examination']);
 Route::post('/Training/Delete/Examination', [App\Http\Controllers\training_controller::class, 'delete_examination']);
+Route::get('/Training/Question/Template/{id}', [App\Http\Controllers\training_controller::class, 'training_question_template']);
+Route::post('/Training/Question/Import', [App\Http\Controllers\training_controller::class, 'import_training_question']);
 Route::get('/Training/Question/{id}', [App\Http\Controllers\training_controller::class, 'training_question']);
 Route::post('/Training/Simpan/Question', [App\Http\Controllers\training_controller::class, 'simpan_question']);
 Route::post('/Training/Delete/Question', [App\Http\Controllers\training_controller::class, 'delete_question']);
@@ -224,6 +230,8 @@ Route::post('/Training/Simpan/Supporting/Test', [App\Http\Controllers\training_c
 Route::get('/Training/Delete/Supporting/Test/{id}', [App\Http\Controllers\training_controller::class, 'delete_supporting_test']);
 Route::post('/Training/Simpan/Plan/Participant', [App\Http\Controllers\training_controller::class, 'simpan_plan_participant']);
 Route::post('/Training/Delete/Plan/Participant', [App\Http\Controllers\training_controller::class, 'delete_plan_participant']);
+Route::post('/Training/Simpan/Assignment', [App\Http\Controllers\training_controller::class, 'simpan_assignment']);
+Route::post('/Training/Delete/Assignment', [App\Http\Controllers\training_controller::class, 'delete_assignment']);
 Route::get('/Training/Actual/{id}', [App\Http\Controllers\training_controller::class, 'training_actual_participant']);
 Route::get('/Training/Actuals/{type}/{category}', [App\Http\Controllers\training_controller::class, 'training_actual_group']);
 Route::get('/Training/Personal/{id_employee?}', [App\Http\Controllers\training_controller::class, 'training_personal']);

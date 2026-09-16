@@ -1,6 +1,6 @@
-@extends('layouts/admin')
-@section('Contents')
-	<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<?php $__env->startSection('Contents'); ?>
+	<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 	<!-- Contents -->
    	<style>
 		#tablesx th {
@@ -73,14 +73,14 @@
 							</thead>
 							<tbody>
 								<?php $no=0;?>
-								@foreach($tb_training_test as $dt)
+								<?php $__currentLoopData = $tb_training_test; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 								<tr>
 									<td><?php $no++;echo $no;?></td>
-									<td>{{$dt->test_name}}</td>
-									<td>{{$dt->minutes}}</td>
-									<td>{{$dt->passing_grade}}</td>
+									<td><?php echo e($dt->test_name); ?></td>
+									<td><?php echo e($dt->minutes); ?></td>
+									<td><?php echo e($dt->passing_grade); ?></td>
 								</tr>
-								@endforeach
+								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>
 						</table>
 					</div>
@@ -91,7 +91,7 @@
 				<div class="box box-primary" style="background:#FFF;">
 					<div class="box-header">
 						<i class="fa fa-file-text-o"></i>
-						<h3 class="box-title">Question List for {{$test_name}}</h3>
+						<h3 class="box-title">Question List for <?php echo e($test_name); ?></h3>
 						<div class="box-tools pull-right">
 							<button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-import-question"><i class="fa fa-upload"></i> &nbsp;Import</button>
 							<button type="button" class="btn btn-success btn-xs form" data-idquestion="" data-indexquestion="0" data-question="Question" data-optiona="Option A" data-optionb="Option B" data-optionc="Option C" data-optiond="Option D" data-answercode=""><i class="fa fa-plus"></i> &nbsp;Add Question</button>
@@ -99,36 +99,37 @@
 					</div>
 					<div class="box-body" style="overflow-x: scroll;">
 						<?php $no=1;?>
-						@foreach($tb_question as $dt)
+						<?php $__currentLoopData = $tb_question; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 						<?php $no++;?>
 						<div class="col-md-12 col-lg-12 col-xs-12">
 							<div class="box box-default">
 								<div class="box-header with-border">
 								<h3 class="box-title">
-									<b class="label label-primary">{{$dt->index_question}}</b>
-									<b class="label label-info">{{$dt->answer_code}}</b>
+									<b class="label label-primary"><?php echo e($dt->index_question); ?></b>
+									<b class="label label-info"><?php echo e($dt->answer_code); ?></b>
 								</h3>
 
 								<div class="pull-right">
-									<button title="Edit" type="button" class="form btn btn-default btn-xs" data-idquestion="{{$dt->id}}" data-indexquestion="{{$dt->index_question}}" data-question="{{$dt->question}}" data-optiona="{{$dt->option_a}}" data-optionb="{{$dt->option_b}}" data-optionc="{{$dt->option_c}}" data-optiond="{{$dt->option_d}}" data-answercode="{{$dt->answer_code}}"><i class="fa fa-edit"></i></button>
-									<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="{{$dt->id}}" data-delname="{{$dt->question}}"><i class="fa fa-trash"></i></button>
+									<button title="Edit" type="button" class="form btn btn-default btn-xs" data-idquestion="<?php echo e($dt->id); ?>" data-indexquestion="<?php echo e($dt->index_question); ?>" data-question="<?php echo e($dt->question); ?>" data-optiona="<?php echo e($dt->option_a); ?>" data-optionb="<?php echo e($dt->option_b); ?>" data-optionc="<?php echo e($dt->option_c); ?>" data-optiond="<?php echo e($dt->option_d); ?>" data-answercode="<?php echo e($dt->answer_code); ?>"><i class="fa fa-edit"></i></button>
+									<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->question); ?>"><i class="fa fa-trash"></i></button>
 								</div>
 								<!-- /.box-tools -->
 								</div>
 								<!-- /.box-header -->
 								<div class="box-body">
-									{{$dt->question}}
+									<?php echo e($dt->question); ?>
+
 									<ol type="A">
-										<li>{{$dt->option_a}}</li>
-										<li>{{$dt->option_b}}</li>
-										<li>{{$dt->option_c}}</li>
-										<li>{{$dt->option_d}}</li>
+										<li><?php echo e($dt->option_a); ?></li>
+										<li><?php echo e($dt->option_b); ?></li>
+										<li><?php echo e($dt->option_c); ?></li>
+										<li><?php echo e($dt->option_d); ?></li>
 									</ol>
 								</div>
 								<!-- /.box-body -->
 							</div>
 						</div>
-						@endforeach
+						<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
 					</div>
 					<!-- /.box-body -->
@@ -145,7 +146,8 @@
 		<div class="modal-dialog box box-success" style="width:600px;">
 			<div class="modal-content">
 					<form method="post" enctype="multipart/form-data">
-					{{ csrf_field() }}
+					<?php echo e(csrf_field()); ?>
+
 						<div class="modal-header">	
 							<b>FORM QUESTION</b>
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -158,7 +160,7 @@
 									<div class="form-group">
 										<label>Index</label>
 										<?php $max=$no-1;?>
-										<input type="number" class="form-control" name="index_question" id="indexquestion" min="1" max="{{$max}}">								
+										<input type="number" class="form-control" name="index_question" id="indexquestion" min="1" max="<?php echo e($max); ?>">								
 									</div>
 									<div class="form-group">
 										<label>Question</label>
@@ -211,8 +213,9 @@
 		<div class="modal-dialog box box-info" style="width:500px;">
 			<div class="modal-content">
 				<form method="post" action="/Training/Question/Import" enctype="multipart/form-data">
-					{{ csrf_field() }}
-					<input type="hidden" name="id_test" value="{{$id_test}}">
+					<?php echo e(csrf_field()); ?>
+
+					<input type="hidden" name="id_test" value="<?php echo e($id_test); ?>">
 					<div class="modal-header">
 						<b>IMPORT QUESTION</b>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -220,13 +223,13 @@
 					<div class="modal-body">
 						<div class="form-group">
 							<label>Test ID</label>
-							<input type="text" class="form-control" value="{{$id_test}}" readonly>
+							<input type="text" class="form-control" value="<?php echo e($id_test); ?>" readonly>
 						</div>
 						<div class="form-group">
 							<label>File Excel</label>
 							<input type="file" name="file" class="form-control" accept=".csv,.xls,.xlsx" required>
 						</div>
-						<p><i class="fa fa-info-circle"></i> Gunakan template dengan <a href="/Training/Question/Template/{{$id_test}}">download template (ID test {{$id_test}})</a>.</p>
+						<p><i class="fa fa-info-circle"></i> Gunakan template dengan <a href="/Training/Question/Template/<?php echo e($id_test); ?>">download template (ID test <?php echo e($id_test); ?>)</a>.</p>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
@@ -261,8 +264,8 @@
 	</div>
 
 
-@endsection
-@section('Scripts')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('Scripts'); ?>
 	<!-- page script Tabel-->
 	<script>
 		$(function () {
@@ -325,7 +328,7 @@
 		// Form
 			$(document).on('click', '.form', function() {
 				var docid=$(this).data('iddocument');
-				var no="{{$no}}";
+				var no="<?php echo e($no); ?>";
 				var indexquestion=$(this).data('indexquestion');
 				if(indexquestion==0){
 					$('#indexquestion').val(no);
@@ -344,7 +347,7 @@
 			});
 			$('.modal-footer').on('click', '#simpan', function() {
 				var x=$('#idComponent').val();
-				var idtest="{{$id_test}}";
+				var idtest="<?php echo e($id_test); ?>";
 				var indexquestion=$('#indexquestion').val();
 				var question=$('#question').val();
 				var optiona=$('#optiona').val();
@@ -405,4 +408,6 @@
 			});
 		// Delete End
 	</script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts/admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/page/training/training_question.blade.php ENDPATH**/ ?>

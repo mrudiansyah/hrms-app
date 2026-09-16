@@ -67,7 +67,7 @@
 		<div class="col-lg-12 col-md-12 col-xs-12">
 			<div class="box box-primary" style="background:#FFF;">
 				<div class="box-header">
-					<h3 class="box-title">List Document</h3>
+					<h3 class="box-title">{{$juduls}}</h3>
 					<div class="box-tools pull-right">
 						<button type="button" class="btn btn-success btn-xs form" data-iddocument="" data-documentname=""><i class="fa fa-plus"></i> &nbsp;Add New</button>
 						<button type="button" class="btn btn-primary btn-xs" data-widget="collapse"><i class="fa fa-minus"></i></button>

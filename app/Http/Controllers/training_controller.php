@@ -300,7 +300,7 @@ class training_controller extends Controller
             $document_name = $dt->document_name;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Training Documents']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Active']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -310,6 +310,17 @@ class training_controller extends Controller
     function training_document_draft($id_doc)
     {
         $tb_training_document = DB::table('tb_training_document')->where('doc_level', '0')->where('status', '0')->orderby('id', 'desc')->get();
+        $documentIds = $tb_training_document->pluck('id');
+        $keywordsByDocument = DB::table('tb_training_dockeyword')
+            ->whereIn('id_training_document', $documentIds)
+            ->orderBy('keyword', 'asc')
+            ->get(['id_training_document', 'keyword'])
+            ->groupBy('id_training_document');
+        foreach ($tb_training_document as $document) {
+            $document->keywords = isset($keywordsByDocument[$document->id])
+                ? $keywordsByDocument[$document->id]->pluck('keyword')->implode(', ')
+                : '';
+        }
         $tb_skill_type = DB::table('tb_skill_type')->select('skill_code')->distinct()->orderby('skill_code', 'asc')->get();
         $tb_department = DB::table('tb_departments')->where('isDelete', '0')->select('dept_code')->orderby('dept_code', 'asc')->get();
         $tb_training_document_numbers = DB::table('tb_training_document')
@@ -328,7 +339,7 @@ class training_controller extends Controller
             $document_name = $dt->document_name;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Training Documents']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Draft']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -338,6 +349,17 @@ class training_controller extends Controller
     function training_document_archieve($id_doc)
     {
         $tb_training_document = DB::table('tb_training_document')->where('doc_level', '0')->where('status', '2')->orderby('id', 'desc')->get();
+        $documentIds = $tb_training_document->pluck('id');
+        $keywordsByDocument = DB::table('tb_training_dockeyword')
+            ->whereIn('id_training_document', $documentIds)
+            ->orderBy('keyword', 'asc')
+            ->get(['id_training_document', 'keyword'])
+            ->groupBy('id_training_document');
+        foreach ($tb_training_document as $document) {
+            $document->keywords = isset($keywordsByDocument[$document->id])
+                ? $keywordsByDocument[$document->id]->pluck('keyword')->implode(', ')
+                : '';
+        }
         $tb_skill_type = DB::table('tb_skill_type')->select('skill_code')->distinct()->orderby('skill_code', 'asc')->get();
         $tb_department = DB::table('tb_departments')->where('isDelete', '0')->select('dept_code')->orderby('dept_code', 'asc')->get();
         $tb_training_document_numbers = DB::table('tb_training_document')
@@ -356,7 +378,7 @@ class training_controller extends Controller
             $document_name = $dt->document_name;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Training Documents']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document InActive']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {

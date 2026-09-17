@@ -11,7 +11,7 @@
             @php
                 $extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
                 $encodedName = rawurlencode($file_name);
-                $fileUrl = asset('storage/' . $encodedName);
+                $fileUrl = url('/Show/' . $encodedName);
             @endphp
 
             @if($file_name == '')

@@ -300,7 +300,7 @@ class training_controller extends Controller
             $document_name = $dt->document_name;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Active']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Active', 'action_route' => 'Document']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -339,7 +339,7 @@ class training_controller extends Controller
             $document_name = $dt->document_name;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Draft']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Draft', 'action_route' => 'DocumentDraft']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -378,7 +378,7 @@ class training_controller extends Controller
             $document_name = $dt->document_name;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document InActive']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document InActive', 'action_route' => 'DocumentArchieve']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {

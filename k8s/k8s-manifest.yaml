@@ -74,6 +74,7 @@ spec:
             echo "post_max_size=100M" >> /usr/local/etc/php/conf.d/uploads.ini &&
             echo "memory_limit=2G" > /usr/local/etc/php/conf.d/memory.ini &&
             echo "max_execution_time=600" > /usr/local/etc/php/conf.d/timeout.ini &&
+            rm -rf /var/www/html/public/storage &&
             (php artisan storage:link || true) &&
             (php artisan view:clear || true) &&
             (php artisan cache:clear || true) &&
@@ -112,7 +113,6 @@ spec:
         volumeMounts:
         - name: storage-volume
           mountPath: /var/www/html/storage
-          subPath: hrms
       volumes:
       - name: storage-volume
         persistentVolumeClaim:

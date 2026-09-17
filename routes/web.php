@@ -272,8 +272,8 @@ Route::get('/Leave/Approve/{id}/{id2}/{id3}',[App\Http\Controllers\leave_control
 Route::get('/Leave/Legalizes/{id}/{id1}/{id3}',[App\Http\Controllers\leave_controller::class,'legalizeLeave']);
 Route::get('/Leave/Reports/{id}/{id1}/{id3}',[App\Http\Controllers\leave_controller::class,'reportLeave']);
 
-Route::get('/Download/{file}', [App\Http\Controllers\download_controller::class, 'index']);
-Route::get('/Show/{file}', [App\Http\Controllers\download_controller::class, 'lihat']);
+Route::get('/Download/{file}', [App\Http\Controllers\download_controller::class, 'index'])->where('file', '.*');
+Route::get('/Show/{file}', [App\Http\Controllers\download_controller::class, 'lihat'])->where('file', '.*');
 
 Route::get('/SKD/Image/{id}',[App\Http\Controllers\skd_controller::class,'image']);
 Route::get('/SKD',[App\Http\Controllers\skd_controller::class,'index']);

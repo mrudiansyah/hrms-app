@@ -112,13 +112,12 @@
 								</td>
 								<td>
 									<div class="pull-right">
-										<?php
-											$panjang=strlen($dt->file_name);
-											$mulai=$panjang-4;
-											$extensi=substr($dt->file_name,$mulai,4);
-											if($extensi=='.mp4'||$extensi=='.pdf'||$extensi=='.jpg'||$extensi=='.png'){?>
-											<a href="/Training/Document/{{$dt->id}}" title="Preview" type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
-										<?php }?>
+										@php
+											$extensi = strtolower(pathinfo($dt->file_name, PATHINFO_EXTENSION));
+										@endphp
+										@if(in_array($extensi, ['mp4', 'webm', 'ogg', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']))
+											<a href="/Training/{{ $action_route ?? 'Document' }}/{{ $dt->id }}" title="Preview" type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
+										@endif
 										<a href="/Document/Download/{{$dt->id}}" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
 										<button title="Keyword" type="button" class="keyword-form btn btn-primary btn-xs" data-iddocument="{{$dt->id}}" data-documentname="{{$dt->document_name}}"><i class="fa fa-key"></i></button>
 										<button title="Edit" type="button" class="form btn btn-primary btn-xs" data-iddocument="{{$dt->id}}" data-documentname="{{$dt->document_name}}" data-training-name="{{$dt->training_name}}" data-category="{{$dt->category}}" data-skill="{{$dt->skill}}" data-nomor="{{$dt->nomor}}" data-revision="{{$dt->revision}}" data-code-document="{{$dt->code_document}}" data-department="{{$dt->department}}" data-information="{{$dt->information}}" data-status="{{$dt->status}}"><i class="fa fa-edit"></i></button>
@@ -144,20 +143,38 @@
 					</div>
 				</div>
 				<div class="box-body">
-					<?php 
-						$isi="storage/".$file_name;
-						$document=asset($isi);
-						$type=strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-						//echo $id_doc;
-					?>
-					@if($type=='mp4')
+					@php 
+						$type = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+						$encodedName = rawurlencode($file_name);
+						$document = url('/Show/' . $encodedName);
+					@endphp
+					@if(in_array($type, ['mp4', 'webm', 'ogg']))
 						<div class="embed-responsive embed-responsive-16by9">
-							<iframe class="embed-responsive-item" src="{{ $document }}" frameborder="0" allowfullscreen></iframe>
+							<video class="embed-responsive-item" controls style="max-height:800px; width:100%;">
+								<source src="{{ $document }}" type="video/{{ $type }}">
+								Browser Anda tidak mendukung pemutaran video.
+							</video>
 						</div>
-					@elseif($type=='pdf')
-						<object data="{{ $document }}#toolbar=0" width="100%" height="800"></object>
+					@elseif($type == 'pdf')
+						<div style="width:100%; height:800px;">
+							<iframe src="{{ $document }}" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
+						</div>
+					@elseif(in_array($type, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']))
+			        	<div class="text-center" style="padding:15px;">
+							<img src="{{ $document }}" alt="{{ $document_name }}" style="max-width:100%; max-height:800px; object-fit:contain;">
+						</div>
+					@elseif(in_array($type, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']))
+						<div style="width:100%; height:800px;">
+							<iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($document) }}" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
+						</div>
 					@else
-			        	<img src="{{$document}}" style="width:800px;">
+						<div class="alert alert-info text-center" style="padding:30px;">
+							<i class="fa fa-file-text-o" style="font-size:36px;"></i>
+							<p style="margin-top:10px;">Format file <strong>.{{ $type }}</strong> tidak mendukung pratinjau langsung di browser.</p>
+							<a href="{{ url('/Download/' . $encodedName) }}" class="btn btn-primary btn-sm">
+								<i class="fa fa-download"></i> Unduh File
+							</a>
+						</div>
 					@endif
 				</div>
 			</div>

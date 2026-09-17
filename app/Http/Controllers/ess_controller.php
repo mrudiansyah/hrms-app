@@ -478,16 +478,30 @@ class ess_controller extends Controller
     }
     function document_download($id)
     {
-        if (request()->user()->hasRole('ess')) {
+        if (request()->user()->hasRole('ess') || request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
             $tb_training_document = DB::table('tb_training_document')->where('id', $id)->get();
             foreach ($tb_training_document as $dt) {
-                $file_path = storage_path('app/public/' . $dt->file_name);
-                if (file_exists($file_path)) {
-                    return Storage::download('public/' . $dt->file_name);
-                } else {
-                    return redirect()->back()->with(['success' => 'File is not available']);
+                $file_name = $dt->file_name;
+                if (Storage::disk('public')->exists($file_name)) {
+                    return Storage::disk('public')->download($file_name);
                 }
+                if (Storage::disk('local')->exists('public/' . $file_name)) {
+                    return Storage::disk('local')->download('public/' . $file_name);
+                }
+                if (Storage::disk('local')->exists($file_name)) {
+                    return Storage::disk('local')->download($file_name);
+                }
+                $file_path = storage_path('app/public/' . $file_name);
+                if (file_exists($file_path)) {
+                    return response()->download($file_path);
+                }
+                $pathLocal = storage_path('app/' . $file_name);
+                if (file_exists($pathLocal)) {
+                    return response()->download($pathLocal);
+                }
+                return redirect()->back()->with(['error' => 'File tidak tersedia di server storage.']);
             }
+            return redirect()->back()->with(['error' => 'Dokumen tidak ditemukan.']);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }

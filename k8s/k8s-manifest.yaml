@@ -65,12 +65,16 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
-            (chown -R www-data:www-data storage || true) &&
+            mkdir -p /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/laravel-excel /var/www/html/storage/logs /var/www/html/storage/app/public &&
+            (chown -R www-data:www-data /var/www/html/storage || true) &&
+            (chmod -R 777 /var/www/html/storage || true) &&
             chown -R www-data:www-data bootstrap/cache &&
-            (chmod -R 775 storage || true) &&
             chmod -R 775 bootstrap/cache &&
+            echo "upload_max_filesize=100M" > /usr/local/etc/php/conf.d/uploads.ini &&
+            echo "post_max_size=100M" >> /usr/local/etc/php/conf.d/uploads.ini &&
             echo "memory_limit=2G" > /usr/local/etc/php/conf.d/memory.ini &&
             echo "max_execution_time=600" > /usr/local/etc/php/conf.d/timeout.ini &&
+            (php artisan storage:link || true) &&
             (php artisan view:clear || true) &&
             (php artisan cache:clear || true) &&
             (php artisan config:clear || true) &&
@@ -108,6 +112,7 @@ spec:
         volumeMounts:
         - name: storage-volume
           mountPath: /var/www/html/storage
+          subPath: hrms
       volumes:
       - name: storage-volume
         persistentVolumeClaim:

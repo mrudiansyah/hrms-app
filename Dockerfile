@@ -14,6 +14,9 @@ RUN chmod +x /usr/local/bin/install-php-extensions
 # Install PHP extensions (Otomatis mendownload GPG key MS SQL & ekstensi lainnya)
 RUN install-php-extensions pdo_mysql gd zip sqlsrv pdo_sqlsrv
 
+# Configure PHP settings for uploads, memory and timeout
+RUN echo "upload_max_filesize=100M\npost_max_size=100M\nmemory_limit=2G\nmax_execution_time=600" > /usr/local/etc/php/conf.d/custom-uploads.ini
+
 # Enable Apache mod_rewrite (dibutuhkan untuk Laravel)
 RUN a2enmod rewrite
 

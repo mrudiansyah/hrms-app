@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Auth;
 use PDF;
@@ -336,78 +337,99 @@ class PayrollController extends Controller
 
     public function import_rapel(Request $request)
     {
-        if (!$request->hasFile('file')) {
-            return redirect()->back()->with('error', 'Excel file is required.');
-        }
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
+        ], [
+            'file.required' => 'File Excel wajib diunggah.',
+            'file.file' => 'File yang diunggah tidak valid.',
+            'file.mimes' => 'Format file harus berupa Excel (.xlsx, .xls) atau .csv.',
+            'file.max' => 'Ukuran file maksimal adalah 50MB.',
+        ]);
 
-        $array = Excel::toArray([], $request->file('file'))[0];
-        // Skip header if it is likely a header row (check if column C is numeric)
-        $startRow = (isset($array[0][2]) && is_numeric($array[0][2])) ? 0 : 1;
+        try {
+            if (!$request->hasFile('file')) {
+                return redirect()->back()->with('error', 'Excel file is required.');
+            }
 
-        $updatedCount = 0;
-        $insertedCount = 0;
-        for ($i = $startRow; $i < count($array); $i++) {
-            $nik = $array[$i][0];
-            $periode = $array[$i][1];
-            $rapel = (float) ($array[$i][2] ?? 0);
+            $array = Excel::toArray([], $request->file('file'))[0];
+            if (empty($array)) {
+                return redirect()->back()->with('error', 'File Excel yang diunggah kosong.');
+            }
 
-            if ($nik && $periode) {
-                $exists = DB::table('tb_ot_summary')
-                    ->where('nik', $nik)
-                    ->where('periode', $periode)
-                    ->exists();
+            // Skip header if it is likely a header row (check if column C is numeric)
+            $startRow = (isset($array[0][2]) && is_numeric($array[0][2])) ? 0 : 1;
 
-                if ($exists) {
-                    $affected = DB::table('tb_ot_summary')
+            $updatedCount = 0;
+            $insertedCount = 0;
+            for ($i = $startRow; $i < count($array); $i++) {
+                $nik = isset($array[$i][0]) ? trim((string)$array[$i][0]) : null;
+                $periode = isset($array[$i][1]) ? trim((string)$array[$i][1]) : null;
+                $rapel = (float) ($array[$i][2] ?? 0);
+
+                if ($nik && $periode) {
+                    $exists = DB::table('tb_ot_summary')
                         ->where('nik', $nik)
                         ->where('periode', $periode)
-                        ->update([
-                            'rapel_amount' => $rapel,
-                            'gross_amount' => DB::raw("IFNULL(ot_amount, 0) + IFNULL(meal_amount, 0) + $rapel"),
-                            'updated_at' => now()
-                        ]);
-                    if ($affected)
-                        $updatedCount++;
-                } else {
-                    // Fetch employee details
-                    $employee = DB::table('tb_employees as b')
-                        ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
-                        ->leftJoin('tb_salaries as d', function ($join) {
-                            $join->on('d.id_employee', '=', 'b.id')
-                                ->where('d.status', 1);
-                        })
-                        ->where('b.NIK', $nik)
-                        ->select('b.id', 'b.NIK', 'b.employee_name', 'c.dept_code', 'd.slpj')
-                        ->first();
+                        ->exists();
 
-                    if ($employee) {
-                        // Calculate start_date and end_date
-                        $end_date = date('Y-m-d', strtotime($periode . '-24'));
-                        $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
-                        $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
-                        $start_date = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+                    if ($exists) {
+                        $affected = DB::table('tb_ot_summary')
+                            ->where('nik', $nik)
+                            ->where('periode', $periode)
+                            ->update([
+                                'rapel_amount' => $rapel,
+                                'gross_amount' => DB::raw("COALESCE(ot_amount, 0) + COALESCE(meal_amount, 0) + $rapel"),
+                                'updated_at' => now()
+                            ]);
+                        if ($affected) $updatedCount++;
+                    } else {
+                        // Fetch employee details
+                        $employee = DB::table('tb_employees as b')
+                            ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
+                            ->leftJoin('tb_salaries as d', function($join) {
+                                $join->on('d.id_employee', '=', 'b.id')
+                                     ->where('d.status', 1);
+                            })
+                            ->where('b.NIK', $nik)
+                            ->select('b.id', 'b.NIK', 'b.employee_name', 'c.dept_code', 'd.slpj')
+                            ->first();
 
-                        DB::table('tb_ot_summary')->insert([
-                            'id_employee' => $employee->id,
-                            'periode' => $periode,
-                            'start_date' => $start_date,
-                            'end_date' => $end_date,
-                            'nik' => $employee->NIK,
-                            'employee_name' => $employee->employee_name,
-                            'dept_code' => $employee->dept_code,
-                            'slpj' => $employee->slpj,
-                            'rapel_amount' => $rapel,
-                            'gross_amount' => $rapel,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                        $insertedCount++;
+                        if ($employee) {
+                            // Calculate start_date and end_date
+                            $end_date = date('Y-m-d', strtotime($periode . '-24'));
+                            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+                            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+                            $start_date = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+
+                            DB::table('tb_ot_summary')->insert([
+                                'id_employee' => $employee->id,
+                                'periode' => $periode,
+                                'start_date' => $start_date,
+                                'end_date' => $end_date,
+                                'nik' => $employee->NIK,
+                                'employee_name' => $employee->employee_name,
+                                'dept_code' => $employee->dept_code,
+                                'slpj' => $employee->slpj,
+                                'rapel_amount' => $rapel,
+                                'gross_amount' => $rapel,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                            $insertedCount++;
+                        }
                     }
                 }
             }
-        }
 
-        return redirect()->back()->with('success', $updatedCount . ' records updated, ' . $insertedCount . ' records inserted successfully.');
+            if ($updatedCount === 0 && $insertedCount === 0) {
+                return redirect()->back()->with('error', 'Tidak ada data yang berhasil diproses. Pastikan format kolom NIK dan Periode (YYYY-MM) sesuai template.');
+            }
+
+            return redirect()->back()->with('success', $updatedCount . ' records updated, ' . $insertedCount . ' records inserted successfully.');
+        } catch (\Throwable $e) {
+            Log::error('Import rapel failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->back()->with('error', 'Gagal memproses file: ' . $e->getMessage());
+        }
     }
 
     public function download_format_rapel()

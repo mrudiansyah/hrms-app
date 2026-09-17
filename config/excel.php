@@ -289,7 +289,7 @@ return [
         | storing reading or downloading. Here you can customize that path.
         |
         */
-        'local_path'          => storage_path('framework/laravel-excel'),
+        'local_path'          => env('LARAVEL_EXCEL_TEMP_PATH', sys_get_temp_dir()),
 
         /*
         |--------------------------------------------------------------------------

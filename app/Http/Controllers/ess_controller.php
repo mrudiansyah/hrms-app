@@ -403,7 +403,7 @@ class ess_controller extends Controller
             if ($update)
                 return redirect()->back()->with(['success' => 'Update Sukses']);
         }
-        return redirect()->back()->with(['success' => 'There is no change']);
+        //return redirect()->back()->with(['success' => 'There is no change']);
     }
     function delete_document(Request $data)
     {

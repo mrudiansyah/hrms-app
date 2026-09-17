@@ -462,6 +462,20 @@
 					</ul>
 				</li>
 			<?php endif; ?>
+			<?php if(request()->user()->hasRole('memo')): ?>
+				<li class="treeview<?php if(isset($menu)&&$menu=='memo')echo ' active';?>">
+					<a href="#">
+					<i class="fa fa-file-word-o"></i> <span>General Memo</span>
+					<span class="pull-right-container">
+						<i class="fa fa-angle-left pull-right"></i>
+					</span>
+					</a>
+					<ul class="treeview-menu">
+					<li><a href="/GeneralMemo/1"><i class="fa fa-circle-o"></i> Overtime Produksi</a></li>
+					<li><a href="/GeneralMemo/2"><i class="fa fa-circle-o"></i> Unlock Overdudate</a></li>
+					</ul>
+				</li>
+			<?php endif; ?>
 
 
 			<?php if (request()->user()->hasRole('payroll')) {?>

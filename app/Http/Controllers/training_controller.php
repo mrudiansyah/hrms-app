@@ -830,9 +830,11 @@ class training_controller extends Controller
             'duedate' => 'required|date',
         ]);
 
+        $dueDate = Carbon::parse($data->duedate)->format('Y-m-d');
+
         $assignmentData = [
             'assignment' => trim($data->assignment),
-            'duedate' => $data->duedate,
+            'duedate' => $dueDate,
             'created_at' => now(),
             'created_by' => Auth::user()->name,
         ];

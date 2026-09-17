@@ -346,6 +346,35 @@ Route::get('LegalizeSPL', [App\Http\Controllers\ApprovalSPLController::class, 'L
 Route::get('LegalizeSPLAll', [App\Http\Controllers\ApprovalSPLController::class, 'LegalizeSPLAll'])->name('LegalizeSPLAll');
 Route::post('LegalizeSPL.GetDataLegalize,', [App\Http\Controllers\ApprovalSPLController::class, 'GetDataLegalize'])->name('LegalizeSPL.GetDataLegalize');
 
+Route::get('/Assigment', [App\Http\Controllers\assigment_controller::class, 'index']);
+Route::post('/Assigment/Adds', [App\Http\Controllers\assigment_controller::class, 'adds']);
+Route::post('/Assigment/Select', [App\Http\Controllers\assigment_controller::class, 'select']);
+Route::get('/Assigment/Show/{id}', [App\Http\Controllers\assigment_controller::class, 'show']);
+Route::get('/Assigment/Delete/{id}', [App\Http\Controllers\assigment_controller::class, 'delete']);
+Route::get('/Assigment/Approvals/{id}', [App\Http\Controllers\assigment_controller::class, 'approvals']);
+Route::get('/Assigment/Approvals/Sign/{id}/{id1}', [App\Http\Controllers\assigment_controller::class, 'sign']);
+Route::get('/Assigment/Realisations/{id}', [App\Http\Controllers\assigment_controller::class, 'realisations']);
+Route::get('/Assigment/Realisations/Confirm/{id}', [App\Http\Controllers\assigment_controller::class, 'confirm']);
+Route::post('/Assigment/Realisation/Update', [App\Http\Controllers\assigment_controller::class, 'update']);
+Route::get('/Assigment/Verifications/{id}', [App\Http\Controllers\assigment_controller::class, 'verification']);
+Route::get('/Assigment/CaptuireFinger', [App\Http\Controllers\assigment_controller::class, 'capture_finger']);
+Route::get('/Assigment/Verify/{id}', [App\Http\Controllers\assigment_controller::class, 'verify']);
+Route::post('/Assigment/Verification/Update', [App\Http\Controllers\assigment_controller::class, 'verified']);
+
+Route::get('/GeneralMemo/{category}', [App\Http\Controllers\general_memo::class, 'index']);
+Route::post('/GeneralMemo/Create', [App\Http\Controllers\general_memo::class, 'createMemo']);
+    Route::post('/GeneralMemo/Delete', [App\Http\Controllers\general_memo::class, 'deleteMemo']);
+    Route::get('/GeneralMemo/Detail/{id}', [App\Http\Controllers\general_memo::class, 'detailMemo']);
+    Route::post('/GeneralMemo/Confirm', [App\Http\Controllers\general_memo::class, 'confirmMemo']);
+    Route::get('/GeneralMemo/Template/{id}', [App\Http\Controllers\general_memo::class, 'templateTable']);
+    Route::post('/GeneralMemo/Import', [App\Http\Controllers\general_memo::class, 'importTable']);
+    Route::post('/GeneralMemo/UpdateStatus', [App\Http\Controllers\general_memo::class, 'updateStatus']);
+    Route::post('/GeneralMemo/UpdateApproval', [App\Http\Controllers\general_memo::class, 'updateApproval']);
+Route::get('/ArchieveMemo/{category}/{periode}', [App\Http\Controllers\general_memo::class, 'archieveMemo']);
+    Route::get('/ArchieveMemoDetail/{category}/{periode}', [App\Http\Controllers\general_memo::class, 'detailArchieve']);
+    Route::get('/GeneralMemo/Preview/{id}', [App\Http\Controllers\general_memo::class, 'previewMemo']);
+
+
 
 // Route::get('/Leave/EmployeeDelete1/{id}',[App\Http\Controllers\leave_controller::class,'deleteEmployeeLeave1']);
 // Route::get('/Leave/Legalize/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'legalizeSign']);

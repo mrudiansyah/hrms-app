@@ -108,6 +108,9 @@ Route::post('/Simpan/PostTest', [App\Http\Controllers\ess_controller::class, 'si
 
 //ESS End
 
+Route::get('/Structure', [App\Http\Controllers\StructureController::class, 'index'])->name('structure.index');
+Route::get('/Structure/Detail/{id}', [App\Http\Controllers\StructureController::class, 'detail'])->name('structure.detail');
+
 Route::get('/FPPK', [App\Http\Controllers\fppk_controller::class, 'index']);
 Route::get('/FPPK/create', [App\Http\Controllers\fppk_controller::class, 'create']);
 Route::get('/FPPK/show/{id}', [App\Http\Controllers\fppk_controller::class, 'show']);
@@ -240,47 +243,47 @@ Route::post('/Training.FinishTest', [App\Http\Controllers\ess_controller::class,
 Route::post('/Training.FinishTestPost', [App\Http\Controllers\ess_controller::class, 'send_progress_post'])->name('Training.FinishTestPost');
 Route::post('/Training.DocPreview', [App\Http\Controllers\ess_controller::class, 'DocPreview'])->name('Training.DocPreview');
 
-Route::get('/Permit',[App\Http\Controllers\permit_controller::class,'index']);
-Route::post('/Permit/SelectApprove',[App\Http\Controllers\permit_controller::class,'selectApprove']);
-Route::post('/Permit/Add',[App\Http\Controllers\permit_controller::class,'addPermit']);
-Route::get('/Permit/Preview/{id}',[App\Http\Controllers\permit_controller::class,'previewPermit']);
-Route::get('/Permit/Delete/{id}',[App\Http\Controllers\permit_controller::class,'deletePermit']);
-Route::get('/Permit/Approves/{id}/{id1}',[App\Http\Controllers\permit_controller::class,'approvePermit']);
-Route::get('/Permit/Approve/{id}/{id1}',[App\Http\Controllers\permit_controller::class,'approveSign']);
-Route::get('/Permit/Personalia/{id}/{id1}',[App\Http\Controllers\permit_controller::class,'personaliaPermit']);
-Route::get('/Permit/PersonaliaSign/{id}/{id1}',[App\Http\Controllers\permit_controller::class,'personaliaSign']);
-Route::get('/Permit/Scurities/{id}/{id1}',[App\Http\Controllers\permit_controller::class,'scurityPermit']);
-Route::post('/Permit/Scurity',[App\Http\Controllers\permit_controller::class,'scuritySign']);
-Route::get('/Permit/Report/{id}/{id1}',[App\Http\Controllers\permit_controller::class,'reportPermit']);
+Route::get('/Permit', [App\Http\Controllers\permit_controller::class, 'index']);
+Route::post('/Permit/SelectApprove', [App\Http\Controllers\permit_controller::class, 'selectApprove']);
+Route::post('/Permit/Add', [App\Http\Controllers\permit_controller::class, 'addPermit']);
+Route::get('/Permit/Preview/{id}', [App\Http\Controllers\permit_controller::class, 'previewPermit']);
+Route::get('/Permit/Delete/{id}', [App\Http\Controllers\permit_controller::class, 'deletePermit']);
+Route::get('/Permit/Approves/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'approvePermit']);
+Route::get('/Permit/Approve/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'approveSign']);
+Route::get('/Permit/Personalia/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'personaliaPermit']);
+Route::get('/Permit/PersonaliaSign/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'personaliaSign']);
+Route::get('/Permit/Scurities/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'scurityPermit']);
+Route::post('/Permit/Scurity', [App\Http\Controllers\permit_controller::class, 'scuritySign']);
+Route::get('/Permit/Report/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'reportPermit']);
 
-Route::get('/Leave',[App\Http\Controllers\leave_controller::class,'index']);
-Route::get('/Leave/Create/{id}',[App\Http\Controllers\leave_controller::class,'createNew']);
-Route::get('/Leave/Employee/Delete/{id}',[App\Http\Controllers\leave_controller::class,'deleteEmployeeLeave']);
-Route::get('/Leave/Inactive',[App\Http\Controllers\leave_controller::class,'inactiveLeave']);
-Route::post('/Leave/LimitUpdate',[App\Http\Controllers\leave_controller::class,'limitUpdate']);
-Route::get('/Leave/Employee/{id}',[App\Http\Controllers\leave_controller::class,'selectEmployee']);
-Route::get('/Leave/Active/{id}',[App\Http\Controllers\leave_controller::class,'activated']);
-Route::post('/Leave/Add',[App\Http\Controllers\leave_controller::class,'addLeave']);
-Route::post('/Leave/Update/Opsi',[App\Http\Controllers\leave_controller::class,'updateOpsi']);
-Route::get('/Leave/Sisa/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'sisaCuti']);
-Route::get('/Leave/Kurang/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'kurangCuti']);
-Route::post('/Leave/Count',[App\Http\Controllers\leave_controller::class,'leaveCount']);
-Route::get('/Leave/Special',[App\Http\Controllers\leave_controller::class,'special']);
-Route::get('/Leave/SKD/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'skd']);
-Route::get('/Leave/Approves/{id}/{id1}',[App\Http\Controllers\leave_controller::class,'approveLeave']);
-Route::get('/Leave/Approve/{id}/{id2}/{id3}',[App\Http\Controllers\leave_controller::class,'approveSign']);
-Route::get('/Leave/Legalizes/{id}/{id1}/{id3}',[App\Http\Controllers\leave_controller::class,'legalizeLeave']);
-Route::get('/Leave/Reports/{id}/{id1}/{id3}',[App\Http\Controllers\leave_controller::class,'reportLeave']);
+Route::get('/Leave', [App\Http\Controllers\leave_controller::class, 'index']);
+Route::get('/Leave/Create/{id}', [App\Http\Controllers\leave_controller::class, 'createNew']);
+Route::get('/Leave/Employee/Delete/{id}', [App\Http\Controllers\leave_controller::class, 'deleteEmployeeLeave']);
+Route::get('/Leave/Inactive', [App\Http\Controllers\leave_controller::class, 'inactiveLeave']);
+Route::post('/Leave/LimitUpdate', [App\Http\Controllers\leave_controller::class, 'limitUpdate']);
+Route::get('/Leave/Employee/{id}', [App\Http\Controllers\leave_controller::class, 'selectEmployee']);
+Route::get('/Leave/Active/{id}', [App\Http\Controllers\leave_controller::class, 'activated']);
+Route::post('/Leave/Add', [App\Http\Controllers\leave_controller::class, 'addLeave']);
+Route::post('/Leave/Update/Opsi', [App\Http\Controllers\leave_controller::class, 'updateOpsi']);
+Route::get('/Leave/Sisa/{id}/{id2}', [App\Http\Controllers\leave_controller::class, 'sisaCuti']);
+Route::get('/Leave/Kurang/{id}/{id2}', [App\Http\Controllers\leave_controller::class, 'kurangCuti']);
+Route::post('/Leave/Count', [App\Http\Controllers\leave_controller::class, 'leaveCount']);
+Route::get('/Leave/Special', [App\Http\Controllers\leave_controller::class, 'special']);
+Route::get('/Leave/SKD/{id}/{id2}', [App\Http\Controllers\leave_controller::class, 'skd']);
+Route::get('/Leave/Approves/{id}/{id1}', [App\Http\Controllers\leave_controller::class, 'approveLeave']);
+Route::get('/Leave/Approve/{id}/{id2}/{id3}', [App\Http\Controllers\leave_controller::class, 'approveSign']);
+Route::get('/Leave/Legalizes/{id}/{id1}/{id3}', [App\Http\Controllers\leave_controller::class, 'legalizeLeave']);
+Route::get('/Leave/Reports/{id}/{id1}/{id3}', [App\Http\Controllers\leave_controller::class, 'reportLeave']);
 
 Route::get('/Download/{file}', [App\Http\Controllers\download_controller::class, 'index'])->where('file', '.*');
 Route::get('/Show/{file}', [App\Http\Controllers\download_controller::class, 'lihat'])->where('file', '.*');
 
-Route::get('/SKD/Image/{id}',[App\Http\Controllers\skd_controller::class,'image']);
-Route::get('/SKD',[App\Http\Controllers\skd_controller::class,'index']);
-Route::post('/SKD/NIK/Check',[App\Http\Controllers\skd_controller::class,'check']);
-Route::get('/SKD/Exit',[App\Http\Controllers\skd_controller::class,'keluar']);
-Route::post('/SKD/Compress',[App\Http\Controllers\skd_controller::class,'compress']);
-Route::post('/SKD/Leave/Count',[App\Http\Controllers\skd_controller::class,'leaveCount']);
+Route::get('/SKD/Image/{id}', [App\Http\Controllers\skd_controller::class, 'image']);
+Route::get('/SKD', [App\Http\Controllers\skd_controller::class, 'index']);
+Route::post('/SKD/NIK/Check', [App\Http\Controllers\skd_controller::class, 'check']);
+Route::get('/SKD/Exit', [App\Http\Controllers\skd_controller::class, 'keluar']);
+Route::post('/SKD/Compress', [App\Http\Controllers\skd_controller::class, 'compress']);
+Route::post('/SKD/Leave/Count', [App\Http\Controllers\skd_controller::class, 'leaveCount']);
 
 Route::get('/PolicyControl', [App\Http\Controllers\policy_controller::class, 'policy_control']);
 Route::post('/PolicyControl/Save', [App\Http\Controllers\policy_controller::class, 'policy_control_save']);
@@ -298,42 +301,42 @@ Route::post('/PolicyLevel/Save', [App\Http\Controllers\policy_controller::class,
 Route::post('/Policy/Nonactive', [App\Http\Controllers\policy_controller::class, 'policyNonactive']);
 Route::post('/Policy/Reactive', [App\Http\Controllers\policy_controller::class, 'policyReactive']);
 
-Route::get('/Admin/Overtime',[App\Http\Controllers\admin_overtime::class,'index']);
-Route::get('/Admin/Overtime/Draft/{id}',[App\Http\Controllers\admin_overtime::class,'viewDraft']);
-Route::post('Admin.Overtime.GetListLine',[App\Http\Controllers\admin_overtime::class,'GetListLine'])->name('Admin.Overtime.GetListLine');
-Route::post('/Admin/Overtime/Note',[App\Http\Controllers\admin_overtime::class,'saveNote']);
-Route::post('/Admin/Overtime/Konten',[App\Http\Controllers\admin_overtime::class,'showKonten']);
+Route::get('/Admin/Overtime', [App\Http\Controllers\admin_overtime::class, 'index']);
+Route::get('/Admin/Overtime/Draft/{id}', [App\Http\Controllers\admin_overtime::class, 'viewDraft']);
+Route::post('Admin.Overtime.GetListLine', [App\Http\Controllers\admin_overtime::class, 'GetListLine'])->name('Admin.Overtime.GetListLine');
+Route::post('/Admin/Overtime/Note', [App\Http\Controllers\admin_overtime::class, 'saveNote']);
+Route::post('/Admin/Overtime/Konten', [App\Http\Controllers\admin_overtime::class, 'showKonten']);
 Route::post('/Admin/Overtime/SelectReason', [App\Http\Controllers\admin_overtime::class, 'selectReason']);
-Route::post('/Admin/Overtime/Detail/Save',[App\Http\Controllers\admin_overtime::class,'saveDetail']);
-Route::get('/Admin/Overtime/Detail/Delete/{id}',[App\Http\Controllers\admin_overtime::class,'deleteDetail']);
-Route::get('/Admin/Overtime/Detail/Before/{id}',[App\Http\Controllers\admin_overtime::class,'signBeforeAll']);
-Route::post('/Admin/Overtime/Detail/Quota',[App\Http\Controllers\admin_overtime::class,'quotaOT']);
-Route::post('/Admin/Overtime/Select',[App\Http\Controllers\admin_overtime::class,'selectOrder']);
-Route::post('/Admin/Overtime/Disetujui',[App\Http\Controllers\admin_overtime::class,'selectApproved']);
-Route::post('/Admin/Overtime/Diketahui',[App\Http\Controllers\admin_overtime::class,'selectSeen']);
-Route::post('/Admin/Overtime/Create',[App\Http\Controllers\admin_overtime::class,'createspl']);
-Route::get('/Admin/Overtime/Confirm/{id}',[App\Http\Controllers\admin_overtime::class,'confirmSPL']);
-Route::get('/Admin/Overtime/Dept/{id}',[App\Http\Controllers\admin_overtime::class,'bodyOT']);
-Route::get('/Admin/Overtime/Depts/{id}',[App\Http\Controllers\admin_overtime::class,'headOT']);
-Route::get('/Admin/Overtime/Draft/{id}',[App\Http\Controllers\admin_overtime::class,'viewDraft']);
-Route::get('/Admin/Overtime/Preview/{id}',[App\Http\Controllers\admin_overtime::class,'previewSPL']);
-Route::post('/Admin/Overtime/Detail/Before',[App\Http\Controllers\admin_overtime::class,'signBefore']);
-Route::post('/Admin/Overtime/Sales',[App\Http\Controllers\admin_overtime::class,'updateSales']);
-Route::get('/Admin/Overtime/Approval/{id}',[App\Http\Controllers\admin_overtime::class,'approveSPL']);
-Route::post('/Admin/Overtime/Detail/Status',[App\Http\Controllers\admin_overtime::class,'entryStatus']);
-Route::get('/Admin/Overtime/Approval/Sign/{id}/{id2}',[App\Http\Controllers\admin_overtime::class,'signSPL']);
-Route::get('/Admin/Overtime/Approval/Denied/{id}/{id2}',[App\Http\Controllers\admin_overtime::class,'deniedSPL']);
-Route::get('/Admin/Overtime/Approval/Review/{id}/{id2}',[App\Http\Controllers\admin_overtime::class,'reviewSPL']);
-Route::post('/Admin/Overtime/Detail/After',[App\Http\Controllers\admin_overtime::class,'signAfter']);
-Route::get('/Admin/Overtime/Detail/After/{id}',[App\Http\Controllers\admin_overtime::class,'signAfterAll']);
-Route::get('/Admin/Overtime/Verifications/{id}',[App\Http\Controllers\admin_overtime::class,'verificationOT']);
-Route::get('/Admin/Overtime/Verifications2/{id}',[App\Http\Controllers\admin_overtime::class,'verificationOT2']);
-Route::get('/Admin/Overtime/Verification/{id}',[App\Http\Controllers\admin_overtime::class,'verificationdetailOT']);
-Route::post('/Admin/Overtime/Verification/Update',[App\Http\Controllers\admin_overtime::class,'verificationUpdate']);
-Route::post('/Admin/Overtime/Verification/UpdateFinger',[App\Http\Controllers\admin_overtime::class,'verificationUpdateFinger']);
-Route::get('/Admin/Overtime/Remove/{id}',[App\Http\Controllers\admin_overtime::class,'removeOvertime']);
-Route::get('/Admin/Overtime/lock',[App\Http\Controllers\admin_overtime::class,'update_lock']);
-Route::get('/Admin/Overtime/Opens',[App\Http\Controllers\admin_overtime::class,'open_lock_all']);
+Route::post('/Admin/Overtime/Detail/Save', [App\Http\Controllers\admin_overtime::class, 'saveDetail']);
+Route::get('/Admin/Overtime/Detail/Delete/{id}', [App\Http\Controllers\admin_overtime::class, 'deleteDetail']);
+Route::get('/Admin/Overtime/Detail/Before/{id}', [App\Http\Controllers\admin_overtime::class, 'signBeforeAll']);
+Route::post('/Admin/Overtime/Detail/Quota', [App\Http\Controllers\admin_overtime::class, 'quotaOT']);
+Route::post('/Admin/Overtime/Select', [App\Http\Controllers\admin_overtime::class, 'selectOrder']);
+Route::post('/Admin/Overtime/Disetujui', [App\Http\Controllers\admin_overtime::class, 'selectApproved']);
+Route::post('/Admin/Overtime/Diketahui', [App\Http\Controllers\admin_overtime::class, 'selectSeen']);
+Route::post('/Admin/Overtime/Create', [App\Http\Controllers\admin_overtime::class, 'createspl']);
+Route::get('/Admin/Overtime/Confirm/{id}', [App\Http\Controllers\admin_overtime::class, 'confirmSPL']);
+Route::get('/Admin/Overtime/Dept/{id}', [App\Http\Controllers\admin_overtime::class, 'bodyOT']);
+Route::get('/Admin/Overtime/Depts/{id}', [App\Http\Controllers\admin_overtime::class, 'headOT']);
+Route::get('/Admin/Overtime/Draft/{id}', [App\Http\Controllers\admin_overtime::class, 'viewDraft']);
+Route::get('/Admin/Overtime/Preview/{id}', [App\Http\Controllers\admin_overtime::class, 'previewSPL']);
+Route::post('/Admin/Overtime/Detail/Before', [App\Http\Controllers\admin_overtime::class, 'signBefore']);
+Route::post('/Admin/Overtime/Sales', [App\Http\Controllers\admin_overtime::class, 'updateSales']);
+Route::get('/Admin/Overtime/Approval/{id}', [App\Http\Controllers\admin_overtime::class, 'approveSPL']);
+Route::post('/Admin/Overtime/Detail/Status', [App\Http\Controllers\admin_overtime::class, 'entryStatus']);
+Route::get('/Admin/Overtime/Approval/Sign/{id}/{id2}', [App\Http\Controllers\admin_overtime::class, 'signSPL']);
+Route::get('/Admin/Overtime/Approval/Denied/{id}/{id2}', [App\Http\Controllers\admin_overtime::class, 'deniedSPL']);
+Route::get('/Admin/Overtime/Approval/Review/{id}/{id2}', [App\Http\Controllers\admin_overtime::class, 'reviewSPL']);
+Route::post('/Admin/Overtime/Detail/After', [App\Http\Controllers\admin_overtime::class, 'signAfter']);
+Route::get('/Admin/Overtime/Detail/After/{id}', [App\Http\Controllers\admin_overtime::class, 'signAfterAll']);
+Route::get('/Admin/Overtime/Verifications/{id}', [App\Http\Controllers\admin_overtime::class, 'verificationOT']);
+Route::get('/Admin/Overtime/Verifications2/{id}', [App\Http\Controllers\admin_overtime::class, 'verificationOT2']);
+Route::get('/Admin/Overtime/Verification/{id}', [App\Http\Controllers\admin_overtime::class, 'verificationdetailOT']);
+Route::post('/Admin/Overtime/Verification/Update', [App\Http\Controllers\admin_overtime::class, 'verificationUpdate']);
+Route::post('/Admin/Overtime/Verification/UpdateFinger', [App\Http\Controllers\admin_overtime::class, 'verificationUpdateFinger']);
+Route::get('/Admin/Overtime/Remove/{id}', [App\Http\Controllers\admin_overtime::class, 'removeOvertime']);
+Route::get('/Admin/Overtime/lock', [App\Http\Controllers\admin_overtime::class, 'update_lock']);
+Route::get('/Admin/Overtime/Opens', [App\Http\Controllers\admin_overtime::class, 'open_lock_all']);
 
 Route::get('ApprovalSPL', [App\Http\Controllers\ApprovalSPLController::class, 'index'])->name('ApprovalSPL.index');
 Route::post('ApprovalSPL.GetDataPlanApproval', [App\Http\Controllers\ApprovalSPLController::class, 'GetDataPlanApproval'])->name('ApprovalSPL.GetDataPlanApproval');
@@ -363,16 +366,16 @@ Route::post('/Assigment/Verification/Update', [App\Http\Controllers\assigment_co
 
 Route::get('/GeneralMemo/{category}', [App\Http\Controllers\general_memo::class, 'index']);
 Route::post('/GeneralMemo/Create', [App\Http\Controllers\general_memo::class, 'createMemo']);
-    Route::post('/GeneralMemo/Delete', [App\Http\Controllers\general_memo::class, 'deleteMemo']);
-    Route::get('/GeneralMemo/Detail/{id}', [App\Http\Controllers\general_memo::class, 'detailMemo']);
-    Route::post('/GeneralMemo/Confirm', [App\Http\Controllers\general_memo::class, 'confirmMemo']);
-    Route::get('/GeneralMemo/Template/{id}', [App\Http\Controllers\general_memo::class, 'templateTable']);
-    Route::post('/GeneralMemo/Import', [App\Http\Controllers\general_memo::class, 'importTable']);
-    Route::post('/GeneralMemo/UpdateStatus', [App\Http\Controllers\general_memo::class, 'updateStatus']);
-    Route::post('/GeneralMemo/UpdateApproval', [App\Http\Controllers\general_memo::class, 'updateApproval']);
+Route::post('/GeneralMemo/Delete', [App\Http\Controllers\general_memo::class, 'deleteMemo']);
+Route::get('/GeneralMemo/Detail/{id}', [App\Http\Controllers\general_memo::class, 'detailMemo']);
+Route::post('/GeneralMemo/Confirm', [App\Http\Controllers\general_memo::class, 'confirmMemo']);
+Route::get('/GeneralMemo/Template/{id}', [App\Http\Controllers\general_memo::class, 'templateTable']);
+Route::post('/GeneralMemo/Import', [App\Http\Controllers\general_memo::class, 'importTable']);
+Route::post('/GeneralMemo/UpdateStatus', [App\Http\Controllers\general_memo::class, 'updateStatus']);
+Route::post('/GeneralMemo/UpdateApproval', [App\Http\Controllers\general_memo::class, 'updateApproval']);
 Route::get('/ArchieveMemo/{category}/{periode}', [App\Http\Controllers\general_memo::class, 'archieveMemo']);
-    Route::get('/ArchieveMemoDetail/{category}/{periode}', [App\Http\Controllers\general_memo::class, 'detailArchieve']);
-    Route::get('/GeneralMemo/Preview/{id}', [App\Http\Controllers\general_memo::class, 'previewMemo']);
+Route::get('/ArchieveMemoDetail/{category}/{periode}', [App\Http\Controllers\general_memo::class, 'detailArchieve']);
+Route::get('/GeneralMemo/Preview/{id}', [App\Http\Controllers\general_memo::class, 'previewMemo']);
 
 
 

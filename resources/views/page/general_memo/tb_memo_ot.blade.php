@@ -35,7 +35,6 @@
 				<small>&nbsp;</small>
 			</h1>
 		</section>
-
 		<!-- Main content -->
 		<section class="content">
 			<div class="row">
@@ -53,7 +52,6 @@
 									@if($data['admin']==$data['created_by'])
 										<button type="button" class="btn btn-warning btn-md update_draft" data-id_memo="{{$data['id_memo']}}" data-status="1"><i class="fa fa-refresh"></i> &nbsp;Roll Back</button>
 									@endif
-									<!-- <a class="btn btn-default btn-md" href="/GeneralMemo/Preview/{{$data['id_memo']}}" target="_blank"><i class="fa fa-print"></i> &nbsp;preview</a> -->
 								@endif
 							</div>
 						</div>
@@ -475,7 +473,6 @@
             var a=$(this).data('id');
             var b=$(this).data('status');
 			var c=$('#akses2').val();
-
 			if(c==1){
 				if (confirm('Apakah Anda yakin?')) {
 					var datas = {

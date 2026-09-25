@@ -368,14 +368,15 @@ Route::get('/GeneralMemo/{category}', [App\Http\Controllers\general_memo::class,
 Route::post('/GeneralMemo/Create', [App\Http\Controllers\general_memo::class, 'createMemo']);
 Route::post('/GeneralMemo/Delete', [App\Http\Controllers\general_memo::class, 'deleteMemo']);
 Route::get('/GeneralMemo/Detail/{id}', [App\Http\Controllers\general_memo::class, 'detailMemo']);
-Route::post('/GeneralMemo/Confirm', [App\Http\Controllers\general_memo::class, 'confirmMemo']);
-Route::get('/GeneralMemo/Template/{id}', [App\Http\Controllers\general_memo::class, 'templateTable']);
-Route::post('/GeneralMemo/Import', [App\Http\Controllers\general_memo::class, 'importTable']);
-Route::post('/GeneralMemo/UpdateStatus', [App\Http\Controllers\general_memo::class, 'updateStatus']);
-Route::post('/GeneralMemo/UpdateApproval', [App\Http\Controllers\general_memo::class, 'updateApproval']);
 Route::get('/ArchieveMemo/{category}/{periode}', [App\Http\Controllers\general_memo::class, 'archieveMemo']);
 Route::get('/ArchieveMemoDetail/{category}/{periode}', [App\Http\Controllers\general_memo::class, 'detailArchieve']);
-Route::get('/GeneralMemo/Preview/{id}', [App\Http\Controllers\general_memo::class, 'previewMemo']);
+Route::post('/GeneralMemo/Import', [App\Http\Controllers\general_memo::class, 'importTable']);
+Route::get('/GeneralMemo/Template/{id}', [App\Http\Controllers\general_memo::class, 'templateTable']);
+Route::post('/GeneralMemo/UpdateStatus', [App\Http\Controllers\general_memo::class, 'updateStatus']);
+Route::post('/GeneralMemo/Confirm', [App\Http\Controllers\general_memo::class, 'confirmMemo']);
+Route::post('/GeneralMemo/UpdateApproval', [App\Http\Controllers\general_memo::class, 'updateApproval']);
+Route::resource('memos', App\Http\Controllers\MemoController::class);
+
 
 
 

@@ -46,17 +46,6 @@ class general_memo extends Controller
         }
         return view('page/general_memo/memo',['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
     }
-    function archieveMemo($category,$periode){
-        $data['today']=date('Y-m-d');
-        if($periode==0)$periode=date('Y-m');
-        $data['table1']=DB::table('tb_memo_category')->get();
-        $data['table2']=DB::table('tb_memo')->where('id_category',$category)->where('is_delete','0')->where('date_information','like',$periode.'%')->where('date_information','<',$data['today'])->get();
-        $data['table3']=DB::table('tb_template_memo')->where('id_category',$category)->get();
-        //return $data['table2'];
-        $data['category']=$category;
-        $data['periode']=$periode;
-        return view('page/general_memo/memo_archieve',['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
-    }
     public function createMemo(Request $data){
         $now=date('Y-m-d H:i:s');
         $id_memo=$data->id_memo;
@@ -111,6 +100,9 @@ class general_memo extends Controller
                     'additional_note'=>$additional_note,
                     'periode'=>$periode,
                     'created_at'=>$now,
+                    'is_draft'=>'1',
+                    'is_completed'=>'0',
+                    'is_delete'=>'0'
                 ]);
                 $table=DB::table('tb_memo')->where('created_by',$admin)->where('created_at',$now)->get();
                 foreach($table as $dt){
@@ -144,8 +136,6 @@ class general_memo extends Controller
         return $id_memo;
 
     }
-
-
     public function deleteMemo(Request $data){
         $now=date('Y-m-d H:i:s');
         $update_memo=DB::table($data->tb_name)->where('id',$data->id)->update([
@@ -156,6 +146,134 @@ class general_memo extends Controller
         if($update_memo)return response('Sukses', 200);
         else return response('Gagal', 400);
     }
+    function detailMemo($id){
+        //return "Masuk";
+        $email=Auth::user()->email;
+        $admin=Auth::user()->name;
+        $data['admin']=$admin;
+        $now=date('Y-m-d H:i:s');
+        $table1=DB::table('tb_emails')->where('email_address',$email)->get();
+        foreach($table1 as $dt1){
+            $id_employee=$dt1->id_employee;
+        }
+
+        $this->addApproval($id);
+        $data['table1']=DB::table('tb_memo')->where('id',$id)->get();
+        foreach($data['table1'] as $dt){
+            $data['table_name']=$dt->table_name;
+            $data['status_draft']=$dt->is_draft;
+            $data['from_dept']=$dt->from_dept;
+            $data['to_dept']=$dt->to_dept;
+            $data['created_by']=$dt->created_by;
+        }
+        if($data['table_name']=='tb_memo_ot'){
+            $data['table2']=DB::table($data['table_name'])
+            ->leftjoin('tb_memo','tb_memo.id','=',$data['table_name'].'.id_memo')
+            ->leftjoin('tb_reason_ots','tb_reason_ots.reason_ot','=',$data['table_name'].'.reason_ot')
+            ->where($data['table_name'].'.id_memo',$id)->where($data['table_name'].'.is_delete','0')->get([$data['table_name'].'.*','tb_reason_ots.reason_ot as check_reason','tb_memo.memo_number']);
+            //return $data['table2'];
+        }else{
+            $data['table2']=DB::table($data['table_name'])
+            ->where($data['table_name'].'.id_memo',$id)->where($data['table_name'].'.is_delete','0')->get();
+        }
+        if($data['table_name']=='tb_memo_access'){
+            $data['table3']=DB::table('tb_memo_approval')->where('id_memo',$id)->orderby('seq_approval','asc')->get();
+        }else{
+            $data['table3']=DB::table('tb_memo_approval')->where('id_memo',$id)->orderby('seq_approval','asc')->get();
+        }
+        $data['my_pos']='';
+        $data['is_completed']=0;
+        $data['progress']=0;
+        foreach($data['table3'] as $dt3){
+            $data['table4']=DB::table('tb_template_approval_person')->where('id_template_approval',$dt3->id_template_approval)->get();
+            foreach($data['table4'] as $dt4){
+                if($dt4->id_employee==$id_employee)$data['my_pos'].='#'.$dt4->id_template_approval;
+            }
+            if($dt3->approval_status==1)$data['progress']=$dt3->seq_approval;
+        }
+        $data['progress']++;
+
+        $data['table5']=DB::table('tb_memo_approval')->where('id_memo',$id)->where('approval_group','2')->where('approval_status','0')->count();
+        if($data['table5']==0)$data['status_completed']=1;
+        else $data['status_completed']=0;
+
+        $data['id_memo']=$id;
+        return view('page/general_memo/'.$data['table_name'],['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
+
+    }
+    public function addApproval($id_memo){
+        $table1=DB::table('tb_memo_approval')->where('id_memo',$id_memo)->count();
+        if($table1==0){
+            $table2=DB::table('tb_memo')->where('id',$id_memo)->get();
+            foreach($table2 as $dt2){
+                $table3=DB::table('tb_template_approval')->where('id_template_memo',$dt2->id_template_memo)->get();
+                foreach($table3 as $dt3){
+                    $add=DB::table('tb_memo_approval')->insert([
+                        'id_memo'=>$id_memo,
+                        'id_template_approval'=>$dt3->id,
+                        'approval_group'=>$dt3->approval_group,
+                        'seq_approval'=>$dt3->seq_approval,
+                        'position'=>$dt3->position,
+                        'job_approval'=>$dt3->job_approval,
+                        'is_mandatory'=>$dt3->is_mandatory
+                    ]);
+                }
+            }
+        }
+    }
+    function archieveMemo($category,$periode){
+        $data['today']=date('Y-m-d');
+        if($periode==0)$periode=date('Y-m');
+        $data['table1']=DB::table('tb_memo_category')->get();
+        $data['table2']=DB::table('tb_memo')->where('id_category',$category)->where('is_delete','0')->where('date_information','like',$periode.'%')->where('date_information','<',$data['today'])->get();
+        $data['table3']=DB::table('tb_template_memo')->where('id_category',$category)->get();
+        //return $data['table2'];
+        $data['category']=$category;
+        $data['periode']=$periode;
+        return view('page/general_memo/memo_archieve',['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
+    }
+    function detailArchieve($kategori,$periode){
+        $data['table1']=DB::table('tb_memo_category')->where('id',$kategori)->get();
+        foreach($data['table1'] as $dt){
+            $data['table_name']=$dt->table_name;
+        }
+        $data['table2']=DB::table($data['table_name'])
+        ->leftjoin('tb_memo','tb_memo.id','=',$data['table_name'].'.id_memo')
+        ->where('date_information','like',$periode.'%')
+        ->where($data['table_name'].'.is_delete','0')
+        ->get([$data['table_name'].'.*','tb_memo.code_memo','tb_memo.from_dept','tb_memo.to_dept','tb_memo.memo_number']);
+        $data['periode']=$periode;
+        $data['kategori']=$kategori;
+        return view('page/general_memo/'.$data['table_name'].'_archieve',['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
+
+    }
+    function ImportTable(Request $request){
+        $request->validate([
+            'file' => 'required|mimes:xls,xlsx,csv|max:2048'
+        ]);
+        $file = $request->file('file');
+        $nama_file = rand().$file->getClientOriginalName();
+        $file->move('laravel/public/excel',$nama_file);
+        $import=Excel::import(new Import_tb_memo_ot, public_path('/laravel/public/excel/'.$nama_file));
+        if($import){
+          return redirect()->back()->with(['info'=>'Import Berhasil']);
+        }else{
+            return redirect()->back()->with(['errors'=>'Gagal Import']);
+        }
+    }
+    function templateTable($id){
+        $data['table1']=DB::table('tb_memo')->where('id',$id)->get();
+        foreach($data['table1'] as $dt){
+            $data['table_name']=$dt->table_name;
+        }
+        $data['id_memo']=$id;
+        $data['today']=date('Y-m-d');
+        $data['now']=date('Y-m-d H:i:s');
+        //return $link;
+        return view('page/general_memo/template_'.$data['table_name'],['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
+    }
+
+
     public function generateNumber($periode,$code_memo){
         $thn=date('Y',strtotime($periode.'-01'));
         $bln=date('m',strtotime($periode.'-01'));
@@ -181,126 +299,6 @@ class general_memo extends Controller
 
         $legal_num=$no.'/'.$code_memo.'/'.$romawi.'/'.$thn;
         return $legal_num;
-    }
-    function detailMemo($id){
-        //return "Masuk";
-        $email=Auth::user()->email;
-        $admin=Auth::user()->name;
-        $data['admin']=$admin;
-        $now=date('Y-m-d H:i:s');
-        $table1=DB::table('tb_emails')->where('email_address',$email)->get();
-        foreach($table1 as $dt1){
-            $id_employee=$dt1->id_employee;
-        }
-
-        $this->addApproval($id);
-        $data['table1']=DB::table('tb_memo')->where('id',$id)->get();
-        foreach($data['table1'] as $dt){
-            $data['table_name']=$dt->table_name;
-            $data['status_draft']=$dt->is_draft;
-            $data['from_dept']=$dt->from_dept;
-            $data['to_dept']=$dt->to_dept;
-            $data['created_by']=$dt->created_by;
-        }
-        // $data['table2']=DB::table($data['table_name'])->where('id_memo',$id)->where('is_delete','0')->get();
-        if($data['table_name']=='tb_memo_ot'){
-            $data['table2']=DB::table($data['table_name'])
-            ->leftjoin('tb_memo','tb_memo.id','=',$data['table_name'].'.id_memo')
-            ->leftjoin('tb_reason_ots','tb_reason_ots.reason_ot','=',$data['table_name'].'.reason_ot')
-            ->where($data['table_name'].'.id_memo',$id)->where($data['table_name'].'.is_delete','0')->get([$data['table_name'].'.*','tb_reason_ots.reason_ot as check_reason','tb_memo.memo_number']);
-        }else{
-            $data['table2']=DB::table($data['table_name'])
-            ->where($data['table_name'].'.id_memo',$id)->where($data['table_name'].'.is_delete','0')->get();
-        }
-        if($data['table_name']=='tb_memo_access'){
-            // $data['table3']=DB::table('tb_memo_approval')
-            // ->leftjoin('tb_template_approval_person','tb_template_approval_person.id_template_approval','=','tb_memo_approval.id_template_approval')
-            // ->where('tb_memo_approval.id_memo',$id)->orderby('tb_memo_approval.seq_approval','asc')->get(['tb_memo_approval.*','tb_template_approval_person.id_employee as idemployee','tb_template_approval_person.employee_name as employeename','tb_template_approval_person.email_address as emailaddress']);
-            $data['table3']=DB::table('tb_memo_approval')->where('id_memo',$id)->orderby('seq_approval','asc')->get();
-        }else{
-            $data['table3']=DB::table('tb_memo_approval')->where('id_memo',$id)->orderby('seq_approval','asc')->get();
-        }
-        $data['my_pos']='';
-        $data['is_completed']=0;
-        $data['progress']=0;
-        foreach($data['table3'] as $dt3){
-            $data['table4']=DB::table('tb_template_approval_person')->where('id_template_approval',$dt3->id_template_approval)->get();
-            foreach($data['table4'] as $dt4){
-                if($dt4->id_employee==$id_employee)$data['my_pos'].='#'.$dt4->id_template_approval;
-            }
-            if($dt3->approval_status==1)$data['progress']=$dt3->seq_approval;
-        }
-        $data['progress']++;
-
-        $data['table5']=DB::table('tb_memo_approval')->where('id_memo',$id)->where('approval_group','2')->where('approval_status','0')->count();
-        if($data['table5']==0)$data['status_completed']=1;
-        else $data['status_completed']=0;
-
-        $data['id_memo']=$id;
-        //return $data['table2'];
-        return view('page/general_memo/'.$data['table_name'],['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
-
-    }
-    function detailArchieve($kategori,$periode){
-        $data['table1']=DB::table('tb_memo_category')->where('id',$kategori)->get();
-        foreach($data['table1'] as $dt){
-            $data['table_name']=$dt->table_name;
-        }
-        $data['table2']=DB::table($data['table_name'])
-        ->leftjoin('tb_memo','tb_memo.id','=',$data['table_name'].'.id_memo')
-        ->where('date_information','like',$periode.'%')
-        ->where($data['table_name'].'.is_delete','0')
-        ->get([$data['table_name'].'.*','tb_memo.code_memo','tb_memo.from_dept','tb_memo.to_dept','tb_memo.memo_number']);
-        //return $data['table2'];
-        $data['periode']=$periode;
-        $data['kategori']=$kategori;
-        return view('page/general_memo/'.$data['table_name'].'_archieve',['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
-
-    }
-    function templateTable($id){
-        $data['table1']=DB::table('tb_memo')->where('id',$id)->get();
-        foreach($data['table1'] as $dt){
-            $data['table_name']=$dt->table_name;
-        }
-        $data['id_memo']=$id;
-        $data['today']=date('Y-m-d');
-        $data['now']=date('Y-m-d H:i:s');
-        //return $link;
-        return view('page/general_memo/template_'.$data['table_name'],['data'=>$data,'site'=>$this->site,'menu'=>'memo']);
-    }
-    public function addApproval($id_memo){
-        $table1=DB::table('tb_memo_approval')->where('id_memo',$id_memo)->count();
-        if($table1==0){
-            $table2=DB::table('tb_memo')->where('id',$id_memo)->get();
-            foreach($table2 as $dt2){
-                $table3=DB::table('tb_template_approval')->where('id_template_memo',$dt2->id_template_memo)->get();
-                foreach($table3 as $dt3){
-                    $add=DB::table('tb_memo_approval')->insert([
-                        'id_memo'=>$id_memo,
-                        'id_template_approval'=>$dt3->id,
-                        'approval_group'=>$dt3->approval_group,
-                        'seq_approval'=>$dt3->seq_approval,
-                        'position'=>$dt3->position,
-                        'job_approval'=>$dt3->job_approval,
-                        'is_mandatory'=>$dt3->is_mandatory
-                    ]);
-                }
-            }
-        }
-    }
-    function ImportTable(Request $request){
-        $request->validate([
-            'file' => 'required|mimes:xls,xlsx,csv|max:2048'
-        ]);
-        $file = $request->file('file');
-        $nama_file = rand().$file->getClientOriginalName();
-        $file->move('laravel/public/excel',$nama_file);
-        $import=Excel::import(new Import_tb_memo_ot, public_path('/excel/'.$nama_file));
-        if($import){
-          return redirect()->back()->with(['info'=>'Import Berhasil']);
-        }else{
-            return redirect()->back()->with(['errors'=>'Gagal Import']);
-        }
     }
     function confirmMemo(Request $data){
         $now=date('Y-m-d H:i:s');
@@ -588,22 +586,6 @@ class general_memo extends Controller
         // Response atau redirect sesuai kebutuhan
         return redirect()->back()->with('success', 'Email approval telah dikirim');        
         
-    }
-    function previewMemo($id){
-        $data['table1']=DB::table('tb_memo')->where('id',$id)->get();
-        foreach($data['table1'] as $dt){
-            $data['table_name']=$dt->table_name;
-            $data['nomor_memo']=$dt->memo_number;
-        }
-        $data['table2']=DB::table($data['table_name'])
-        ->leftjoin('tb_reason_ots','tb_reason_ots.reason_ot','=',$data['table_name'].'.reason_ot')
-        ->where($data['table_name'].'.id_memo',$id)->where($data['table_name'].'.is_delete','0')->get([$data['table_name'].'.*','tb_reason_ots.reason_ot as check_reason']);
-
-        $data['table3']=DB::table('tb_memo_approval')->where('id_memo',$id)->orderby('seq_approval','asc')->get();
-
-        $FileName='MEMO OT '.$data['nomor_memo'].'.PDF';
-        $pdf = PDF::loadview('page/general_memo/'.$data['table_name'].'_pdf',['data'=>$data,'id_memo'=>$id,'site'=>$this->site,'menu'=>'memo'])->setPaper('a4','potret');
-        return $pdf->stream($FileName);
     }
     public function notificationMemo($id){
         $tb_memo=DB::table('tb_memo')->where('id',$id)->get();

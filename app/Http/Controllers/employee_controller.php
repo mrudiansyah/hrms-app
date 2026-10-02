@@ -51,9 +51,23 @@ class employee_controller extends Controller
         }
         $tb_employee=$tb_employee->orderby('tb_statuses.finish_contract','asc')->get(['tb_employees.*','tb_departments.dept_code','tb_positions.position_name','tb_employee_shifts.id_shift','tb_group_shifts.shift_code','tb_statuses.start_contract','tb_statuses.finish_contract']);
         //return $tb_employee;
-        $last_update=tb_employee::max('updated_at');
+        $last_update=DB::table('tb_employees')->max('updated_at');
         return view('page/user/m_employee/employees',['menu'=>'employees','tb_employee'=>$tb_employee,'status'=>$status,'menu'=>'employees']);
     }
+    function kskDisplay($id,$my_index){
+        $tb_ksk_detail=DB::table('tb_ksk_detail')->where('id',$id)->get();
+        foreach($tb_ksk_detail as $dt){
+            $status_lama=$dt->visible_status;
+            if($status_lama==0)$status_baru=1;
+            else $status_baru=0;
+            $update=DB::table('tb_ksk_detail')->where('id',$id)->update([
+                'visible_status'=>$status_baru,
+                'hide_by'=>$my_index,
+            ]);
+        }
+        return redirect()->back()->with(['success'=>'Success Change']);
+    }
+
     function employee($id,$pin)
     {
         $badgenumber = $pin;
@@ -1041,7 +1055,7 @@ class employee_controller extends Controller
         $email=Auth::user()->email;
         $cek1=DB::table('tb_emails')->where('email_address',$email)->get();
         foreach($cek1 as $dt){$id_user=$dt->id_employee;}
-        $tb_department=DB::connection('mysql')->table('tb_departments')->get(['tb_departments.*','tb_departments.dept_code as department']);
+        $tb_department=DB::table('tb_departments')->get(['tb_departments.*','tb_departments.dept_code as department']);
         if (request()->user()->hasRole('root')||request()->user()->hasRole('ksk')){
 
             $admin=Auth::user()->name;
@@ -1187,34 +1201,41 @@ class employee_controller extends Controller
             'tb_ksk.approval6_status',
         ])
         ->orderby('no_ksk','asc')->get();
+        $ksk_status_rows=DB::table('tb_ksk_detail_status')
+            ->whereIn('id_ksk_detail',$tb_ksk->pluck('id')->toArray())
+            ->get(['id_ksk_detail','id_employee','judge']);
+        $ksk_judges=[];
+        foreach($ksk_status_rows as $status_row){
+            $ksk_judges[$status_row->id_ksk_detail][$status_row->id_employee]=$status_row->judge;
+        }
         //return $tb_ksk;
         foreach($tb_ksk as $dt){
             $judul="KSK NO. ".$dt->no_ksk;
         }
-        return view('page/admin/m_employee/ksk_approval_detail',['tb_ksk'=>$tb_ksk,'id_ksk'=>$id_ksk,'tb_spv'=>$tb_spv,'id_employee'=>$id_user,'periode'=>$periode,'my_index'=>$my_index,'status_lock'=>$status_lock,'menu'=>'ksk','submenu'=>'contract','submenu'=>'ksk','Judul'=>$judul]);
+        return view('page/admin/m_employee/ksk_approval_detail',['tb_ksk'=>$tb_ksk,'ksk_judges'=>$ksk_judges,'id_ksk'=>$id_ksk,'tb_spv'=>$tb_spv,'id_employee'=>$id_user,'periode'=>$periode,'my_index'=>$my_index,'status_lock'=>$status_lock,'menu'=>'ksk','submenu'=>'contract','submenu'=>'ksk','Judul'=>$judul]);
       
     }
     function kskStatus(Request $data){
         date_default_timezone_set("Asia/jakarta");
-        $sekarang=date('Y-m-d H;i:s');
+        $sekarang=date('Y-m-d H:i:s');
         $nama=Auth::user()->name;
         $email=Auth::user()->email;
         $cek1=DB::table('tb_emails')->where('email_address',$email)->get();
         foreach($cek1 as $dt){$id_user=$dt->id_employee;}
 
-        $qty_ksk_detail_status=DB::connection('mysql')->table('tb_ksk_detail_status')->where('id_ksk_detail',$data->id_ksk_detail)->where('id_employee',$id_user)->count();
+        $qty_ksk_detail_status=DB::table('tb_ksk_detail_status')->where('id_ksk_detail',$data->id_ksk_detail)->where('id_employee',$id_user)->count();
         //Entry Detail Status
-            $simpan_status=DB::connection('mysql')->table('tb_ksk_detail_status')->insert([
+            $simpan_status=DB::table('tb_ksk_detail_status')->insert([
                 'id_ksk_detail'=>$data->id_ksk_detail,
                 'id_employee'=>$id_user,
                 'judge'=>$data->judge,
                 'next_contract'=>$data->next_contract,
                 'reason'=>$data->reason,
                 'admin'=>$nama
-            ]);
+            ]); 
             if($simpan_status){
                 if($data->statusupdate==1){
-                    $update_detail=DB::connection('mysql')->table('tb_ksk_detail')->where('id',$data->id_ksk_detail)->update([
+                    $update_detail=DB::table('tb_ksk_detail')->where('id',$data->id_ksk_detail)->update([
                         'judge'=>$data->judge,
                         'next_contract'=>$data->next_contract,
                         'reason'=>$data->reason,
@@ -1229,7 +1250,7 @@ class employee_controller extends Controller
     }
     function kskStatus_custome24(Request $data){
         date_default_timezone_set("Asia/jakarta");
-        $sekarang=date('Y-m-d H;i:s');
+        $sekarang=date('Y-m-d H:i:s');
         $nama=Auth::user()->name;
         $email=Auth::user()->email;
         $cek1=DB::table('tb_emails')->where('email_address',$email)->get();
@@ -1380,13 +1401,13 @@ class employee_controller extends Controller
       
     }
     function kskConfirm($id_ksk){
-        $sekarang=date('Y-m-d H;i:s');
+        $sekarang=date('Y-m-d H:i:s');
         $nama=Auth::user()->name;
         $email=Auth::user()->email;
         $cek1=DB::table('tb_emails')->where('email_address',$email)->get();
         foreach($cek1 as $dt){$id_user=$dt->id_employee;}
 
-        $tb_ksks=DB::connection('mysql')->table('tb_ksk')->where('tb_ksk.id',$id_ksk)->get();
+        $tb_ksks=DB::table('tb_ksk')->where('tb_ksk.id',$id_ksk)->get();
         foreach($tb_ksks as $dt){
 
             $cek2=DB::table('tb_emails')->where('id_employee',$dt->admin_id)->where('verified','1')->get();
@@ -1394,9 +1415,9 @@ class employee_controller extends Controller
             $no_ksk=$dt->no_ksk;
 
             if($id_user==$dt->approval1){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval1_status'=>'1','approval1_date'=>$sekarang,'direct_spv'=>$nama]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval1_status'=>'1','approval1_date'=>$sekarang,'direct_spv'=>$nama]);
                 if($dt->approval2==0){
-                    $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
+                    $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
                     $this->kirim_mail($admin_mail,$no_ksk);
                     $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize1)->get();
                     foreach($cek2 as $dt2){
@@ -1410,9 +1431,9 @@ class employee_controller extends Controller
                 }
             }
             if($id_user==$dt->approval2){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval2_status'=>'1','approval2_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval2_status'=>'1','approval2_date'=>$sekarang]);
                 if($dt->approval3==0){
-                    $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
+                    $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
                     $this->kirim_mail($admin_mail,$no_ksk);
                     $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize1)->get();
                     foreach($cek2 as $dt2){
@@ -1426,9 +1447,9 @@ class employee_controller extends Controller
                 }
             }
             if($id_user==$dt->approval3){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval3_status'=>'1','approval3_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval3_status'=>'1','approval3_date'=>$sekarang]);
                 if($dt->approval4==0){
-                    $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
+                    $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
                     $this->kirim_mail($admin_mail,$no_ksk);
                     $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize1)->get();
                     foreach($cek2 as $dt2){
@@ -1442,9 +1463,9 @@ class employee_controller extends Controller
                 }
             }
             if($id_user==$dt->approval4){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval4_status'=>'1','approval4_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval4_status'=>'1','approval4_date'=>$sekarang]);
                 if($dt->approval5==0){
-                    $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
+                    $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
                     $this->kirim_mail($admin_mail,$no_ksk);
                     $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize1)->get();
                     foreach($cek2 as $dt2){
@@ -1458,9 +1479,9 @@ class employee_controller extends Controller
                 }
             }
             if($id_user==$dt->approval5){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval5_status'=>'1','approval5_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval5_status'=>'1','approval5_date'=>$sekarang]);
                 if($dt->approval6==0){
-                    $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
+                    $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval_status'=>'1']);
                     $this->kirim_mail($admin_mail,$no_ksk);
                     $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize1)->get();
                     foreach($cek2 as $dt2){
@@ -1474,7 +1495,7 @@ class employee_controller extends Controller
                 }
             }
             if($id_user==$dt->approval6){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['approval6_status'=>'1','approval_status'=>'1','approval6_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['approval6_status'=>'1','approval_status'=>'1','approval6_date'=>$sekarang]);
                 $this->kirim_mail($admin_mail,$no_ksk);
                 $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize1)->get();
                 foreach($cek2 as $dt2){
@@ -1483,28 +1504,28 @@ class employee_controller extends Controller
             }
             
             if($id_user==$dt->legalize1){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['legalize1_status'=>'1','legalize1_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['legalize1_status'=>'1','legalize1_date'=>$sekarang]);
                 $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize2)->get();
                 foreach($cek2 as $dt2){
                     $this->kirim_mail($dt2->email_address,$no_ksk);
                 }
             }
             if($id_user==$dt->legalize2){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['legalize2_status'=>'1','legalize2_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['legalize2_status'=>'1','legalize2_date'=>$sekarang]);
                 $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize3)->get();
                 foreach($cek2 as $dt2){
                     $this->kirim_mail($dt2->email_address,$no_ksk);
                 }
             }
             if($id_user==$dt->legalize3){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['legalize3_status'=>'1','legalize3_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['legalize3_status'=>'1','legalize3_date'=>$sekarang]);
                 $cek2=DB::table('tb_emails')->where('id_employee',$dt->legalize4)->get();
                 foreach($cek2 as $dt2){
                     $this->kirim_mail($dt2->email_address,$no_ksk);
                 }
             }
             if($id_user==$dt->legalize4){
-                $tb_ksk=DB::connection('mysql')->table('tb_ksk')->where('id',$dt->id)->update(['legalize4_status'=>'1','legalize_status'=>'1','legalize4_date'=>$sekarang]);
+                $tb_ksk=DB::table('tb_ksk')->where('id',$dt->id)->update(['legalize4_status'=>'1','legalize_status'=>'1','legalize4_date'=>$sekarang]);
                 $this->kirim_mail($admin_mail,$no_ksk);
             }
         }
@@ -1579,7 +1600,7 @@ class employee_controller extends Controller
         Log::info('Skip Email '.$admin_mail); 
     }
     function kskInfo(Request $data){
-        $sekarang=date('Y-m-d H;i:s');
+        $sekarang=date('Y-m-d H:i:s');
         $nama=Auth::user()->name;
         $email=Auth::user()->email;
         $cek1=DB::table('tb_emails')->where('email_address',$email)
@@ -1589,7 +1610,7 @@ class employee_controller extends Controller
         foreach($cek1 as $dt){$id_user=$dt->id_employee;$my_index=$dt->position_index;}
 
         $id_ksk_detail=$data->idkskdetail;
-        $tb_ksk=DB::connection('mysql')->table('tb_ksk_detail_status')
+        $tb_ksk=DB::table('tb_ksk_detail_status')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_ksk_detail_status.id_employee')
         ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
         ->leftjoin('tb_ksk_detail','tb_ksk_detail.id','=','tb_ksk_detail_status.id_ksk_detail')
@@ -1611,19 +1632,6 @@ class employee_controller extends Controller
             }
         }
         return $konten;
-    }
-    function kskDisplay($id,$my_index){
-        $tb_ksk_detail=DB::connection('mysql')->table('tb_ksk_detail')->where('id',$id)->get();
-        foreach($tb_ksk_detail as $dt){
-            $status_lama=$dt->visible_status;
-            if($status_lama==0)$status_baru=1;
-            else $status_baru=0;
-            $update=DB::connection('mysql')->table('tb_ksk_detail')->where('id',$id)->update([
-                'visible_status'=>$status_baru,
-                'hide_by'=>$my_index,
-            ]);
-        }
-        return redirect()->back()->with(['success'=>'Success Change']);
     }
     function leader(){
         $nama=Auth::user()->name;

@@ -497,6 +497,62 @@
 					</li>
 			@endif
 
+			@if(request()->user()->hasRole('tms')||request()->user()->hasRole('admin_department')||request()->user()->hasRole('admin_calendar'))
+				<li class="treeview<?php if(isset($menu)&&($menu=='tms'||$menu=='calendar'))echo ' active';?>">
+					<a href="#">
+					<i class="fa fa-clock-o"></i> <span>Time Management Sheet</span>
+					<span class="pull-right-container">
+						<i class="fa fa-angle-left pull-right"></i>
+					</span>
+					</a>
+					<ul class="treeview-menu">
+						@if (request()->user()->hasRole('admin_calendar')||request()->user()->hasRole('tms'))
+							<li class="treeview<?php if(isset($menu)&&($menu=='calendar'))echo ' active';?>">
+								<a href="#">
+								<i class="fa fa-calendar"></i> <span>Calendar & Shift</span>
+								<span class="pull-right-container">
+									<i class="fa fa-angle-left pull-right"></i>
+								</span>
+								</a>
+								<ul class="treeview-menu">
+									@if (request()->user()->hasRole('admin_calendar'))
+										<li class="<?php if(isset($menu)&&$menu=='calendar')echo ' active';?>">
+										<a href="/Admin/Freeday">
+											<i class="fa fa-circle-o"></i> <span>Calendars</span>
+										</a>
+										</li>
+									@endif
+									@if (request()->user()->hasRole('tms'))
+										<li><a href="/TMS/Group"><i class="fa fa-circle-o"></i> Shift List</a></li>
+									@endif
+								</ul>
+							</li>
+						@endif
+						<?php if (request()->user()->hasRole('tms')) {?>
+							<li class="treeview<?php if(isset($menu)&&($menu=='tms'))echo ' active';?>">
+								<a href="#">
+								<i class="fa fa-clock-o"></i> <span>Shift Management</span>
+								<span class="pull-right-container">
+									<i class="fa fa-angle-left pull-right"></i>
+								</span>
+								</a>
+								<ul class="treeview-menu">
+									@if (request()->user()->hasRole('hr_access'))
+										<li><a href="/MonthlyCheck/0"><i class="fa fa-circle-o"></i> Check Absen</a></li>
+										<li><a href="/AbsensiRateDetail/0"><i class="fa fa-circle-o"></i> Check Summary</a></li>
+									@endif
+									<li><a href="/TMS/Draft/0/0"><i class="fa fa-circle-o"></i> Draft Group</a></li>
+									<li><a href="/TMS/Plan/0/0/100/0"><i class="fa fa-circle-o"></i> Working Schedule</a></li>
+									<li><a href="/DailyPresence/0/0/100"><i class="fa fa-circle-o"></i> Daily Presence</a></li>
+									<li><a href="/AbsensiRate/0/0"><i class="fa fa-circle-o"></i> Absensi Rate</a></li>
+									<li><a href="/FailedFinger/0/0"><i class="fa fa-circle-o"></i> Failed Finger</a></li>
+								</ul>
+							</li>
+							<?php if (request()->user()->hasRole('admin_department')) {?><li class="<?php if(isset($menu)&&$menu=='dashboard')echo ' active';?>"><a href="/ChangeDay"><i class="fa fa-refresh"></i> <span>Change day</span></a></li><?php }?>
+						<?php }?>
+					</ul>
+				</li>
+			@endif
 
 			<?php if (request()->user()->hasRole('payroll')) {?>
 			<li class="treeview<?php if (isset($menu) && ($menu == 'overtime' || $menu == 'overtime_summary' || $menu == 'overtime_tax' || $menu == 'capture_assignment' || $menu == 'summary_assignment'))
@@ -606,6 +662,46 @@
 				</ul>
 			</li>
 			<?php }?>
+			<li class="header">Information</li>
+			@if (request()->user()->hasRole('info_employee')||request()->user()->hasRole('info_shift'))
+				<li class="treeview<?php if(isset($menu)&&($menu=='department'||$menu=='employees'||$menu=='ksk'||$menu=='performance'))echo ' active';?>">
+					<a href="#">
+					<i class="fa fa-user"></i> <span>Employee</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>
+					</a>
+					<ul class="treeview-menu">
+					<?php if (request()->user()->hasRole('info_employee')){?>
+						<li><a href="/Employees/0"><i class="fa fa-circle-o"></i> <span>Employee Profile</span></a></li>
+					<?php }?>
+					<?php if (request()->user()->hasRole('info_employee')){?>
+						<li><a href="/Performance/0"><i class="fa fa-line-chart"></i> Performance</a></li>
+					<?php }?>
+					<?php if (request()->user()->hasRole('info_employee')){?>
+						<!-- <li><a href="/Performance/0"><i class="fa fa-line-chart"></i> Performance</a></li> -->
+					<?php }?>
+					<?php if (request()->user()->hasRole('ksk')){?>
+						<li><a href="/Employees/KSK/0"><i class="fa fa-exclamation"></i> <span>KSK</span></a></li>
+					<?php }?>
+					</ul>
+				</li>
+			@endif
+			@if (request()->user()->hasRole('report_overtime')||request()->user()->hasRole('info_overtime_dept')||request()->user()->hasRole('info_overtime'))
+				<li class="treeview<?php if(isset($menu)&&($menu=='overtimes'||$menu=='report_assigment'))echo ' active';?>">
+					<a href="#">
+					<i class="fa fa-book"></i> <span>Report Overtime</span>
+					<span class="pull-right-container">
+					<i class="fa fa-angle-left pull-right"></i>
+					</span>
+					</a>
+					<ul class="treeview-menu">
+					<?php if (request()->user()->hasRole('info_overtime_dept')){date_default_timezone_set("Asia/Bangkok");$periode=date('Y-m');?>
+						<li><a href="/Overtimes/Assigment/{{$periode}}"><i class="fa fa-file-text-o"></i> <span>Assignment</span></a></li>   
+					<?php }?>
+					</ul>
+				</li>
+			@endif
 
 		</ul>
 	</section>

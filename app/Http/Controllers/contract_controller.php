@@ -871,12 +871,11 @@ class contract_controller extends Controller
         ->orderby('tb_employees.dept_id','asc')
         ->orderby('tb_employees.leader_id','asc')
         ->get(['tb_employees.PIN','tb_employees.id as idemployee','tb_employees.join_date as joindate','tb_employees.NIK','tb_employees.leader_id','tb_employees2.employee_name as leader_name','tb_employees.gender','tb_employees.status','tb_employees.employee_name','tb_employees.dept_id','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_positions.position_index','tb_statuses.*']);
-        //return $tb_status;
         $dept_id=0;
         $leader_id=0;
         $dept_leader=$dept_id.'#'.$leader_id;
         $i=0;
-  
+        
         $delete1=DB::table('tb_ksk_detail')->where('no_ksk','like',$kunci)->delete();
         $delete2=DB::table('tb_ksk')->where('no_ksk','like',$kunci)->delete();
   
@@ -1053,7 +1052,6 @@ class contract_controller extends Controller
         }
           
       }
-      //return "Masuk";
       return redirect()->back();
     }
     function kskRefresh_221124_2($periode){

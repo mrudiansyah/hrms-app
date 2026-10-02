@@ -1,5 +1,5 @@
-@extends('layouts/admin')
-@section('Contents')
+
+<?php $__env->startSection('Contents'); ?>
    <!-- Contents -->
    	<style>
 		#tablesx th {
@@ -77,24 +77,24 @@
 				<div class="box box-primary" style="background:#FFF;">
 					<div class="box-header">
 						<i class="fa fa-user"></i>
-						<h3 class="box-title" style="padding-bottom:25px;">{{$Judul}}</h3>
+						<h3 class="box-title" style="padding-bottom:25px;"><?php echo e($Judul); ?></h3>
 						<div class="box-tools pull-right">
-							<a href='/Status/KSK/{{$periode}}'><button type="button" class="btn btn-default btn-xs"><i class="fa fa-backward"></i> &nbsp;Back</button></a>
+							<a href='/Status/KSK/<?php echo e($periode); ?>'><button type="button" class="btn btn-default btn-xs"><i class="fa fa-backward"></i> &nbsp;Back</button></a>
 							<?php //if($periode>=$periode_sekarang){?>
-								<a href='/Status/KSK/Refresh/{{$periode}}' id="bahaya"><button type="button" class="btn btn-info btn-xs"><i class="fa fa-refresh"></i> &nbsp;Generate/Reset</button></a>
+								<a href='/Status/KSK/Refresh/<?php echo e($periode); ?>' id="bahaya"><button type="button" class="btn btn-info btn-xs"><i class="fa fa-refresh"></i> &nbsp;Generate/Reset</button></a>
 							<?php //}?>
-							<a href='/Status/KSK/Distribute/{{$periode}}'><button type="button" class="btn btn-primary btn-xs" id="distribute"><i class="fa fa-upload"></i> &nbsp;Distribute</button></a>
-							<a href='/Status/KSK/Detail/0/{{$periode}}'><button type="button" class="btn btn-default btn-xs" id="detail"><i class="fa fa-folder-o"></i> &nbsp;Detail</button></a>
+							<a href='/Status/KSK/Distribute/<?php echo e($periode); ?>'><button type="button" class="btn btn-primary btn-xs" id="distribute"><i class="fa fa-upload"></i> &nbsp;Distribute</button></a>
+							<a href='/Status/KSK/Detail/0/<?php echo e($periode); ?>'><button type="button" class="btn btn-default btn-xs" id="detail"><i class="fa fa-folder-o"></i> &nbsp;Detail</button></a>
 						</div>
 					</div>
 					<div class="box-body" style="overflow-x:scroll;">
 						<div class="box-header" style="padding-top:0px;padding-left:0px;">
 							<div class="box-tools pull-left">
-								<input type="month" class="form-control" id="periode" name="periode" value="{{$periode}}">
+								<input type="month" class="form-control" id="periode" name="periode" value="<?php echo e($periode); ?>">
 							</div>
 							<div class="box-tools pull-right">
 								<?php if($status_lock==1)echo "Status Locked"; else echo "Status UnLocked";?>&nbsp;
-								<a href='/Status/KSK/Lock/{{$periode}}/{{$status_lock}}'><button type="button" class="btn btn-default btn-md"><?php if($status_lock==1)echo "<i class='fa fa-unlock'>"; else echo "<i class='fa fa-lock'>";?></i> </button></a>
+								<a href='/Status/KSK/Lock/<?php echo e($periode); ?>/<?php echo e($status_lock); ?>'><button type="button" class="btn btn-default btn-md"><?php if($status_lock==1)echo "<i class='fa fa-unlock'>"; else echo "<i class='fa fa-lock'>";?></i> </button></a>
 							</div>
 						</div>
 						<table id="table2" class="table table-hover tabel2">
@@ -113,75 +113,80 @@
 							</thead>
 							<tbody>
 								<?php $no=0;$lock_status=0;$performance_status=1;$quota_status=1;$qty_approval=0;?>
-								@foreach($data as $dt)
+								<?php $__currentLoopData = $data; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 								<tr>
-									<td>{{ $dt['no'] }}</td>
-									<td>{{ $dt['no_ksk'] }}</td>
-									<td>{{ $dt['dept_code'] }}</td>
+									<td><?php echo e($dt['no']); ?></td>
+									<td><?php echo e($dt['no_ksk']); ?></td>
+									<td><?php echo e($dt['dept_code']); ?></td>
 									
 									<td>
-										@if($dt['approval1'] > 0 && $dt['approval1_status'] == 0)
+										<?php if($dt['approval1'] > 0 && $dt['approval1_status'] == 0): ?>
 											<i class='fa fa-square-o'></i>
-										@elseif($dt['approval1'] > 0 && $dt['approval1_status'] == 1)
+										<?php elseif($dt['approval1'] > 0 && $dt['approval1_status'] == 1): ?>
 											<i class='fa fa-check-square-o'></i>
-										@endif
-										{{ $dt['approvalname1'] }}
+										<?php endif; ?>
+										<?php echo e($dt['approvalname1']); ?>
+
 									</td>
 									
 									<td>
-										@if($dt['approval2'] > 0 && $dt['approval2_status'] == 0)
+										<?php if($dt['approval2'] > 0 && $dt['approval2_status'] == 0): ?>
 											<i class='fa fa-square-o'></i>
-										@elseif($dt['approval2'] > 0 && $dt['approval2_status'] == 1)
+										<?php elseif($dt['approval2'] > 0 && $dt['approval2_status'] == 1): ?>
 											<i class='fa fa-check-square-o'></i>
-										@endif
-										{{ $dt['approvalname2'] }}
+										<?php endif; ?>
+										<?php echo e($dt['approvalname2']); ?>
+
 									</td>
 									
 									<td>
-										@if($dt['approval3'] > 0 && $dt['approval3_status'] == 0)
+										<?php if($dt['approval3'] > 0 && $dt['approval3_status'] == 0): ?>
 											<i class='fa fa-square-o'></i>
-										@elseif($dt['approval3'] > 0 && $dt['approval3_status'] == 1)
+										<?php elseif($dt['approval3'] > 0 && $dt['approval3_status'] == 1): ?>
 											<i class='fa fa-check-square-o'></i>
-										@endif
-										{{ $dt['approvalname3'] }}
+										<?php endif; ?>
+										<?php echo e($dt['approvalname3']); ?>
+
 									</td>
 									
 									<td>
-										@if($dt['approval4'] > 0 && $dt['approval4_status'] == 0)
+										<?php if($dt['approval4'] > 0 && $dt['approval4_status'] == 0): ?>
 											<i class='fa fa-square-o'></i>
-										@elseif($dt['approval4'] > 0 && $dt['approval4_status'] == 1)
+										<?php elseif($dt['approval4'] > 0 && $dt['approval4_status'] == 1): ?>
 											<i class='fa fa-check-square-o'></i>
-										@endif
-										{{ $dt['approvalname4'] }}
+										<?php endif; ?>
+										<?php echo e($dt['approvalname4']); ?>
+
 									</td>
 									
 									<td>
-										@if($dt['approval5'] > 0 && $dt['approval5_status'] == 0)
+										<?php if($dt['approval5'] > 0 && $dt['approval5_status'] == 0): ?>
 											<i class='fa fa-square-o'></i>
-										@elseif($dt['approval5'] > 0 && $dt['approval5_status'] == 1)
+										<?php elseif($dt['approval5'] > 0 && $dt['approval5_status'] == 1): ?>
 											<i class='fa fa-check-square-o'></i>
-										@endif
-										{{ $dt['approvalname5'] }}
+										<?php endif; ?>
+										<?php echo e($dt['approvalname5']); ?>
+
 									</td>
 									
 									<td>
-										@if($dt['approval6'] > 0 && $dt['approval6_status'] == 0)
+										<?php if($dt['approval6'] > 0 && $dt['approval6_status'] == 0): ?>
 											<i class='fa fa-square-o'></i>
-										@elseif($dt['approval6'] > 0 && $dt['approval6_status'] == 1)
+										<?php elseif($dt['approval6'] > 0 && $dt['approval6_status'] == 1): ?>
 											<i class='fa fa-check-square-o'></i>
-										@endif
+										<?php endif; ?>
 										
 										<div class="pull-right">
-											@if($dt['quota_status'] == 1)
-												<a href="/Status/KSK/Detail/{{ $dt['id'] }}/{{ $periode }}" 
-												title="{{ $dt['qty_performance'] }}" 
+											<?php if($dt['quota_status'] == 1): ?>
+												<a href="/Status/KSK/Detail/<?php echo e($dt['id']); ?>/<?php echo e($periode); ?>" 
+												title="<?php echo e($dt['qty_performance']); ?>" 
 												type="button" 
-												class="btn btn-xs{{ $dt['warna'] }}">
+												class="btn btn-xs<?php echo e($dt['warna']); ?>">
 													<i class="fa fa-folder-o"></i>
 												</a>
-											@endif
+											<?php endif; ?>
 											
-											<a href="/Employee/KSK/Print/{{ $dt['id'] }}" 
+											<a href="/Employee/KSK/Print/<?php echo e($dt['id']); ?>" 
 											type="button" 
 											class="btn btn-info btn-xs" 
 											target="_blank">
@@ -190,26 +195,27 @@
 											
 											<button type="button" 
 													class="btn btn-primary btn-xs update-modal" 
-													data-deptid="{{ $dt['dept_id'] }}" 
-													data-permanentp="{{ $dt['permanent_target'] }}" 
-													data-contractp="{{ $dt['contract_target'] }}" 
-													data-magangp="{{ $dt['magang_target'] }}" 
-													data-permanenta="{{ $dt['permanent_actual'] }}" 
-													data-contracta="{{ $dt['contract_actual'] }}" 
-													data-maganga="{{ $dt['magang_actual'] }}">
+													data-deptid="<?php echo e($dt['dept_id']); ?>" 
+													data-permanentp="<?php echo e($dt['permanent_target']); ?>" 
+													data-contractp="<?php echo e($dt['contract_target']); ?>" 
+													data-magangp="<?php echo e($dt['magang_target']); ?>" 
+													data-permanenta="<?php echo e($dt['permanent_actual']); ?>" 
+													data-contracta="<?php echo e($dt['contract_actual']); ?>" 
+													data-maganga="<?php echo e($dt['magang_actual']); ?>">
 												<i class="fa fa-edit"></i>
 											</button>
 										</div>
-										{{ $dt['qty_total'] }}
+										<?php echo e($dt['qty_total']); ?>
+
 									</td>
 								</tr>
-								@endforeach
+								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>
 							<tfoot>
 
 							</tfoot>
 						</table>
-						<input type="hidden" id="qty_approval" value="{{$qty_approval}}">
+						<input type="hidden" id="qty_approval" value="<?php echo e($qty_approval); ?>">
 					</div>
 					<!-- /.box-body -->
 				</div>
@@ -226,8 +232,9 @@
 			<div class="modal-content">
 			<form action="/Status/KSK/Target" method="post">
 			<input type="hidden" id="deptid" name="deptid">
-			<input type="hidden" id="periodetarget" name="periode_target" value="{{$periode}}">
-			{{ csrf_field() }}
+			<input type="hidden" id="periodetarget" name="periode_target" value="<?php echo e($periode); ?>">
+			<?php echo e(csrf_field()); ?>
+
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span></button>
@@ -276,17 +283,18 @@
 		<!-- /.modal-dialog -->
 	</div>
 
-    @if ($message = Session::get('success'))
+    <?php if($message = Session::get('success')): ?>
 		<div class="alert alert-info alert-dismissible" style="position:absolute;width:350px;right:10px;top:60px;z-index: 1;">
 			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 			<h4><i class="icon fa fa-info"></i> Success Alert</h4>
-			{{$message}}
+			<?php echo e($message); ?>
+
 		</div>
-    @endif
+    <?php endif; ?>
 
 
-@endsection
-@section('Scripts')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('Scripts'); ?>
 	<!-- page script Tabel-->
 	<script>
 		$(function () {
@@ -333,9 +341,9 @@
 	<!--  on Load  -->
 	<script>
 		$(document).ready(function() {
-			var lock="{{$lock_status}}";
-			var quota="{{$quota_status}}";
-			var performance="{{$performance_status}}";
+			var lock="<?php echo e($lock_status); ?>";
+			var quota="<?php echo e($quota_status); ?>";
+			var performance="<?php echo e($performance_status); ?>";
 			if(lock==1){
 				$('#refresh').hide();
 				$('#distribute').hide();
@@ -372,4 +380,6 @@
 			$('#modal-update').modal('show');
 		});
 	</script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts/admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/page/admin/m_employee/ksk.blade.php ENDPATH**/ ?>

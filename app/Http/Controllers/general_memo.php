@@ -126,6 +126,15 @@ class general_memo extends Controller
                                 'department'=>$dt2->dept_code,
                                 'start'=>$now,
                                 'end'=>$tomorow,
+                                'e_spl'=>'0',
+                                'e_permit'=>'0',
+                                'e_leave'=>'0',
+                                'status'=>'1',
+                                'is_delete'=>'0',
+                                'alasan'=>'',
+                                'canceled_by'=>'',
+                                'canceled_at'=>'',
+                                'created_at'=>$now,
                                 'created_by'=>$admin
                             ]);
                         }
@@ -388,7 +397,7 @@ class general_memo extends Controller
                 }
             }
             //$this->sendMail($data->id_memo);
-            $this->notificationMemo($data->id_memo);            
+            //$this->notificationMemo($data->id_memo);            
         }
         return $data->id_memo.' '.$data->status;
     }

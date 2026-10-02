@@ -107,7 +107,7 @@
   </style>
 </head>
 
-<body class="hold-transition skin-blue fixed sidebar-mini">
+<body class="hold-transition skin-blue-light fixed sidebar-mini">
   <div class="wrapper">
     <?php date_default_timezone_set("Asia/Jakarta");
 $sekarang = date('Y-m-d');
@@ -211,7 +211,7 @@ $periode = date('Y-m');?>
           <?php $MB = number_format(memory_get_peak_usage() / 1000000, '2');
 echo "Usage: " . $MB . " MB \n";?>
         </div>
-        <strong>Copyright &copy; 2020 <a href="https://adminlte.io">ICT-SAI</a></strong>
+        <strong>&copy; 2020 ICT-SAI</strong>
 
       </footer>
 

@@ -283,7 +283,7 @@ echo date('l, d M Y H:i');
                     <?php $MB = number_format(memory_get_peak_usage() / 1000000, '2');
 echo "Usage: " . $MB . " MB \n";?>
                 </div>
-                <strong>Copyright &copy; 2020 <a href="https://adminlte.io">ICT-SAI</a>.</strong>
+                <strong>&copy; 2020 ICT-SAI</strong>
 
             </footer>
 

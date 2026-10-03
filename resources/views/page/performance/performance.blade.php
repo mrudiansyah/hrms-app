@@ -126,7 +126,7 @@
 									</td>
 									<td>
 										<div class="pull-left">
-											@if($dt->grade>0)
+											@if($dt->grade>0&&$periode>=2025)
 												<a href="/PerformancePreview/{{$dt->idperformance}}" target="_blank"><button class="btn btn-xs btn-primary"><i class="fa fa-print"></i></button></a>
 												<button class="btn btn-xs btn-info info-modal" data-nama="{{$dt->employee_name}}" data-idperformance="{{$dt->idperformance}}" data-target="{{$dt->target}}"><i class="fa fa-folder-o"></i></button>
 											@endif

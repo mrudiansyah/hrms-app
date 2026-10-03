@@ -128,7 +128,7 @@
 									</td>
 									<td>
 										<div class="pull-left">
-											<?php if($dt->grade>0): ?>
+											<?php if($dt->grade>0&&$periode>=2025): ?>
 												<a href="/PerformancePreview/<?php echo e($dt->idperformance); ?>" target="_blank"><button class="btn btn-xs btn-primary"><i class="fa fa-print"></i></button></a>
 												<button class="btn btn-xs btn-info info-modal" data-nama="<?php echo e($dt->employee_name); ?>" data-idperformance="<?php echo e($dt->idperformance); ?>" data-target="<?php echo e($dt->target); ?>"><i class="fa fa-folder-o"></i></button>
 											<?php endif; ?>

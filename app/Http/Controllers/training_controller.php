@@ -71,9 +71,9 @@ class training_controller extends Controller
     }
     function training_periode($periode)
     {
-        if ($periode == 0){
-            $tahun= date('Y');
-        }else{
+        if ($periode == 0) {
+            $tahun = date('Y');
+        } else {
             $tahun = date('Y', strtotime($periode . '-01'));
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
@@ -81,10 +81,10 @@ class training_controller extends Controller
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
                 ->where('tb_training_schedule.is_delete', '0');
-                if ($periode != 0){
-                    $tb_training_schedule=$tb_training_schedule->where('tb_training_schedule.periode', $periode);
-                }
-                $tb_training_schedule=$tb_training_schedule->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
+            if ($periode != 0) {
+                $tb_training_schedule = $tb_training_schedule->where('tb_training_schedule.periode', $periode);
+            }
+            $tb_training_schedule = $tb_training_schedule->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
             $tb_training_list = DB::table('tb_training_list')->orderby('training_name', 'asc')->get();
 
             $tb_department = DB::table('tb_departments')->orderby('dept_name', 'asc')->get();
@@ -112,6 +112,299 @@ class training_controller extends Controller
             return abort(403, 'Anda tidak punya akses');
         }
     }
+    function training_overview($tahun = 0)
+    {
+        if ($tahun == 0 || empty($tahun)) {
+            $tahun = date('Y');
+        }
+
+        if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
+            $schedules = DB::table('tb_training_schedule')
+                ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
+                ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
+                ->where('tb_training_schedule.is_delete', '0')
+                ->where(function ($q) use ($tahun) {
+                    $q->whereYear('tb_training_schedule.tanggal', $tahun)
+                        ->orWhere('tb_training_schedule.periode', 'like', $tahun . '-%');
+                })
+                ->orderby('tb_training_schedule.tanggal', 'asc')
+                ->orderby('tb_training_list.training_name', 'asc')
+                ->get([
+                    'tb_training_schedule.*',
+                    'tb_training_list.training_name',
+                    'tb_skill_type.skill_type'
+                ]);
+
+            $scheduleIds = $schedules->pluck('id');
+
+            $training_level_rows = DB::table('tb_training_level')
+                ->leftJoin('tb_level', 'tb_level.id', '=', 'tb_training_level.id_level')
+                ->whereIn('id_training_schedule', $scheduleIds)
+                ->get([
+                    'tb_training_level.id_training_schedule',
+                    'tb_training_level.id_level',
+                    'tb_level.nama_level',
+                ])
+                ->groupBy('id_training_schedule');
+
+            $training_level_names_by_schedule = $training_level_rows->map(function ($levels) {
+                return $levels->pluck('nama_level')->filter()->unique()->implode(', ');
+            });
+
+            $overview_data = [];
+            foreach ($schedules as $dt) {
+                $level_names = $training_level_names_by_schedule->get($dt->id, '-');
+                $nara_sumber = !empty($dt->nara_sumber) ? trim($dt->nara_sumber) : '-';
+                $department = !empty($dt->department) ? trim($dt->department) : '-';
+                $nama_level = !empty($level_names) ? trim($level_names) : '-';
+                $id_training = $dt->id_training ?: 0;
+
+                // Group key based on id_training, nara_sumber, department, nama_level
+                $key = $id_training . '|' . strtolower($nara_sumber) . '|' . strtolower($department) . '|' . strtolower($nama_level);
+
+                $month = 0;
+                $day = '';
+                if (!empty($dt->tanggal)) {
+                    $m = (int) date('m', strtotime($dt->tanggal));
+                    $d = (int) date('d', strtotime($dt->tanggal));
+                    $month = $m;
+                    $day = (string) $d;
+                } elseif (!empty($dt->periode)) {
+                    $parts = explode('-', $dt->periode);
+                    if (count($parts) >= 2) {
+                        $month = (int) $parts[1];
+                        $day = 'Plan';
+                    }
+                }
+
+                if (!isset($overview_data[$key])) {
+                    $overview_data[$key] = [
+                        'id_training' => $id_training,
+                        'training_name' => $dt->training_name ?: 'Unknown Training',
+                        'nara_sumber' => $nara_sumber,
+                        'department' => $department,
+                        'draft_qty' => (int) ($dt->draft_qty ?: 0),
+                        'nama_level' => $nama_level,
+                        'months' => array_fill(1, 12, []),
+                    ];
+                } else {
+                    $overview_data[$key]['draft_qty'] += (int) ($dt->draft_qty ?: 0);
+                }
+
+                if ($month >= 1 && $month <= 12 && $day !== '') {
+                    $overview_data[$key]['months'][$month][] = [
+                        'day' => $day,
+                        'id' => $dt->id
+                    ];
+                }
+            }
+            // Sort day numbers numerically for each month
+            foreach ($overview_data as $k => $row) {
+                for ($m = 1; $m <= 12; $m++) {
+                    if (!empty($overview_data[$k]['months'][$m])) {
+                        usort($overview_data[$k]['months'][$m], function ($a, $b) {
+                            return (int) $a['day'] - (int) $b['day'];
+                        });
+                    }
+                }
+            }
+
+            $available_years = DB::table('tb_training_schedule')
+                ->where('is_delete', '0')
+                ->selectRaw('YEAR(tanggal) as yr')
+                ->whereNotNull('tanggal')
+                ->distinct()
+                ->pluck('yr')
+                ->filter()
+                ->toArray();
+            if (!in_array((int) $tahun, $available_years)) {
+                $available_years[] = (int) $tahun;
+            }
+            rsort($available_years);
+
+            return view('page/training/training_overview', [
+                'overview_data' => $overview_data,
+                'tahun' => $tahun,
+                'available_years' => $available_years,
+                'site' => $this->site,
+                'menu' => 'training_activity',
+                'juduls' => 'Training Schedule Overview'
+            ]);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+
+    function training_graph($periode = 0)
+    {
+        if (request()->user()->hasRole('root') || request()->user()->hasRole('training') || request()->user()->hasRole('hr_access')) {
+            if ($periode == '0' || empty($periode)) {
+                $tahun = date('Y');
+            } else {
+                $tahun = substr($periode, 0, 4);
+            }
+
+            // 1. Fetch training list with plan vs actual participant calculation
+            $schedulesQuery = DB::table('tb_training_schedule')
+                ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
+                ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
+                ->where('tb_training_schedule.is_delete', '0');
+
+            if ($periode != '0' && !empty($periode)) {
+                if (strlen($periode) == 4) {
+                    $schedulesQuery->where(function ($q) use ($periode) {
+                        $q->whereYear('tb_training_schedule.tanggal', $periode)
+                            ->orWhere('tb_training_schedule.periode', 'like', $periode . '-%');
+                    });
+                } else {
+                    $schedulesQuery->where('tb_training_schedule.periode', $periode);
+                }
+            }
+
+            $schedules = $schedulesQuery->get([
+                'tb_training_schedule.id as schedule_id',
+                'tb_training_schedule.id_training',
+                'tb_training_schedule.draft_qty',
+                'tb_training_schedule.tanggal',
+                'tb_training_schedule.periode',
+                'tb_training_list.training_name',
+                'tb_skill_type.skill_type'
+            ]);
+
+            $scheduleIds = $schedules->pluck('schedule_id')->toArray();
+
+            // Fetch actuals associated with these schedules
+            $actuals = DB::table('tb_training_actual')
+                ->whereIn('id_training_schedule', $scheduleIds)
+                ->where('is_delete', '0')
+                ->get(['id', 'id_training_schedule']);
+
+            $actualIds = $actuals->pluck('id')->toArray();
+
+            // Fetch participants grouped by id_training_actual
+            $participants = DB::table('tb_training_participant')
+                ->whereIn('id_training_actual', $actualIds)
+                ->get(['id', 'id_training_actual', 'free_test', 'post_test']);
+
+            $actual_to_schedule = $actuals->pluck('id_training_schedule', 'id')->toArray();
+            $participants_by_actual = $participants->groupBy('id_training_actual');
+
+            // Aggregate metrics per id_training
+            $aggregated = [];
+            foreach ($schedules as $sch) {
+                $id_tr = $sch->id_training ?: 0;
+                $tr_name = $sch->training_name ?: ('Training #' . $id_tr);
+
+                if (!isset($aggregated[$id_tr])) {
+                    $aggregated[$id_tr] = [
+                        'id_training' => $id_tr,
+                        'training_name' => $tr_name,
+                        'skill_type' => $sch->skill_type ?: '-',
+                        'plan_qty' => 0,
+                        'actual_qty' => 0,
+                        'free_scores' => [],
+                        'post_scores' => []
+                    ];
+                }
+
+                $aggregated[$id_tr]['plan_qty'] += (int) ($sch->draft_qty ?: 0);
+            }
+
+            // Map participant stats back to id_training
+            $actuals_by_schedule = $actuals->groupBy('id_training_schedule');
+            foreach ($schedules as $sch) {
+                $id_tr = $sch->id_training ?: 0;
+                if (!isset($aggregated[$id_tr]))
+                    continue;
+
+                $sch_actuals = $actuals_by_schedule->get($sch->schedule_id, collect());
+                foreach ($sch_actuals as $act) {
+                    $act_participants = $participants_by_actual->get($act->id, collect());
+                    $aggregated[$id_tr]['actual_qty'] += $act_participants->count();
+
+                    foreach ($act_participants as $p) {
+                        if (is_numeric($p->free_test)) {
+                            $aggregated[$id_tr]['free_scores'][] = (float) $p->free_test;
+                        }
+                        if (is_numeric($p->post_test)) {
+                            $aggregated[$id_tr]['post_scores'][] = (float) $p->post_test;
+                        }
+                    }
+                }
+            }
+
+            // Finalize data structure for charts
+            $chart_labels = [];
+            $plan_data = [];
+            $actual_data = [];
+            $avg_free_data = [];
+            $avg_post_data = [];
+            $summary_table = [];
+
+            foreach ($aggregated as $item) {
+                $chart_labels[] = $item['training_name'];
+                $plan_data[] = $item['plan_qty'];
+                $actual_data[] = $item['actual_qty'];
+
+                $avg_free = count($item['free_scores']) > 0
+                    ? round(array_sum($item['free_scores']) / count($item['free_scores']), 2)
+                    : 0;
+                $avg_post = count($item['post_scores']) > 0
+                    ? round(array_sum($item['post_scores']) / count($item['post_scores']), 2)
+                    : 0;
+
+                $avg_free_data[] = $avg_free;
+                $avg_post_data[] = $avg_post;
+
+                $summary_table[] = [
+                    'id_training' => $item['id_training'],
+                    'training_name' => $item['training_name'],
+                    'skill_type' => $item['skill_type'],
+                    'plan_qty' => $item['plan_qty'],
+                    'actual_qty' => $item['actual_qty'],
+                    'achievement_pct' => $item['plan_qty'] > 0 ? round(($item['actual_qty'] / $item['plan_qty']) * 100, 1) : 0,
+                    'avg_free' => $avg_free,
+                    'avg_post' => $avg_post,
+                    'score_gain' => round($avg_post - $avg_free, 2),
+                ];
+            }
+
+            // Get available period filters (years)
+            $available_periods_raw = DB::table('tb_training_schedule')
+                ->where('is_delete', '0')
+                ->select(['periode', 'tanggal'])
+                ->get();
+
+            $available_periods = [];
+            foreach ($available_periods_raw as $pr_item) {
+                if (!empty($pr_item->periode)) {
+                    $available_periods[] = $pr_item->periode;
+                } elseif (!empty($pr_item->tanggal)) {
+                    $available_periods[] = date('Y', strtotime($pr_item->tanggal));
+                }
+            }
+            $available_periods = array_values(array_unique(array_filter($available_periods)));
+            rsort($available_periods);
+
+
+            return view('page/training/training_graph', [
+                'periode' => $periode,
+                'available_periods' => $available_periods,
+                'chart_labels' => $chart_labels,
+                'plan_data' => $plan_data,
+                'actual_data' => $actual_data,
+                'avg_free_data' => $avg_free_data,
+                'avg_post_data' => $avg_post_data,
+                'summary_table' => $summary_table,
+                'site' => $this->site,
+                'menu' => 'training_activity',
+                'juduls' => 'Grafik Pencapaian Training'
+            ]);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+
     function training_plan_participant($id)
     {
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
@@ -242,14 +535,14 @@ class training_controller extends Controller
                 ->leftjoin('tb_training_participant', 'tb_training_participant.id_training_actual', '=', 'tb_training_actual.id')
                 ->where('tb_training_actual.is_delete', '0')
                 ->where('tb_training_actual.in_class', '0');
-                if($id_employee != 0){
-                    $tb_training_personal = $tb_training_personal->where('tb_training_participant.id_employee', $id_employee);
-                }
-                $tb_training_personal=$tb_training_personal->orderby('tb_training_actual.id', 'desc')->get(['tb_training_actual.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type', 'tb_training_participant.nama_karyawan', 'tb_training_participant.NIK', 'tb_training_participant.department', 'tb_training_participant.jabatan']);
+            if ($id_employee != 0) {
+                $tb_training_personal = $tb_training_personal->where('tb_training_participant.id_employee', $id_employee);
+            }
+            $tb_training_personal = $tb_training_personal->orderby('tb_training_actual.id', 'desc')->get(['tb_training_actual.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type', 'tb_training_participant.nama_karyawan', 'tb_training_participant.NIK', 'tb_training_participant.department', 'tb_training_participant.jabatan']);
 
-            $tb_list=DB::table('tb_training_participant')->select(['id_employee', 'nama_karyawan', 'NIK'])->groupby(['id_employee', 'nama_karyawan', 'NIK'])->get();
-                
-            return view('page/training/training_personal', ['tb_training_personal' => $tb_training_personal,'tb_list'=>$tb_list, 'site' => $this->site, 'menu' => 'training_actual', 'juduls' => 'Actual Training', 'selected_employee' => $id_employee]);
+            $tb_list = DB::table('tb_training_participant')->select(['id_employee', 'nama_karyawan', 'NIK'])->groupby(['id_employee', 'nama_karyawan', 'NIK'])->get();
+
+            return view('page/training/training_personal', ['tb_training_personal' => $tb_training_personal, 'tb_list' => $tb_list, 'site' => $this->site, 'menu' => 'training_actual', 'juduls' => 'Actual Training', 'selected_employee' => $id_employee]);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
@@ -285,7 +578,7 @@ class training_controller extends Controller
                 ->where('id_training_actual', $id)
                 ->orderby('id', 'desc')
                 ->get(['id', 'id_training_actual', 'assignment', 'duedate']);
-            return view('page/training/training_actual_participant', ['tb_training_participant' => $tb_training_participant, 'tb_training_actual' => $tb_training_actual,'tb_training_assignment' => $tb_training_assignment, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'in_class' => $in_class, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
+            return view('page/training/training_actual_participant', ['tb_training_participant' => $tb_training_participant, 'tb_training_actual' => $tb_training_actual, 'tb_training_assignment' => $tb_training_assignment, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'in_class' => $in_class, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
@@ -457,9 +750,11 @@ class training_controller extends Controller
                 continue;
             }
 
-            if (count(array_filter($row, function ($value) {
-                return $value !== null && trim((string) $value) !== '';
-            })) === 0) {
+            if (
+                count(array_filter($row, function ($value) {
+                    return $value !== null && trim((string) $value) !== '';
+                })) === 0
+            ) {
                 continue;
             }
 

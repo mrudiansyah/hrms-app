@@ -243,6 +243,9 @@ Route::post('/Training.FinishTest', [App\Http\Controllers\ess_controller::class,
 Route::post('/Training.FinishTestPost', [App\Http\Controllers\ess_controller::class, 'send_progress_post'])->name('Training.FinishTestPost');
 Route::post('/Training.DocPreview', [App\Http\Controllers\ess_controller::class, 'DocPreview'])->name('Training.DocPreview');
 
+Route::get('/Training/Overview/{tahun}', [App\Http\Controllers\training_controller::class, 'training_overview']);
+Route::get('/TrainingGraph/Periode/{periode}', [App\Http\Controllers\training_controller::class, 'training_graph']);
+
 Route::get('/Permit', [App\Http\Controllers\permit_controller::class, 'index']);
 Route::post('/Permit/SelectApprove', [App\Http\Controllers\permit_controller::class, 'selectApprove']);
 Route::post('/Permit/Add', [App\Http\Controllers\permit_controller::class, 'addPermit']);
@@ -443,8 +446,8 @@ Route::get('/Performances/Progress/{periode}/{dept}/{level}', [App\Http\Controll
 Route::get('/Performances/Distribution/{periode}/{level}/{rank}', [App\Http\Controllers\performance_controller::class, 'performanceDistribution']);
 Route::post('/Performance/RankResetBOD', [App\Http\Controllers\performance_controller::class, 'rankResetBOD']);
 
-Route::get('/ManualCheck',[App\Http\Controllers\guest_controller::class,'index']);
-Route::post('/Compress',[App\Http\Controllers\guest_controller::class,'compress']);
+Route::get('/ManualCheck', [App\Http\Controllers\guest_controller::class, 'index']);
+Route::post('/Compress', [App\Http\Controllers\guest_controller::class, 'compress']);
 
 
 // Route::post('/PerformanceDetail', [App\Http\Controllers\performance_controller::class, 'performance']);

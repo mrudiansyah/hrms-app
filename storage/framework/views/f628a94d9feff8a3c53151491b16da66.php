@@ -168,7 +168,7 @@ $periode = date('Y-m');?>
       </nav>
     </header>
     <!-- Left side column. contains the logo and sidebar -->
-    <?php echo $__env->make('layouts/menu', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->make('layouts/menu_v2', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <!-- Content Wrapper. Contains page content -->
     <div id="cetak">
       <style>

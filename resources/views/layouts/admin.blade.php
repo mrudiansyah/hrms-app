@@ -168,7 +168,7 @@ $periode = date('Y-m');?>
       </nav>
     </header>
     <!-- Left side column. contains the logo and sidebar -->
-    @include('layouts/menu')
+    @include('layouts/menu_v2')
     <!-- Content Wrapper. Contains page content -->
     <div id="cetak">
       <style>

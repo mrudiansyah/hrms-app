@@ -1,0 +1,521 @@
+
+<?php $__env->startSection('Contents'); ?>
+	<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+	<!-- Contents -->
+   	<style>
+		#tablesx th {
+		border-top: 1px solid #999;
+		border-bottom: 1px solid #999;
+		background-color: #2F4F4F;
+		color: white;
+		}	
+        .table1 tr:hover {
+		  cursor:pointer;
+        }
+		#tables th {
+		border-top: 2px solid #999;
+		border-bottom: 2px solid #999;
+		}	
+		#tables tbody tr:hover{
+			cursor:pointer;
+		}
+		#table2 th {
+		border-top: 2px solid #999;
+		border-bottom: 2px solid #999;
+		}	
+		#table2 tbody tr:hover{
+			cursor:pointer;
+		}
+		#table3 th {
+		border-top: 2px solid #999;
+		border-bottom: 2px solid #999;
+		}	
+		#table3 tbody tr:hover{
+			cursor:pointer;
+		}
+		#table4 th {
+		border-top: 2px solid #999;
+		border-bottom: 2px solid #999;
+		}	
+		#table4 tbody tr:hover{
+			cursor:default;
+		}
+    </style>
+	<!-- Content Header (Page header) -->
+	<div class="content-wrapper">
+	<section class="content-header">
+		<div class="box-header">
+			<i class="fa fa-book"></i>
+			<h3 class="box-title" id="judul" style="padding-bottom:25px;">e-Library</h3>
+			<div class="pull-right">
+				<a class="btn btn-app" href="/Training/DocumentDraft/0">
+					<i class="fa fa-file-o"></i> Draft
+				</a>
+				<a class="btn btn-app" href="/Training/Document/0">
+					<i class="fa fa-check-square-o"></i> Active
+				</a>
+				<a class="btn btn-app" href="/Training/DocumentArchieve/0">
+					<i class="fa fa-trash"></i> InActive
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- Main content -->
+	<section class="content">
+	<div class="row">
+		<div class="col-lg-12 col-md-12 col-xs-12">
+			<div class="box box-primary" style="background:#FFF;">
+				<div class="box-header">
+					<h3 class="box-title"><?php echo e($juduls); ?></h3>
+					<div class="box-tools pull-right">
+						<button type="button" class="btn btn-success btn-xs form" data-iddocument="" data-documentname=""><i class="fa fa-plus"></i> &nbsp;Add New</button>
+						<button type="button" class="btn btn-primary btn-xs" data-widget="collapse"><i class="fa fa-minus"></i></button>
+						<button type="button" class="btn btn-danger btn-xs" data-widget="remove"><i class="fa fa-times"></i></button>
+					</div>
+				</div>
+				<div class="box-body" style="overflow-x: scroll;">
+					<table id="tables" class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:30px;">No</th>
+								<th>Document Name</th>
+								<th>Code Document</th>
+								<th>Category</th>
+								<th>Skill</th>
+								<th>Nomor</th>
+								<th>Revision</th>
+								<th>Department</th>
+								<th>Keywords</th>
+								<th>Status</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php $no=0;?>
+							<?php $__currentLoopData = $tb_training_document; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+							<tr>
+								<td><?php $no++;echo $no;?></td>
+								<td><?php echo e($dt->document_name); ?></td>
+								<td><?php echo e($dt->code_document); ?></td>
+								<td><?php echo e($dt->category); ?></td>
+								<td><?php echo e($dt->skill); ?></td>
+								<td><?php echo e($dt->nomor); ?></td>
+								<td><?php echo e($dt->revision); ?></td>
+								<td><?php echo e($dt->department); ?></td>
+								<td><?php echo e($dt->keywords); ?></td>
+								<td>
+									<?php if($dt->status == 1): ?> Active
+									<?php elseif($dt->status == 2): ?> Inactive
+									<?php else: ?> Draft
+									<?php endif; ?>
+								</td>
+								<td>
+									<div class="pull-right">
+										<?php
+											$extensi = strtolower(pathinfo($dt->file_name, PATHINFO_EXTENSION));
+										?>
+										<?php if(in_array($extensi, ['mp4', 'webm', 'ogg', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])): ?>
+											<a href="/Training/<?php echo e($action_route ?? 'Document'); ?>/<?php echo e($dt->id); ?>" title="Preview" type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
+										<?php endif; ?>
+										<a href="/Document/Download/<?php echo e($dt->id); ?>" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
+										<button title="Keyword" type="button" class="keyword-form btn btn-primary btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>"><i class="fa fa-key"></i></button>
+										<button title="Edit" type="button" class="form btn btn-primary btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>" data-training-name="<?php echo e($dt->training_name); ?>" data-category="<?php echo e($dt->category); ?>" data-skill="<?php echo e($dt->skill); ?>" data-nomor="<?php echo e($dt->nomor); ?>" data-revision="<?php echo e($dt->revision); ?>" data-code-document="<?php echo e($dt->code_document); ?>" data-department="<?php echo e($dt->department); ?>" data-information="<?php echo e($dt->information); ?>" data-status="<?php echo e($dt->status); ?>"><i class="fa fa-edit"></i></button>
+										<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->document_name); ?>"><i class="fa fa-trash"></i></button>
+									</div>
+								</td>
+							</tr>
+							<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+						</tbody>
+					</table>
+				</div>
+				<!-- /.box-body -->
+			</div>
+		</div>
+		<div class="col-lg-12 col-md-12 col-xs-12">
+			<?php if($id_doc>0): ?>
+			<div class="box box-primary" style="background:#FFF;">
+				<div class="box-header">
+					<i class="fa fa-tv"></i>
+					<h3 class="box-title"><?php echo e($document_name); ?></h3>
+					<div class="pull-right">
+						&nbsp;
+					</div>
+				</div>
+				<div class="box-body">
+					<?php 
+						$type = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+						$encodedName = rawurlencode($file_name);
+						$document = url('/Show/' . $encodedName);
+					?>
+					<?php if(in_array($type, ['mp4', 'webm', 'ogg'])): ?>
+						<div class="embed-responsive embed-responsive-16by9">
+							<video class="embed-responsive-item" controls style="max-height:800px; width:100%;">
+								<source src="<?php echo e($document); ?>" type="video/<?php echo e($type); ?>">
+								Browser Anda tidak mendukung pemutaran video.
+							</video>
+						</div>
+					<?php elseif($type == 'pdf'): ?>
+						<div style="width:100%; height:800px;">
+							<iframe src="<?php echo e($document); ?>" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
+						</div>
+					<?php elseif(in_array($type, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'])): ?>
+			        	<div class="text-center" style="padding:15px;">
+							<img src="<?php echo e($document); ?>" alt="<?php echo e($document_name); ?>" style="max-width:100%; max-height:800px; object-fit:contain;">
+						</div>
+					<?php elseif(in_array($type, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])): ?>
+						<div style="width:100%; height:800px;">
+							<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=<?php echo e(urlencode($document)); ?>" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
+						</div>
+					<?php else: ?>
+						<div class="alert alert-info text-center" style="padding:30px;">
+							<i class="fa fa-file-text-o" style="font-size:36px;"></i>
+							<p style="margin-top:10px;">Format file <strong>.<?php echo e($type); ?></strong> tidak mendukung pratinjau langsung di browser.</p>
+							<a href="<?php echo e(url('/Download/' . $encodedName)); ?>" class="btn btn-primary btn-sm">
+								<i class="fa fa-download"></i> Unduh File
+							</a>
+						</div>
+					<?php endif; ?>
+				</div>
+			</div>
+			<?php endif; ?>
+		</div>
+	</div>
+	<!-- /.row -->
+	</section>
+	<!-- /.content -->
+    </div>
+
+	<div class="modal fade" id="modal-form">
+		<div class="modal-dialog box box-success" style="width:500px;">
+			<div class="modal-content">
+							<form id="document-form" action="/Document/Upload" method="post" enctype="multipart/form-data">
+					<?php echo e(csrf_field()); ?>
+
+						<div class="modal-header">	
+							<b>FORM UPLOAD DOCUMENTS</b>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span></button>
+						</div>
+						<div class="modal-body">
+							<input type="hidden" id="idComponent" name="id_document" class="form-control">
+							<div class="form-group">
+								<label>Document Name</label>
+								<input type="text" class="form-control" name="document_name" id="documentname">								
+							</div>
+							<div class="form-group">
+								<label>Training Name</label>
+								<input type="text" class="form-control" name="training_name" id="trainingname">
+							</div>
+							<div class="form-group">
+								<input type="hidden" class="form-control" name="category" id="category" value="TRN" readonly>
+								<label>Skill</label>
+								<select class="form-control" name="skill" id="skill" required>
+									<option value="">Select Skill</option>
+									<?php $__currentLoopData = $tb_skill_type; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $skill_type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($skill_type->skill_code); ?>"><?php echo e($skill_type->skill_code); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+								</select>
+							</div>
+							<div class="form-group">
+								<label>Nomor</label>
+								<select class="form-control" name="nomor" id="nomor">
+									<option value="">New Nomor</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label>Revision</label>
+								<input type="text" class="form-control" name="revision" id="revision" readonly placeholder="Automatic">
+							</div>
+							<div class="form-group">
+								<label>Code Document</label>
+								<input type="text" class="form-control" name="code_document" id="codedocument" readonly placeholder="Automatic">
+							</div>
+							<div class="form-group">
+								<label>Department</label>
+								<select class="form-control" name="department" id="department" required>
+									<option value="">Select Department</option>
+									<?php $__currentLoopData = $tb_department; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $department): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($department->dept_code); ?>"><?php echo e($department->dept_code); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+								</select>
+							</div>
+							<?php if(request()->user()->hasRole('training')): ?>
+							<div class="form-group" id="status-group" style="display:none;">
+								<label>Status</label>
+								<select class="form-control" name="status" id="status">
+									<option value="0">Draft</option>
+									<option value="1">Active</option>
+									<option value="2">Inactive</option>
+								</select>
+							</div>
+							<?php else: ?>
+							<input type="hidden" name="status" value="0">
+							<?php endif; ?>
+							<div class="form-group">
+								<label>Information</label>
+								<textarea class="form-control" name="information" id="information" rows="3"></textarea>
+							</div>
+							<div class="form-group">
+								<input type="file" name="training_doc" id="trainingdoc">								
+							</div>
+							<i>File extension: pdf, jpg, png, mp4</i>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+							<input type="submit" class="btn btn-success pull-right" id="simpan" value="Submit">
+						</div>
+					</form>
+			</div>
+
+			<!-- /.modal-content -->
+		</div>
+	<!-- /.modal-dialog -->
+	</div>
+
+	<div class="modal fade" id="modal-keyword">
+		<div class="modal-dialog box box-primary" style="width:400px;">
+			<div class="modal-content">
+				<form id="keyword-form">
+					<?php echo e(csrf_field()); ?>
+
+					<div class="modal-header">
+						<b>DOCUMENT KEYWORDS</b>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span></button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" id="keyword-document-id" name="id_training_document">
+						<div class="form-group">
+							<label>Document Name</label>
+							<input type="text" class="form-control" id="keyword-document-name" readonly>
+						</div>
+						<div class="form-group">
+							<label>Add New Keyword</label>
+							<input type="text" class="form-control" id="new-keyword" name="keyword" maxlength="100">
+						</div>
+						<div class="form-group">
+							<label>Remove Keywords </label>
+							<div id="keyword-list">
+								<span class="text-muted">Loading...</span>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-primary pull-right">Save</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="modal-delete">
+		<div class="modal-dialog box box-danger" style="width:400px;">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Delete Confirmation</h4>
+				</div>
+				<div class="modal-body">
+					Click Yes to Delete : <b id="delname1"></b> ?
+					<input type="hidden" id="delid1">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger pull-left delete" data-dismiss="modal">Yes, Delete</button>
+					<button type="button" class="btn btn-default pull-right" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+			
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+
+
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('Scripts'); ?>
+	<script>
+		var trainingDocumentNumbers = <?php echo json_encode($tb_training_document_numbers, 15, 512) ?>;
+
+		function refreshDocumentNumbers() {
+			var category = $('#category').val();
+			var skill = $('#skill').val();
+			var nomor = $('#nomor');
+
+			nomor.empty().append('<option value="">New Nomor</option>');
+			trainingDocumentNumbers
+				.filter(function (documentNumber) {
+					return documentNumber.category === category && documentNumber.skill === skill;
+				})
+				.forEach(function (documentNumber) {
+					nomor.append($('<option>', {
+						value: documentNumber.nomor,
+						text: documentNumber.nomor + ' (New Revision)'
+					}));
+				});
+		}
+
+		$(document).on('change', '#skill', refreshDocumentNumbers);
+	</script>
+	<!-- page script Tabel-->
+	<script>
+		$(function () {
+			$('#tables').DataTable({
+				'paging': true,
+				'lengthChange': true,
+				'searching': true,
+				'ordering': true,
+				'info': true,
+				'pageLength': 10,
+				'autoWidth': false
+			});
+		});
+
+		$(function () {
+			$('#table2').DataTable({
+			'paging'      : true,
+			'lengthChange': true,
+			'searching'   : true,
+			'ordering'    : true,
+			'info'        : true,
+			"pageLength"  : 10,
+			'autoWidth'   : false,
+			})
+		})
+		$(function () {
+			$('#table3').DataTable({
+			'paging'      : true,
+			'lengthChange': true,
+			'searching'   : true,
+			'ordering'    : true,
+			'info'        : true,
+			"pageLength"  : 10,
+			'autoWidth'   : false,
+			})
+		})
+	</script>
+	<script>
+		window.setTimeout(function() {
+			$(".alert").fadeTo(500, 0).slideUp(500, function(){
+			$(this).remove(); 
+			});
+		}, 5000);
+	</script>
+	<script type="text/javascript">
+		$(document).on('click', '.keyword-form', function() {
+			var documentId = $(this).data('iddocument');
+			$('#keyword-document-id').val(documentId);
+			$('#keyword-document-name').val($(this).data('documentname'));
+			$('#new-keyword').val('');
+			$('#keyword-list').html('<span class="text-muted">Loading...</span>');
+			$('#modal-keyword').modal('show');
+
+			$.get('/Document/Keyword/' + documentId, function(response) {
+				var keywordList = $('#keyword-list').empty();
+				if (!response.keywords.length) {
+					keywordList.html('<span class="text-muted">No keyword saved.</span>');
+					return;
+				}
+				$.each(response.keywords, function(index, keyword) {
+					$('<label class="checkbox-inline" style="display:block;margin:0 0 8px 0;"></label>')
+						.append($('<input>', { type: 'checkbox', name: 'delete_ids[]', value: keyword.id }))
+						.append(document.createTextNode(' ' + keyword.keyword))
+						.appendTo(keywordList);
+				});
+			}).fail(function() {
+				$('#keyword-list').html('<span class="text-danger">Failed to load keywords.</span>');
+			});
+		});
+
+		$('#keyword-form').on('submit', function(event) {
+			event.preventDefault();
+			$.ajax({
+				url: '/Document/Keyword/Save',
+				type: 'POST',
+				data: $(this).serialize(),
+				headers: {
+					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+				},
+				success: function(response) {
+					$('#modal-keyword').modal('hide');
+					window.location.reload();
+				},
+				error: function(xhr) {
+					alert(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to save keywords.');
+				}
+			});
+		});
+
+		// Form
+			$(document).on('click', '.form', function() {
+				var formButton = $(this);
+				var docid=formButton.data('iddocument');
+				$('#idComponent').val(docid);
+				$('#documentname').val(formButton.data('documentname'));
+				if(docid!=''){
+					document.getElementById("trainingdoc").style.visibility = "hidden";
+					$('#status-group').show();
+					$('#trainingname').val(formButton.data('training-name'));
+					$('#category').val(formButton.data('category'));
+					$('#skill').val(formButton.data('skill')).prop('disabled', false);
+					refreshDocumentNumbers();
+					$('#skill').prop('disabled', true);
+					$('#nomor').val(String(formButton.data('nomor'))).prop('disabled', true);
+					$('#revision').val(formButton.data('revision'));
+					$('#codedocument').val(formButton.data('code-document'));
+					$('#department').val(formButton.data('department'));
+					$('#information').val(formButton.data('information'));
+					$('#status').val(formButton.data('status'));
+				}else{
+					document.getElementById("trainingdoc").style.visibility = "visible";
+					$('#status-group').hide();
+					$('#status').val('2');
+					$('#trainingname').val('');
+					$('#category').val('TRN');
+					$('#skill').prop('disabled', false).val('');
+					$('#nomor').prop('disabled', false);
+					refreshDocumentNumbers();
+					$('#revision').val('');
+					$('#codedocument').val('');
+					$('#department').val('');
+					$('#information').val('');
+				}
+				$('#modal-form').modal('show');
+			});
+
+		// Form End
+		// Delete Data
+			$(document).on('click', '.delete-modal', function() {
+				$('#delid1').val($(this).data('delid'));
+				$('#delname1').text($(this).data('delname'));
+				$('#modal-delete').modal('show');
+			});
+			$('.modal-footer').on('click', '.delete', function() {
+				var x=$('#delid1').val();
+
+				$.ajaxSetup({
+					type:"POST",
+					url: "/Delete/Document",
+					cache: false,
+					headers: {
+						'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+					}
+				});
+				$.ajax({
+					data:{id:x},
+					success: function(respond){
+						if(respond=='Sukses'){
+							window.location.href = '/Training/Document/0';
+						}else{
+							alert(respond);
+						}
+					}
+				})
+			});
+		// Delete End
+	</script>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts/admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/page/training/training_document.blade.php ENDPATH**/ ?>

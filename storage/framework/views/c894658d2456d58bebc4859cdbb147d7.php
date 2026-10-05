@@ -1,6 +1,6 @@
-@extends('layouts/admin')
-@section('Contents')
-	<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<?php $__env->startSection('Contents'); ?>
+	<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 	<!-- Contents -->
    	<style>
 		#tablesx th {
@@ -59,13 +59,13 @@
 						<h3 class="box-title">Training Schedule</h3>
 						<div class="box-tools pull-right">
 							<button type="button" class="btn btn-primary btn-xs form"><i class="fa fa-plus"></i> &nbsp;Add New</button>
-							<a href="/EMS/Training/Periode/Refresh/{{$periode}}" type="button" class="btn btn-info btn-xs"><i class="fa fa-refresh"></i> &nbsp;Refresh</a>
-							<!-- <a href="/EMS/Training/Plan/Print/{{$tahun}}" type="button" class="btn btn-success btn-xs"><i class="fa fa-download"></i> &nbsp;Download All</a> -->
+							<a href="/EMS/Training/Periode/Refresh/<?php echo e($periode); ?>" type="button" class="btn btn-info btn-xs"><i class="fa fa-refresh"></i> &nbsp;Refresh</a>
+							<!-- <a href="/EMS/Training/Plan/Print/<?php echo e($tahun); ?>" type="button" class="btn btn-success btn-xs"><i class="fa fa-download"></i> &nbsp;Download All</a> -->
 						</div>
 					</div>
 					<div class="box-body">
 						<div class="pull-right">
-							<input type="month" id="periode" class="form-control" value="{{$periode}}">	
+							<input type="month" id="periode" class="form-control" value="<?php echo e($periode); ?>">	
 						</div>
 					</div>
 					<div class="box-body" style="overflow-x: scroll;">
@@ -91,37 +91,38 @@
 							</thead>
 							<tbody>
 								<?php $no=0;?>
-								@foreach($tb_training_schedule as $dt)
+								<?php $__currentLoopData = $tb_training_schedule; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 								<tr>
 									<td><?php $no++;echo $no;?></td>
-									<td>{{$dt->training_name}}</td>
-									<td>{{$dt->skill_type}}</td>
-									<td>{{$dt->nara_sumber}}</td>
-									<td>{{$dt->nara_sumber_backup}}</td>
-									<td>{{implode(', ', $training_level_names_by_schedule->get($dt->id, []))}}</td>
-									<td>{{$dt->home_line}}</td>
-									<td>{{$dt->department}}</td>
-									<td>{{$dt->periode}}</td>
-									<td>{{$dt->week_number}}</td>
-									<td>{{$dt->tanggal}}
+									<td><?php echo e($dt->training_name); ?></td>
+									<td><?php echo e($dt->skill_type); ?></td>
+									<td><?php echo e($dt->nara_sumber); ?></td>
+									<td><?php echo e($dt->nara_sumber_backup); ?></td>
+									<td><?php echo e(implode(', ', $training_level_names_by_schedule->get($dt->id, []))); ?></td>
+									<td><?php echo e($dt->home_line); ?></td>
+									<td><?php echo e($dt->department); ?></td>
+									<td><?php echo e($dt->periode); ?></td>
+									<td><?php echo e($dt->week_number); ?></td>
+									<td><?php echo e($dt->tanggal); ?>
+
 										<?php 
 											if(($dt->start!=''&&$dt->finish!='')){
 												//echo date('H:i',strtotime($dt->start));
 											}
 										?>
 									</td>
-									<td>{{$dt->draft_qty}}</td>
-									<td>{{$dt->plan_qty}}</td>
-									<td>{{$dt->actual_qty}}</td>
+									<td><?php echo e($dt->draft_qty); ?></td>
+									<td><?php echo e($dt->plan_qty); ?></td>
+									<td><?php echo e($dt->actual_qty); ?></td>
 									<td>
 										<div class="pull-right">
-											<a href="/Training/Plan/{{$dt->id}}" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i></a>
-											<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="{{$dt->id}}" data-idtraining="{{$dt->id_training}}" data-levels="{{implode(',', $training_levels_by_schedule->get($dt->id, []))}}" data-narasumber="{{$dt->nara_sumber}}" data-narasumberbackup="{{$dt->nara_sumber_backup}}" data-tanggal="{{$dt->tanggal}}" data-start="{{$dt->start}}" data-finish="{{$dt->finish}}" data-draftqty="{{$dt->draft_qty}}" data-weeknumber="{{$dt->week_number}}" data-homeline="{{$dt->home_line}}" data-department="{{$dt->department}}"><i class="fa fa-edit"></i></button>
-											<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="{{$dt->id}}" data-delname="{{$dt->training_name}}"><i class="fa fa-trash"></i></button>
+											<a href="/Training/Plan/<?php echo e($dt->id); ?>" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i></a>
+											<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="<?php echo e($dt->id); ?>" data-idtraining="<?php echo e($dt->id_training); ?>" data-levels="<?php echo e(implode(',', $training_levels_by_schedule->get($dt->id, []))); ?>" data-narasumber="<?php echo e($dt->nara_sumber); ?>" data-narasumberbackup="<?php echo e($dt->nara_sumber_backup); ?>" data-tanggal="<?php echo e($dt->tanggal); ?>" data-start="<?php echo e($dt->start); ?>" data-finish="<?php echo e($dt->finish); ?>" data-draftqty="<?php echo e($dt->draft_qty); ?>" data-weeknumber="<?php echo e($dt->week_number); ?>" data-homeline="<?php echo e($dt->home_line); ?>" data-department="<?php echo e($dt->department); ?>"><i class="fa fa-edit"></i></button>
+											<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->training_name); ?>"><i class="fa fa-trash"></i></button>
 										</div>
 									</td>
 								</tr>
-								@endforeach
+								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>
 						</table>
 					</div>
@@ -139,7 +140,8 @@
 		<div class="modal-dialog box box-success" style="width:350px;">
 			<div class="modal-content">
 					<form>
-					{{ csrf_field() }}
+					<?php echo e(csrf_field()); ?>
+
 						<div class="modal-header">	
 							<b>FORM TRAINING SCHEDULE</b>
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -152,18 +154,18 @@
 								<select id="idtraining" class="form-control selectpicker" data-live-search="true">
 								<!-- <select id="idtraining" class="form-control"> -->
 									<option value=""></option>
-									@foreach($tb_training_list as $dt)
-										<option value="{{$dt->id}}">{{$dt->training_name}}</option>
-									@endforeach
+									<?php $__currentLoopData = $tb_training_list; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($dt->id); ?>"><?php echo e($dt->training_name); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
 								</select>
 							</div>
 							<div class="form-group">
 								<label>Level</label>
 								<select id="levels" class="form-control selectpicker" multiple data-live-search="true" title="Select level">
-									@foreach($tb_level as $level)
-										<option value="{{$level->id}}">{{$level->nama_level}}</option>
-									@endforeach
+									<?php $__currentLoopData = $tb_level; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $level): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($level->id); ?>"><?php echo e($level->nama_level); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</select>
 							</div>
 							<div class="form-group opsiedit">
@@ -178,9 +180,9 @@
 								<label>Department</label>
 								<select id="department" class="form-control">
 									<option value=""></option>
-									@foreach($tb_department as $dt)
-										<option value="{{$dt->dept_name}}">{{$dt->dept_name}}</option>
-									@endforeach
+									<?php $__currentLoopData = $tb_department; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($dt->dept_name); ?>"><?php echo e($dt->dept_name); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</select>
 							</div>
 							<div class="row">
@@ -266,8 +268,8 @@
 	</div>
 
 
-@endsection
-@section('Scripts')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('Scripts'); ?>
 	<!-- page script Tabel-->
 	<script>
 		$(function () {
@@ -419,4 +421,6 @@
 		});
 
 	</script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts/admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/page/training/training_periode.blade.php ENDPATH**/ ?>

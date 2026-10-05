@@ -71,21 +71,43 @@ class training_controller extends Controller
     }
     function training_periode($periode)
     {
-        if ($periode == 0)
-            $periode = date('Y-m');
-        $tahun = date('Y', strtotime($periode . '-01'));
+        if ($periode == 0){
+            $tahun= date('Y');
+        }else{
+            $tahun = date('Y', strtotime($periode . '-01'));
+        }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
             $tb_training_schedule = DB::table('tb_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
-                ->where('tb_training_schedule.is_delete', '0')
-                ->where('tb_training_schedule.periode', $periode)
-                ->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
+                ->where('tb_training_schedule.is_delete', '0');
+                if ($periode != 0){
+                    $tb_training_schedule=$tb_training_schedule->where('tb_training_schedule.periode', $periode);
+                }
+                $tb_training_schedule=$tb_training_schedule->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
             $tb_training_list = DB::table('tb_training_list')->orderby('training_name', 'asc')->get();
 
             $tb_department = DB::table('tb_departments')->orderby('dept_name', 'asc')->get();
+            $tb_level = DB::table('tb_level')->orderby('nama_level', 'asc')->get();
+            $training_level_rows = DB::table('tb_training_level')
+                ->leftJoin('tb_level', 'tb_level.id', '=', 'tb_training_level.id_level')
+                ->whereIn('id_training_schedule', $tb_training_schedule->pluck('id'))
+                ->get([
+                    'tb_training_level.id_training_schedule',
+                    'tb_training_level.id_level',
+                    'tb_level.nama_level',
+                ])
+                ->groupBy('id_training_schedule');
+            $training_levels_by_schedule = $training_level_rows->map(function ($levels) {
+                return $levels->pluck('id_level')->map(function ($id) {
+                    return (string) $id;
+                })->all();
+            });
+            $training_level_names_by_schedule = $training_level_rows->map(function ($levels) {
+                return $levels->pluck('nama_level')->filter()->all();
+            });
 
-            return view('page/training/training_periode', ['tb_training_list' => $tb_training_list, 'tb_training_schedule' => $tb_training_schedule, 'tb_department' => $tb_department, 'tahun' => $tahun, 'periode' => $periode, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
+            return view('page/training/training_periode', ['tb_training_list' => $tb_training_list, 'tb_training_schedule' => $tb_training_schedule, 'tb_department' => $tb_department, 'tb_level' => $tb_level, 'training_levels_by_schedule' => $training_levels_by_schedule, 'training_level_names_by_schedule' => $training_level_names_by_schedule, 'tahun' => $tahun, 'periode' => $periode, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
@@ -613,18 +635,29 @@ class training_controller extends Controller
     }
     function simpan_plan(request $data)
     {
+        $data->validate([
+            'levels' => 'sometimes|array',
+            'levels.*' => 'integer|exists:tb_level,id',
+        ]);
+
         $now = date('Y-m-d H:i:s');
         $admin = Auth::user()->name;
-        $hasil = "There is no change";
+        $levelIds = array_values(array_unique($data->input('levels', [])));
         $periode = date('Y-m', strtotime($data->tanggal));
-        if ($data->idcomponent == '') {
-            $tb_training_schedule = DB::table('tb_training_schedule')->where('id_training', $data->idtraining)->where('tanggal', $data->tanggal)->count();
-            if ($tb_training_schedule > 0)
-                $hasil = "Failed, Training Schedule already Exixts";
-            else {
-                $add = DB::table('tb_training_schedule')->insert([
+        return DB::transaction(function () use ($data, $now, $admin, $levelIds, $periode) {
+            if ($data->idcomponent == '') {
+                $scheduleExists = DB::table('tb_training_schedule')
+                    ->where('id_training', $data->idtraining)
+                    ->where('tanggal', $data->tanggal)
+                    ->exists();
+                if ($scheduleExists) {
+                    return "Failed, Training Schedule already Exixts";
+                }
+
+                $idTrainingSchedule = DB::table('tb_training_schedule')->insertGetId([
                     'id_training' => $data->idtraining,
                     'nara_sumber' => $data->narasumber,
+                    'nara_sumber_backup' => $data->narasumber_backup ?? null,
                     'tanggal' => $data->tanggal,
                     'start' => $data->start,
                     'finish' => $data->finish,
@@ -637,13 +670,19 @@ class training_controller extends Controller
                     'is_delete' => '0',
                     'created_at' => $now,
                 ]);
-                if ($add)
-                    $hasil = "Sukses";
+
+                if ($idTrainingSchedule) {
+                    $this->saveTrainingLevels($idTrainingSchedule, $levelIds);
+                    return "Sukses";
+                }
+
+                return "There is no change";
             }
-        } else {
-            $edit = DB::table('tb_training_schedule')->where('id', $data->idcomponent)->update([
+
+            $updated = DB::table('tb_training_schedule')->where('id', $data->idcomponent)->update([
                 'id_training' => $data->idtraining,
                 'nara_sumber' => $data->narasumber,
+                'nara_sumber_backup' => $data->narasumber_backup ?? null,
                 'tanggal' => $data->tanggal,
                 'start' => $data->start,
                 'finish' => $data->finish,
@@ -653,11 +692,28 @@ class training_controller extends Controller
                 'periode' => $periode,
                 'admin' => $admin
             ]);
-            if ($edit)
-                $hasil = "Sukses";
-        }
-        return $hasil;
 
+            if ($updated || DB::table('tb_training_schedule')->where('id', $data->idcomponent)->exists()) {
+                $this->saveTrainingLevels($data->idcomponent, $levelIds);
+                return "Sukses";
+            }
+
+            return "There is no change";
+        });
+
+    }
+    private function saveTrainingLevels($idTrainingSchedule, array $levelIds)
+    {
+        DB::table('tb_training_level')->where('id_training_schedule', $idTrainingSchedule)->delete();
+
+        if (!empty($levelIds)) {
+            DB::table('tb_training_level')->insert(array_map(function ($idLevel) use ($idTrainingSchedule) {
+                return [
+                    'id_training_schedule' => $idTrainingSchedule,
+                    'id_level' => $idLevel,
+                ];
+            }, $levelIds));
+        }
     }
     function simpan_plan_participant(request $data)
     {

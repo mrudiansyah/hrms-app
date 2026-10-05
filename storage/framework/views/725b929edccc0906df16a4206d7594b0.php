@@ -1,12 +1,12 @@
-@extends('layouts/home')
-@section('Contents')
-	<meta name="csrf-token" content="{{ csrf_token() }}">
-	@foreach($tb_training_participant as $dt)
+
+<?php $__env->startSection('Contents'); ?>
+	<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+	<?php $__currentLoopData = $tb_training_participant; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 		<?php if ($dt->free_test != '')
 				$doc = '1';
 			else
 				$doc = 0;?>
-	@endforeach
+	<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 	<!-- Main content -->
 	<section class="content">
 		<div class="row">
@@ -33,15 +33,15 @@
 							</thead>
 							<tbody>
 								<?php $no = 0;?>
-								@foreach($tb_training_actual as $dt)
+								<?php $__currentLoopData = $tb_training_actual; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 									<tr>
 										<td><?php $no++; echo $no;?></td>
-										<td>{{$dt->training_name}}</td>
-										<td>{{$dt->skill_type}}</td>
+										<td><?php echo e($dt->training_name); ?></td>
+										<td><?php echo e($dt->skill_type); ?></td>
 										<td><?php echo date('d-M-Y H:i', strtotime($dt->tanggal_aktual . ' ' . $dt->start_aktual)) . ' ~ ' . date('H:i', strtotime($dt->tanggal_aktual . ' ' . $dt->finish_aktual));?>
 										</td>
 									</tr>
-								@endforeach
+								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>
 						</table>
 					</div>
@@ -53,7 +53,7 @@
 						<h3 class="box-title">Materi</h3>
 						<div class="box-tools pull-right">
 							<div class="box-tools">
-								<a href="/FreeTest/{{$id_participant}}" <?php if ($data['pre_test'] != '') echo "disabled";?>
+								<a href="/FreeTest/<?php echo e($id_participant); ?>" <?php if ($data['pre_test'] != '') echo "disabled";?>
 									title="Free Test" type="button" class="btn btn-primary btn-xs">Start Pre Test
 								</a>
 							</div>
@@ -69,33 +69,32 @@
 							</thead>
 							<tbody id="supporting">
 								<?php $no = 0;?>
-								@foreach($tb_related_document as $dt)
+								<?php $__currentLoopData = $tb_related_document; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 									<tr>
 										<td><?php $no++; echo $no;?></td>
 										<td>
-											{{$dt->file_name}}
-											<input type="hidden" name="doc_id" id="doc_id" value={{ $doc }}>
-											@if($doc == 1)
+											<?php echo e($dt->file_name); ?>
+
+											<input type="hidden" name="doc_id" id="doc_id" value=<?php echo e($doc); ?>>
+											<?php if($doc == 1): ?>
 																			<div class="pull-right">
 																				<?php
 												$panjang = strlen($dt->file_name);
 												$mulai = $panjang - 4;
 												$extensi = substr($dt->file_name, $mulai, 4);
 												if ($extensi == '.mp4' || $extensi == '.pdf' || $extensi == 'pptx') {?>
-																				{{-- <a href="/Training/Actual/{{$id_training}}/{{$dt->id_doc}}" title="Preview"
-																					type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
-																				--}}
+																				
 																				<button class="btn btn-primary btn-xs" id="preview"
-																					onclick="GetPreview({{ $dt->id_doc }})">Lihat Materi</button>
+																					onclick="GetPreview(<?php echo e($dt->id_doc); ?>)">Lihat Materi</button>
 																				<?php }?>
 																				<!-- 
-																																																				<a href="/Training/Document/Download/{{$dt->id}}" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
+																																																				<a href="/Training/Document/Download/<?php echo e($dt->id); ?>" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
 																																																				-->
 																			</div>
-											@endif
+											<?php endif; ?>
 										</td>
 									</tr>
-								@endforeach
+								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>
 						</table>
 					</div>
@@ -106,7 +105,7 @@
 						<h3 class="box-title">Evaluation</h3>
 						<div class="box-tools pull-right">
 							<div class="box-tools">
-								<a href="/PostTest/{{$id_participant}}" <?php if ($data['pre_test'] == '' || ($data['post_test'] != '' && $data['grade_status'] == 1)) echo "disabled";?>
+								<a href="/PostTest/<?php echo e($id_participant); ?>" <?php if ($data['pre_test'] == '' || ($data['post_test'] != '' && $data['grade_status'] == 1)) echo "disabled";?>
 									title="Post Test" type="button" class="btn btn-primary btn-xs">Start
 									Post Test
 								</a>
@@ -125,22 +124,24 @@
 							</thead>
 							<tbody id="konten">
 								<?php $no = 0;?>
-								@foreach($tb_training_participant as $dt)
+								<?php $__currentLoopData = $tb_training_participant; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 									<tr>
 										<td>
-											{{$dt->free_test}}
+											<?php echo e($dt->free_test); ?>
+
 										</td>
 										<td>
-											{{$dt->post_test}}
+											<?php echo e($dt->post_test); ?>
+
 											<?php if ($dt->progress == '1') echo "<i class='fa fa-angle-double-up' style='color:green;'></i>";?>
 											<?php if ($dt->progress == '-1') echo "<i class='fa fa-angle-double-down' style='color:red;'></i>";?>
 											<?php if ($dt->progress == '0') echo "<i class='fa fa-frown-o' style='color:blue;'></i>";?>
 										</td>
-										<td>{{$dt->passing_grade}}</td>
+										<td><?php echo e($dt->passing_grade); ?></td>
 										<td>
-											<input type="hidden" name="grade" id="grade" value="{{ $dt->grade_status }}">
+											<input type="hidden" name="grade" id="grade" value="<?php echo e($dt->grade_status); ?>">
 											<input type="hidden" name="post_test" id="post_test"
-												value="{{ $dt->post_test }}">
+												value="<?php echo e($dt->post_test); ?>">
 											<?php 
 												if ($dt->grade_status == 1) echo "<label class='label label-success'>Lulus</label>";
 												elseif ($dt->grade_status == 0 && $dt->post_test != '') echo "<label class='label label-danger'>Gagal</label>";
@@ -150,7 +151,7 @@
 											</div>
 										</td>
 									</tr>
-								@endforeach
+								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>
 						</table>
 					</div>
@@ -178,24 +179,26 @@
 							</thead>
 							<tbody id="konten">
 								<?php $no = 0;?>
-								@foreach($tb_assignment as $dt)
+								<?php $__currentLoopData = $tb_assignment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 									<tr>
 										<td>
-											{{$no++}}
+											<?php echo e($no++); ?>
+
 										</td>
 										<td>
-											{{$dt->assignment}}
+											<?php echo e($dt->assignment); ?>
+
 										</td>
-										<td>{{$dt->duedate}}</td>
+										<td><?php echo e($dt->duedate); ?></td>
 										<td>
-											@if($dt->assignment_status == 1)
+											<?php if($dt->assignment_status == 1): ?>
 												<label class='label label-success'>Completed</label>
-											@else
+											<?php else: ?>
 												<label class='label label-warning'>Not Submitted</label>
-											@endif
+											<?php endif; ?>
 										</td>
 									</tr>
-								@endforeach
+								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>
 						</table>
 					</div>
@@ -208,8 +211,8 @@
 	<!-- /.content -->
 
 
-@endsection
-@section('Scripts')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('Scripts'); ?>
 	<!-- page script Tabel-->
 	<script type="text/Javascript">
 				$(document).ready(function (e) {
@@ -256,7 +259,7 @@
 					$.ajax({
 
 						type: "POST",
-						url: "{{ url('Training.DocPreview') }}",
+						url: "<?php echo e(url('Training.DocPreview')); ?>",
 						data: data,
 						success: function (data) {
 							$("#prev-doc").html(data);
@@ -315,4 +318,5 @@
 
 		}
 	</script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts/home', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/page/training/training_participant.blade.php ENDPATH**/ ?>

@@ -376,7 +376,7 @@ class ess_controller extends Controller
                         'training_name' => $data->training_name,
                         'department' => $data->department,
                         'author' => $admin,
-                        'status' => 2,
+                        'status' => 0,
                         'information' => $data->information,
                         'admin' => $admin,
                     ]);
@@ -589,7 +589,7 @@ class ess_controller extends Controller
                 ]);
             }
         }
-        $id_training_participant = DB::table('tb_training_participant')->where('id_training_invitation', $id_training_invitation)->value('id');
+        $id_training_participant = DB::table('tb_training_participant')->where('id_training_invitation', $id_training_invitation)->where('id_training_actual',$id_training_actual)->value('id');
         $tb_questions = DB::table('tb_question as tq')
             ->leftjoin('tb_related_test as rt', 'rt.id_test', '=', 'tq.id_training_test')
             ->leftjoin('tb_training_schedule as ts', 'ts.id', '=', 'rt.id_training_schedule')
@@ -674,7 +674,11 @@ class ess_controller extends Controller
                 ->leftjoin('tb_training_test', 'tb_training_test.id', '=', 'tb_related_test.id_test')
                 ->where('id_training_schedule', $id_training_schedule)->get(['tb_related_test.*', 'tb_training_test.test_name', 'tb_training_test.minutes', 'tb_training_test.passing_grade']);
 
-            return view('page/training/training_participant', ['tb_training_participant' => $tb_training_participant, 'data' => $data, 'tb_training_actual' => $tb_training_actual, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'id_participant' => $id_participant, 'id_doc' => $id_doc, 'file_name' => $file_name, 'type_training' => $type_training, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
+            $tb_assignment=DB::table('tb_training_assignment as a')
+                ->leftjoin('tb_training_participant as b','b.id_training_actual','=','a.id_training_actual')
+                ->where('a.id_training_actual',$id)->where('b.id_employee',$id_employee)->get(['a.*','b.assignment_status','b.collected_date']);
+
+            return view('page/training/training_participant', ['tb_training_participant' => $tb_training_participant, 'data' => $data, 'tb_training_actual' => $tb_training_actual, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'id_participant' => $id_participant, 'id_doc' => $id_doc, 'file_name' => $file_name, 'type_training' => $type_training,'tb_assignment'=>$tb_assignment, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
@@ -704,12 +708,10 @@ class ess_controller extends Controller
                 $id_test = $dt->id;
                 $id_training_actual = $dt->id_training_actual;
             }
-            //return $id_participant;
             $tb_question = DB::table('tb_question')
                 ->leftjoin('tb_free_test', 'tb_free_test.id_question', '=', 'tb_question.id')
-                ->leftjoin('tb_training_participant', 'tb_training_participant.id', '=', 'tb_free_test.id_participant')
                 ->where('id_training_test', $id_test)
-                ->where('tb_training_participant.id', $id_participant)
+                ->where('tb_free_test.id_participant', $id_participant)
                 ->orderby('index_question', 'asc')->get(['tb_question.*', 'tb_free_test.answer_actual', 'tb_free_test.answer_status']);
             foreach ($tb_training_test as $dt) {
                 $test_name = $dt->test_name;

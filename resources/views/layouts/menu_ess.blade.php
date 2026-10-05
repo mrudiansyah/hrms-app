@@ -16,12 +16,11 @@
         <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="sidebar-menu" data-widget="tree">
             <?php if (request()->user()->hasRole('ess')) {?>
-            <li class="<?php    if (isset($menu) && $menu == 'profile')
-        echo ' active';?>"><a href="/Profile"><i class="fa fa-user"></i> <span>Profile</span></a></li>
+                <li class="<?php    if (isset($menu) && $menu == 'profile') echo ' active';?>"><a href="/Profile"><i class="fa fa-user"></i> <span>Profile</span></a></li>
+                <li class="<?php    if (isset($menu) && $menu == 'manualcheck') echo ' active';?>"><a href="/ManualCheck"><i class="fa fa-clock-o"></i> <span>Manual Check </span></a></li>
             <?php }?>
             <?php if (request()->user()->hasRole('ess')) {?>
-            <li class="treeview<?php    if (isset($menu) && $menu == 'slip_gaji')
-        echo ' active';?>">
+            <li class="treeview<?php    if (isset($menu) && $menu == 'slip_gaji') echo ' active';?>">
                 <a href="#">
                     <i class="fa fa-calculator"></i> <span>Salary Slip</span>
                     <span class="pull-right-container">

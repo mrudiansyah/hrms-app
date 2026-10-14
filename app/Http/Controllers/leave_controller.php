@@ -622,7 +622,7 @@ class leave_controller extends Controller
     }
     function approveSign($id,$status,$approved){
         date_default_timezone_set("Asia/Jakarta");
-        $sekarang=date('Y-m-d');
+        $sekarang=date('Y-m-d H:i:s');
         if($approved==1){
             $approve=DB::table('tb_leaves')->where('id',$id)->update(['status_approved'=>$status,'date_approved'=>$sekarang]);
             //app('App\Http\Controllers\mail_controller')->LeaveMail($id);

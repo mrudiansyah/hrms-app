@@ -92,9 +92,9 @@
                                                 <td>{{ $item->employee_name }}</td>
                                                 <td>{{number_format($item->slpj,0)}}</td>
                                                 <td>{{ number_format($item->hours_convertion, 2) }}</td>
-                                                <td>{{ number_format($item->total_overtime, 0, ',', '.') }}</td>
-                                                <td>{{ number_format($item->total_meal, 0, ',', '.') }}</td>
-                                                <td>{{ number_format($item->total_bayar, 0, ',', '.') }}</td>
+                                                <td>{{ number_format($item->total_overtime,0) }}</td>
+                                                <td>{{ number_format($item->total_meal, 0) }}</td>
+                                                <td>{{ number_format($item->total_bayar,0) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>

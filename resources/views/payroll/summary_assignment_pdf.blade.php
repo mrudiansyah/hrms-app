@@ -19,7 +19,7 @@
                         <div class="box-header with-border">
                             <h3 class="box-title"><i class="fa fa-list"></i> Overtime Summary ({{ $start }} - {{ $end }})
                             </h3>
-                        </div>
+                        </div><br><br><br>
                         <div class="box-body">
                             <div class="table-responsive">
                                 <table id="payroll-table" class="table table-bordered table-striped table-hover">
@@ -190,104 +190,40 @@
                                         </tr>
                                     </tfoot>
                                 </table>
-                                @foreach($tb_approval as $dt2)
-                                    <table border="1" cellspacing="0" cellpadding="5" align="center" style="width:50%;">
+                                <br><br><br>
+                                <div style="font-size:14px;">
+                                    <table style="width:50%;" border="1" cellspacing="0" cellpadding="5" align="center">
                                         <tr>
-                                            <td colspan="3" style="text-align:center;">Approved by</td>
-                                            <td style="text-align:center;">Verified by</td>
+                                            <td colspan="4" style="text-align:center;">Approved by</td>
                                         </tr>
                                         <tr>
-                                            <td style="text-align:center;vertical-align:middle;height:100px;" class="relative">
-                                                @if($dt2->id_approver_1 == $id_employee && $dt2->status_1 == 0)
-                                                    <button class="btn btn-success btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="1"
-                                                        data-status="1"><i class="fa fa-check"></i></button>
-                                                    <button class="btn btn-danger btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="1"
-                                                        data-status="2"><i class="fa fa-times"></i></button>
-                                                @elseif($dt2->status_1 == 1)
-                                                    <img src='/approval/confirm.png' style='width:100px;height:40px;'>
-                                                    <br>{{$dt2->date_1}}
-                                                @elseif($dt2->status_1 == 2)
-                                                    <img src='/approval/rejected.png' style='width:100px;height:50px;'>
-                                                    <br>{{$dt2->date_1}}
-                                                @else
-                                                    &nbsp;
-                                                @endif
+                                            <td style="text-align:center;vertical-align:middle;height:50px;" class="relative">
+                                                &nbsp;
                                             </td>
                                             <td style="text-align:center;vertical-align:middle;">
-                                                @if($dt2->id_approver_2 == $id_employee && $dt2->status_2 == 0 && $dt2->status_1 == 1)
-                                                    <button class="btn btn-success btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="2"
-                                                        data-status="1"><i class="fa fa-check"></i></button>
-                                                    <button class="btn btn-danger btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="2"
-                                                        data-status="2"><i class="fa fa-times"></i></button>
-                                                @elseif($dt2->status_2 == 1)
-                                                    <img src='/approval/confirm.png' style='width:100px;height:40px;'>
-                                                    <br>{{$dt2->date_2}}
-                                                @elseif($dt2->status_2 == 2)
-                                                    <img src='/approval/rejected.png' style='width:100px;height:50px;'>
-                                                    <br>{{$dt2->date_2}}
-                                                @else
-                                                    &nbsp;
-                                                @endif
+                                                &nbsp;
                                             </td>
                                             <td style="text-align:center;vertical-align:middle;">
-                                                @if($dt2->id_approver_3 == $id_employee && $dt2->status_3 == 0 && $dt2->status_2 == 1)
-                                                    <button class="btn btn-success btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="3"
-                                                        data-status="1"><i class="fa fa-check"></i></button>
-                                                    <button class="btn btn-danger btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="3"
-                                                        data-status="2"><i class="fa fa-times"></i></button>
-                                                @elseif($dt2->status_3 == 1)
-                                                    <img src='/approval/confirm.png' style='width:100px;height:40px;'>
-                                                    <br>{{$dt2->date_3}}
-                                                @elseif($dt2->status_3 == 2)
-                                                    <img src='/approval/rejected.png' style='width:100px;height:50px;'>
-                                                    <br>{{$dt2->date_3}}
-                                                @else
-                                                    &nbsp;
-                                                @endif
+                                                &nbsp;
                                             </td>
                                             <td style="text-align:center;vertical-align:middle;">
-                                                @if($dt2->id_approver_4 == $id_employee && $dt2->status_4 == 0 && $dt2->status_3 == 1)
-                                                    <button class="btn btn-success btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="4"
-                                                        data-status="1"><i class="fa fa-check"></i></button>
-                                                    <button class="btn btn-danger btn-md simpan" data-periode="{{$dt2->periode}}"
-                                                        data-category="{{$dt2->category}}" data-tipe="{{$dt2->tipe}}" data-kolom="4"
-                                                        data-status="2"><i class="fa fa-times"></i></button>
-                                                @elseif($dt2->status_4 == 1)
-                                                    <img src='/approval/confirm.png' style='width:100px;height:40px;'>
-                                                    <br>{{$dt2->date_4}}
-                                                @elseif($dt2->status_4 == 2)
-                                                    <img src='/approval/rejected.png' style='width:100px;height:50px;'>
-                                                    <br>{{$dt2->date_4}}
-                                                @else
-                                                    &nbsp;
-                                                @endif
+                                                &nbsp;
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th style="width:180px;text-align:center;vertical-align:bottom;">{{$dt2->name_1}}
-                                            </th>
-                                            <th style="width:180px;text-align:center;vertical-align:bottom;">{{$dt2->name_2}}
-                                            </th>
-                                            <th style="width:180px;text-align:center;vertical-align:bottom;">{{$dt2->name_3}}
-                                            </th>
-                                            <th style="width:180px;text-align:center;vertical-align:bottom;">{{$dt2->name_4}}
-                                            </th>
+                                            <th style="width:180px;text-align:center;vertical-align:bottom;">ANGELLA PUSPA DEWI P</th>
+                                            <th style="width:180px;text-align:center;vertical-align:bottom;">NOVA TRIANA NOFIANTI</th>
+                                            <th style="width:180px;text-align:center;vertical-align:bottom;">RISTIYONO</th>
+                                            <th style="width:180px;text-align:center;vertical-align:bottom;">ARIF BASUKI</th>
                                         </tr>
                                         <tr>
-                                            <td style="text-align:center;">{{$dt2->pos_1}}</td>
-                                            <td style="text-align:center;">{{$dt2->pos_2}}</td>
-                                            <td style="text-align:center;">{{$dt2->pos_3}}</td>
-                                            <td style="text-align:center;">{{$dt2->pos_4}}</td>
+                                            <td style="text-align:center;">Specialist</td>
+                                            <td style="text-align:center;">Section Head</td>
+                                            <td style="text-align:center;">Dept.Head HRGA</td>
+                                            <td style="text-align:center;">Ast. General Manager</td>
                                         </tr>
                                     </table>
-                                @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>

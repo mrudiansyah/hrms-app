@@ -471,7 +471,7 @@ class tms_controller extends Controller
         $limit_date = DB::table('tb_utilities')->where('id', '24')->where('status', '1')->value('limit_date');
 
         if (request()->user()->hasRole('root') || request()->user()->hasRole('tms') || request()->user()->hasRole('admin_department')) {
-            return view('page/tms/monthly_check', ['tb_work_entries' => $tb_work_entries, 'tb_department' => $tb_department, 'tb_work_code' => $tb_work_code, 'tb_work_shift' => $tb_work_shift, 'work_code_lookup' => $work_code_lookup, 'checktime_lookup' => $checktime_lookup, 'department' => '0', 'dept_id' => $dept_id, 'periode' => $periode, 'group' => '0', 'shift_code' => $shift_code, 'mulai' => $mulai, 'akhir' => $akhir, 'cek_ar' => $cek_ar, 'site' => $this->site, 'menu' => 'tms', 'juduls' => 'Work Entry', 'subjudul' => $subjudul, 'limit_date' => $limit_date]);
+            return view('page/tms/monthly_check', ['tb_work_entries' => $tb_work_entries, 'tb_department' => $tb_department, 'tb_work_code' => $tb_work_code, 'tb_work_shift' => $tb_work_shift, 'work_code_lookup' => $work_code_lookup, 'checktime_lookup' => $checktime_lookup, 'department' => '0', 'dept_id' => $dept_id, 'periode' => $periode, 'group' => '0', 'shift_code' => $shift_code, 'mulai' => $mulai, 'akhir' => $akhir, 'cek_ar' => $cek_ar, 'site' => $this->site, 'menu' => 'tms_check', 'juduls' => 'Work Entry', 'subjudul' => $subjudul, 'limit_date' => $limit_date]);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
@@ -1575,7 +1575,7 @@ class tms_controller extends Controller
                         }, $id_employee . ': ');
                     });
             }
-            return view('page/user/m_absency/absencysummary_all', ['Tgl_awal' => $Tglawal, 'Tgl_akhir' => $Tglakhir, 'periode' => $periode, 'thn' => $thn, 'bln' => $bln, 'tb_absen' => $tb_absen, 'leave_tooltips' => $leave_tooltips, 'hari_kerja' => '5', 'menu' => 'tms']);
+            return view('page/user/m_absency/absencysummary_all', ['Tgl_awal' => $Tglawal, 'Tgl_akhir' => $Tglakhir, 'periode' => $periode, 'thn' => $thn, 'bln' => $bln, 'tb_absen' => $tb_absen, 'leave_tooltips' => $leave_tooltips, 'hari_kerja' => '5', 'menu' => 'tms_check']);
         }
     }
     function gagalFinger($start, $end)
@@ -1595,7 +1595,7 @@ class tms_controller extends Controller
         $data['tb1'] = DB::table('tb_gagal_finger')
             ->leftjoin('tb_work_contract', 'tb_work_contract.NIK', '=', 'tb_gagal_finger.NIK')
             ->where('tb_gagal_finger.tanggal', '>=', $start)->where('tb_gagal_finger.tanggal', '<=', $end)->get(['tb_gagal_finger.*', 'tb_work_contract.nama_karyawan', 'tb_work_contract.department', 'tb_work_contract.jabatan']);
-        return view('page/tms/failed_finger', ['data' => $data, 'site' => $this->site, 'menu' => 'tms', 'juduls' => 'Work Shedule', 'subjudul' => 'darft']);
+        return view('page/tms/failed_finger', ['data' => $data, 'site' => $this->site, 'menu' => 'tms_check', 'juduls' => 'Work Shedule', 'subjudul' => 'darft']);
     }
     function confirmFinger(Request $data)
     {
@@ -3547,6 +3547,6 @@ class tms_controller extends Controller
             ->leftjoin('tb_training_level as c', 'c.id_training_schedule', '=', 'a.id')
             ->leftjoin('tb_level as d', 'd.id', '=', 'c.id_level')
             ->where('a.tanggal', 'like', '')
-            ->get()
+            ->get();
     }
 }

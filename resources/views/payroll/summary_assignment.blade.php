@@ -20,24 +20,6 @@
                     {{ session('success') }}
                 </div>
             @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <h4><i class="icon fa fa-ban"></i> Error!</h4>
-                    {{ session('error') }}
-                </div>
-            @endif
-            @if($errors->any())
-                <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <h4><i class="icon fa fa-ban"></i> Error!</h4>
-                    <ul style="margin-bottom: 0;">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
 
             <div class="row">
                 <div class="col-md-12">
@@ -72,6 +54,7 @@
                                 </button>
                             </form>&nbsp;&nbsp;
 							<a href="{{ url('/payroll/tax_assignment_excel/'.$start.'/'.$end) }}" class="btn btn-success btn-md" style="margin-left: 5px;"><i class="fa fa-file-excel-o"></i> &nbsp;Excel</a>
+							<a href="{{ url('/payroll/recap_assignment') }}" class="btn btn-success btn-md" style="margin-left: 5px;"><i class="fa fa-print"></i> &nbsp;Recap</a>
 							<a href="{{ url('/payroll/distribute_assignment_slip/'.$start.'/'.$end) }}" class="btn btn-primary btn-md" style="margin-left: 5px;"><i class="fa fa-envelope"></i> &nbsp;Distribute</a>
                         </div>
                     </div>
@@ -156,9 +139,9 @@
                                                 <td>{{ number_format($item->rapel_amount, 0) }}</td>
                                                 <td>{{ number_format($item->gross_amount, 0) }}</td>
                                                 <td>{{ number_format($item->pph21_amount, 0) }}</td>
-                                                <td>{{ number_format($item->net_amount, 0) }}</td>
+                                                <td>{{ number_format($item->gross_amount, 0) }}</td>
                                                 <td>{{ $item->nomor_rekening }}</td>
-                                                <td>{{ number_format($item->net_amount, 0) }}</td>
+                                                <td>{{ number_format($item->gross_amount, 0) }}</td>
                                                 <td>{{ $item->employee_name }}</td>
                                                 <td>
                                                     <a href="{{ url('/payroll/slip/overtime/'.$start.'/'.$end.'/'.$item->id_employee) }}" class="btn btn-xs btn-primary"><i class="fa fa-print"></i></a>

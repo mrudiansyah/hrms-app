@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Auth;
 use PDF;
@@ -15,7 +14,7 @@ class PayrollController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['auth', 'verified']);
+        $this->middleware(['auth','verified']);
     }
     public function summary_overtime(Request $request, $start = null, $end = null)
     {
@@ -32,9 +31,9 @@ class PayrollController extends Controller
         }
 
         $tb1 = $this->get_summary_data($start, $end);
-        $menu = 'overtime_summary';
+        $menu='overtime_summary';
 
-        return view('payroll.summary_overtime', compact('tb1', 'start', 'end', 'menu'));
+        return view('payroll.summary_overtime', compact('tb1', 'start', 'end','menu'));
     }
 
     public function tax_overtime(Request $request, $start = null, $end = null)
@@ -52,19 +51,958 @@ class PayrollController extends Controller
         }
 
         $tb1 = DB::table('tb_ot_summary')
+        ->leftjoin('tb_employee_detail as a','a.id_employee','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_employees as b','b.id','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_positions as c','c.id','=','b.position_id')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori','Overtime')
+            ->where('b.position_id','<>','23')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*','a.nomor_rekening','b.cc_code','c.position_name']);
+            
+        $menu = 'overtime_tax';
+        $is_psab=0;
+        return view('payroll.tax_overtime', compact('tb1', 'start', 'end', 'menu','is_psab'));
+    }
+    public function tax_overtime_psab(Request $request, $start = null, $end = null)
+    {
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        }
+
+        $tb1 = DB::table('tb_ot_summary')
+        ->leftjoin('tb_employee_detail as a','a.id_employee','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_employees as b','b.id','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_positions as c','c.id','=','b.position_id')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori','Overtime')
+            ->where('b.position_id','23')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*','a.nomor_rekening','b.cc_code','c.position_name']);
+            
+        $menu = 'overtime_tax';
+        $is_psab=1;
+
+        return view('payroll.tax_overtime', compact('tb1', 'start', 'end', 'menu','is_psab'));
+    }
+    public function tax_overtime_excel(Request $request, $start = null, $end = null)
+    {
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+
+        $tb1 = DB::table('tb_ot_summary')
+        ->leftjoin('tb_employee_detail as a','a.id_employee','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_employees as b','b.id','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_departments as d','d.id','=','b.dept_id')
+        ->leftjoin('tb_positions as c','c.id','=','b.position_id')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori','Overtime')
+            ->where('b.position_id','<>','23')
+            ->orderby('comb_category', 'asc')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*','a.nomor_rekening','b.cc_code','c.position_name','d.comb_category']);
+          
+        $menu = 'overtime_tax';
+
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
+
+        $is_psab=0;
+
+        return view('payroll.tax_overtime_excel', compact('tb1', 'start', 'end', 'menu','periode', 'tb_approval', 'id_employee','is_psab'));
+    }
+    public function tax_overtime_psab_excel(Request $request, $start = null, $end = null)
+    {
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+
+        $tb1 = DB::table('tb_ot_summary')
+        ->leftjoin('tb_employee_detail as a','a.id_employee','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_employees as b','b.id','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_departments as d','d.id','=','b.dept_id')
+        ->leftjoin('tb_positions as c','c.id','=','b.position_id')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori','Overtime')
+            ->where('b.position_id','23')
+            ->orderby('comb_category','asc')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*','a.nomor_rekening','b.cc_code','c.position_name','d.comb_category']);
+            
+        $menu = 'overtime_tax';
+
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
+
+        $is_psab=1;
+
+        return view('payroll.tax_overtime_excel', compact('tb1', 'start', 'end', 'menu','periode', 'tb_approval', 'id_employee','is_psab'));
+    }
+
+    public function distribute_spl_slip($start = null, $end = null)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        }
+
+        $update=DB::table('tb_ot_summary')
+        ->where('start_date', $start)
+        ->where('end_date', $end)
+        ->where('kategori','Overtime')
+        ->update([
+            'distribute' => '1',
+        ]);
+        
+        return redirect()->back()->with('success', 'Proses distribute selesai.');
+    }
+
+    private function get_summary_data($start, $end)
+    {
+        $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
+        
+        return DB::table('tb_overtime_details as a')
+            ->leftjoin('tb_employees as b', 'b.id', 'a.id_employee')
+            ->leftjoin('tb_departments as c', 'c.id', 'b.dept_id')
+            ->leftJoin('tb_salaries as d', function($join) {
+                $join->on('d.id_employee', '=', 'b.id')
+                     ->where('d.status', 1);
+            })
+            ->select(
+                'b.id',
+                'b.NIK',
+                'b.employee_name',
+                'c.dept_code',
+                'b.position_id',
+                'd.slpj',
+                DB::raw('COUNT(*) as frekuensi'),
+                DB::raw('SUM(a.hours_act) as hours_act'),
+                DB::raw('SUM(a.hours_convertion) as hours_convertion'),
+                DB::raw("SUM(CASE WHEN b.position_id = '18' THEN $amt_driver ELSE (d.slpj * a.hours_convertion) END) as total_overtime")
+            )
+            ->selectSub(function ($query) use ($start, $end) {
+                $query->from('tb_meals')
+                    ->selectRaw('SUM(meal)')
+                    ->where('date_on', '>=', $start)
+                    ->where('date_on', '<=', $end)
+                    ->whereColumn('id_employee', 'b.id')
+                    ->where('is_deleted', '0');
+            }, 'total_meal')
+            ->where('a.date_on', '>=', $start)
+            ->where('a.date_on', '<=', $end)
+            ->where('a.status', '6')
+            ->groupBy('b.id', 'b.NIK', 'b.employee_name', 'c.dept_code', 'b.position_id', 'd.slpj')
+            ->orderby('c.dept_code', 'asc')
+            ->orderby('b.employee_name', 'asc')
+            ->get()
+            ->map(function ($item) {
+                $item->total_bayar = $item->total_overtime + $item->total_meal;
+                return $item;
+            });
+    }
+
+    public function save_summary(Request $request)
+    {
+        $start = $request->start;
+        $end = $request->end;
+        $periode=date('Y-m', strtotime($end));
+        if (!$start || !$end) {
+            return redirect()->back()->with('error', 'Start and End dates are required.');
+        }
+
+        $data = $this->get_summary_data($start, $end);
+
+        foreach ($data as $row) {
+            DB::table('tb_ot_summary')->updateOrInsert(
+                [
+                    'id_employee' => $row->id,
+                    'periode' => $periode,
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'kategori'=>'Overtime',
+                ],
+                [
+                    'nik' => $row->NIK,
+                    'employee_name' => $row->employee_name,
+                    'dept_code' => $row->dept_code,
+                    'slpj' => $row->slpj,
+                    'hours_act'=>$row->hours_act,
+                    'hour_convertion' => $row->hours_convertion,
+                    'ot_amount' => $row->total_overtime,
+                    'meal_amount' => $row->total_meal,
+                    'gross_amount' => $row->total_bayar,
+                    'updated_at' => now(),
+                ]
+            );
+        }
+        $update_capture=DB::table('tb_overtime_details')->where('date_on', '>=', $start)->where('date_on', '<=', $end)->where('status', '6')->update([
+            'captured_at' => now(),
+        ]);
+
+        return redirect('/payroll/tax_overtime/' . $start . '/' . $end)->with('success', 'Summary data has been saved to tb_ot_summary.');
+    }
+
+
+    public function import_rapel(Request $request)
+    {
+        if (!$request->hasFile('file')) {
+            return redirect()->back()->with('error', 'Excel file is required.');
+        }
+$request->validate([
+    'file' => 'required|mimes:xlsx,xls|max:2048'
+]);
+        $array = Excel::toArray([], $request->file('file'))[0];
+        // Skip header if it is likely a header row (check if column C is numeric)
+        $startRow = (isset($array[0][2]) && is_numeric($array[0][2])) ? 0 : 1;
+
+        $updatedCount = 0;
+        $insertedCount = 0;
+        for ($i = $startRow; $i < count($array); $i++) {
+            $nik = $array[$i][0];
+            $periode = $array[$i][1];
+            $rapel = (float) ($array[$i][2] ?? 0);
+
+            if ($nik && $periode) {
+                $exists = DB::table('tb_ot_summary')
+                    ->where('nik', $nik)
+                    ->where('periode', $periode)
+                    ->exists();
+
+                if ($exists) {
+                    $affected = DB::table('tb_ot_summary')
+                        ->where('nik', $nik)
+                        ->where('periode', $periode)
+                        ->update([
+                            'rapel_amount' => $rapel,
+                            'gross_amount' => DB::raw("COALESCE(ot_amount, 0) + COALESCE(meal_amount, 0) + $rapel"),
+                            'updated_at' => now()
+                        ]);
+                    if ($affected) $updatedCount++;
+                } else {
+                    // Fetch employee details
+                    $employee = DB::table('tb_employees as b')
+                        ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
+                        ->leftJoin('tb_salaries as d', function($join) {
+                            $join->on('d.id_employee', '=', 'b.id')
+                                 ->where('d.status', 1);
+                        })
+                        ->where('b.NIK', $nik)
+                        ->select('b.id', 'b.NIK', 'b.employee_name', 'c.dept_code', 'd.slpj','b.position_id')
+                        ->first();
+
+                    if ($employee) {
+                        // Calculate start_date and end_date
+                        $end_date = date('Y-m-d', strtotime($periode . '-24'));
+                        $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+                        $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+                        $start_date = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+
+                        //UAT 2026-07-25
+                        // if($employee->postion_id<6||$employee->postion_id=='18'||$employee->postion_id=='19')$kategori='Overtime';
+                        // else $kategori='Assignment';
+                        $kategori='Overtime';
+
+                        DB::table('tb_ot_summary')->insert([
+                            'id_employee' => $employee->id,
+                            'periode' => $periode,
+                            'start_date' => $start_date,
+                            'end_date' => $end_date,
+                            'nik' => $employee->NIK,
+                            'employee_name' => $employee->employee_name,
+                            'dept_code' => $employee->dept_code,
+                            'slpj' => $employee->slpj,
+                            'rapel_amount' => $rapel,
+                            'gross_amount' => $rapel,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                            'kategori'=>$kategori,
+                        ]);
+                        $insertedCount++;
+                    }
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', $updatedCount . ' records updated, ' . $insertedCount . ' records inserted successfully.');
+    }
+
+    public function download_format_rapel()
+    {
+        return Excel::download(new \App\Exports\RapelFormatExport, 'format_import_rapel.xlsx');
+    }
+    public function collect_meals(Request $request)
+    {
+        $now=date('Y-m-d H:i:s');
+        $admin=Auth::user()->name;
+        $start = $request->start;
+        $end = $request->end;
+        $periode=date('Y-m', strtotime($end));
+        $fiscal_year=date('Y', strtotime($end));
+        if (!$start || !$end) {
+            return redirect()->back()->with('error', 'Start and End dates are required.');
+        }
+
+        $data = DB::table('tb_meals')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_meals.id_employee')
+        ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
+        ->leftJoin('tb_salaries', function($join) {
+            $join->on('tb_salaries.id_employee', '=', 'tb_employees.id')
+                 ->where('tb_salaries.status', 1);
+        })
+        ->selectRaw('tb_meals.id_employee,NIK,employee_name,dept_code,slpj, SUM(tb_meals.meal) as meals')
+        ->where('date_on','>=', $start)
+        ->where('date_on','<=', $end)
+        ->where('tb_meals.is_deleted','0')
+        ->whereNotExists(function($query) use ($start, $end) {
+            $query->select(DB::raw(1))
+                  ->from('tb_ot_summary')
+                  ->where('tb_ot_summary.start_date','>=', $start)
+                  ->where('tb_ot_summary.end_date','<=', $end)
+                  ->whereRaw('tb_ot_summary.id_employee = tb_meals.id_employee');
+        })
+        ->groupBy('tb_meals.id_employee','NIK','employee_name','dept_code','slpj')
+        ->get();
+        
+        foreach ($data as $row) {
+            //UAT 2026-07-25
+            $position_id=DB::table('tb_employees')->where('id',$row->id_employee)->value('position_id');
+            if($position_id<6||$position_id=='18'||$position_id=='19')$kategori='Overtime';
+            else $kategori='Assignment';
+            // $kategori='Assignment';
+
+            DB::table('tb_ot_summary')->insert([
+                'id_employee' => $row->id_employee,
+                'periode' => $periode,
+                'start_date' => $start,
+                'end_date' => $end,
+                'nik' => $row->NIK,
+                'employee_name' => $row->employee_name,
+                'dept_code' => $row->dept_code,
+                'slpj' => $row->slpj,
+                'meal_amount' => $row->meals,
+                'gross_amount' => $row->meals,
+                'created_at' => now(),
+                'updated_at' => now(),
+                'kategori'=>$kategori,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Summary data has been saved to tb_ot_summary.');
+    }
+
+    public function tax_overtime_calculation(Request $request)
+    {
+        $now=date('Y-m-d H:i:s');
+        $admin=Auth::user()->name;
+        $start = $request->start;
+        $end = $request->end;
+        $periode=date('Y-m', strtotime($end));
+        $fiscal_year=date('Y', strtotime($end));
+        if (!$start || !$end) {
+            return redirect()->back()->with('error', 'Start and End dates are required.');
+        }
+
+        //Update Gross Amount
+        $tb = DB::table('tb_ot_summary')
+        ->where('start_date', $start)
+        ->where('end_date', $end)
+        ->get();
+        foreach($tb as $dt){
+            $new_gross=$dt->ot_amount+$dt->rapel_amount+$dt->meal_amount;
+            $update=DB::table('tb_ot_summary')->where('id',$dt->id)->update(['gross_amount'=>$new_gross]);
+        }
+
+
+        $data = DB::table('tb_ot_summary')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori','Overtime')
+            ->get();
+
+        foreach ($data as $row) {
+            //MyScript
+                $tb_salary_contract_employee=$this->tb_salary_contract_employee($row->id_employee,'0');
+                foreach($tb_salary_contract_employee as $dt){
+                    $category=$dt->kategori;
+                    $status_pajak=$dt->status_pajak;
+                }
+                $penghasilan_bruto_pajak=$row->gross_amount;
+                $cum=$this->cum_salary_tax_ter($periode,$row->id_employee,'tb_salary_earn_additional','overtime');
+                $cum_tax=$cum+$penghasilan_bruto_pajak;
+                $prev=$cum_tax-$penghasilan_bruto_pajak;
+                $tb_pph21_ter=$this->tb_pph21_ter($category,$cum_tax);
+                foreach($tb_pph21_ter as $dt2){
+                    $ter_id=$dt2->id;
+                    $ter=$dt2->prosentase;
+                    $pph21_ter=($ter*$cum_tax/100);
+                }
+                $periksa_tax=$this->qty_salary_tax_ter($periode,$row->id_employee,'tb_salary_earn_additional','overtime');
+                $prev_tax=$this->prev_salary_tax_ter($periode,$row->id_employee,'tb_salary_earn_additional','overtime');
+                $balance_amount=$pph21_ter-$prev_tax;
+                //end tax calculation
+                if($periksa_tax == 0){
+                    $lock=DB::table('tb_salary_ter_monthly')->where('periode',$periode)->where('id_employee',$row->id_employee)->update(['locked'=>'1']);
+                    $update_tax=DB::table('tb_salary_ter_monthly')->insert([
+                        'id_employee'=>$row->id_employee,
+                        'fiscal_year'=>$fiscal_year,
+                        'periode'=>$periode,
+                        'related_table'=>'tb_salary_earn_additional',
+                        'category'=>'overtime',
+                        'previous_payment'=>$prev_tax,
+                        'monthly_salary'=>'0',
+                        'prev_amount'=>$prev,
+                        'current_amount'=>$penghasilan_bruto_pajak,
+                        'cumulative_amount'=>$cum_tax,
+                        'status_pajak'=>$status_pajak,
+                        'ter_id'=>$ter_id,
+                        'prosentase'=>$ter,
+                        'tax_amount'=>$pph21_ter,
+                        'balance_amount'=>$balance_amount,
+                        'admin'=>$admin,
+                        'created_at'=>$now,
+                        'updated_at'=>$now
+                    ]);
+                }else{
+                    $update_tax=DB::table('tb_salary_ter_monthly')
+                    ->where('periode',$periode)
+                    ->where('id_employee',$row->id_employee)
+                    ->where('related_table','tb_salary_earn_additional')
+                    ->where('category','overtime')
+                    ->where('locked','0')
+                    ->update([
+                        'id_employee'=>$row->id_employee,
+                        'fiscal_year'=>$fiscal_year,
+                        'periode'=>$periode,
+                        'related_table'=>'tb_salary_earn_additional',
+                        'category'=>'overtime',
+                        'previous_payment'=>$prev_tax,
+                        'prev_amount'=>$prev,
+                        'current_amount'=>$penghasilan_bruto_pajak,
+                        'cumulative_amount'=>$cum_tax,
+                        'status_pajak'=>$status_pajak,
+                        'ter_id'=>$ter_id,
+                        'prosentase'=>$ter,
+                        'tax_amount'=>$pph21_ter,
+                        'balance_amount'=>$balance_amount,
+                        'admin'=>$admin,
+                        'updated_at'=>$now
+                    ]);
+                }
+            //EndMyScrip
+            
+            if($update_tax){
+                $paid=$row->gross_amount-$balance_amount;
+                DB::table('tb_ot_summary')->where('id',$row->id)->update([
+                    'pph21_amount'=>$balance_amount,
+                    'net_amount'=>$paid,
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Summary data has been saved to tb_ot_summary.');
+    }
+    public function tb_salary_contract_employee($id_employee){
+        $tabel=DB::table('tb_salary_contract')
+        ->leftjoin('tb_pph21_status','tb_pph21_status.id','=','tb_salary_contract.status_pajak')
+        ->where('id_employee',$id_employee)
+        ->get(['tb_salary_contract.*','tb_pph21_status.status_pajak as statuspajak','tb_pph21_status.ptkp','tb_pph21_status.kategori']);
+        return $tabel;
+    }
+    public function cum_salary_tax_ter($periode,$id_employee,$related,$category){
+        $tb1=DB::table('tb_salary_ter_monthly')
+        ->where('periode',$periode)
+        ->where('id_employee',$id_employee)
+        ->where('related_table',$related)
+        ->where('category',$category)
+        ->value('created_at');
+
+        if (!$tb1) {
+            $tb1=date('Y-m-d H:i:s');
+        }
+
+        $tabel=DB::table('tb_salary_ter_monthly')
+        ->where('periode',$periode)
+        ->where('id_employee',$id_employee)
+        ->where('created_at','<',$tb1)
+        ->get();
+        $total_tax_amount = $tabel->sum('current_amount');
+        return $total_tax_amount;
+    }
+    public function tb_pph21_ter($kategori,$bruto){
+        $tabel=DB::table('tb_pph21_ter')->where('ter',$kategori)->where('batas_bawah','<',$bruto)->where('batas_atas','>=',$bruto)->get();
+        return $tabel;
+    }
+    public function qty_salary_tax_ter($periode,$id_employee,$related,$category){
+        $tabel=DB::table('tb_salary_ter_monthly')
+        ->where('periode',$periode)
+        ->where('id_employee',$id_employee)
+        ->where('related_table',$related)
+        ->where('category',$category)
+        ->count();
+        return $tabel;
+    }
+    public function prev_salary_tax_ter($periode,$id_employee,$related,$category){
+        $tabel=DB::table('tb_salary_ter_monthly')
+        ->where('periode',$periode)
+        ->where('id_employee',$id_employee)
+        ->where('related_table','<>',$related)
+        ->where('category','<>',$category)
+        ->get();
+        $total_tax_amount = $tabel->sum('tax_amount');
+        return $total_tax_amount;
+    }
+    public function slip_overtime($start,$end,$id_employee){
+        if (request()->user()->hasRole('payroll')){
+            $tabel = DB::table('tb_overtime_details')
+                ->where('date_on','>=',$start)
+                ->where('date_on','<=',$end)
+                ->where('id_employee',$id_employee)
+                ->where('status','6')
+                ->where('captured_at','<>',null)
+                ->orderBy('date_on', 'asc')
+                ->get();
+
+            $employee = DB::table('tb_employees as b')
+                ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
+                ->leftJoin('tb_salaries as d', function($join) {
+                    $join->on('d.id_employee', '=', 'b.id')
+                        ->where('d.status', 1);
+                })
+                ->where('b.id', $id_employee)
+                ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
+                ->first();
+
+            $summary = DB::table('tb_ot_summary')
+                ->where('id_employee', $id_employee)
+                ->where('start_date', $start)
+                ->where('end_date', $end)
+                ->first();
+
+            $meals = DB::table('tb_meals')
+                ->where('id_employee', $id_employee)
+                ->where('date_on', '>=', $start)
+                ->where('date_on', '<=', $end)
+                ->where('is_deleted', 0)
+                ->get()
+                ->keyBy('date_on');
+
+            $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
+
+            $dates = [];
+            $current = strtotime($start);
+            $last = strtotime($end);
+            while ($current <= $last) {
+                $dates[] = date('Y-m-d', $current);
+                $current = strtotime('+1 day', $current);
+            }
+
+            $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
+
+            $FileName='SLIP_OT_'.($employee->NIK ?? 'UNDEF').'.PDF';
+            $pdf = PDF::loadview('payroll.slip_overtime', $data)->setPaper('A5', 'landscape');
+            return $pdf->stream($FileName);
+        }else{
+            return abort(403,'Anda tidak punya akses');
+        }
+    }
+    public function capture_assignment(Request $request, $start = null, $end = null)
+    {
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        }
+
+        $tb1=DB::table('tb_overtime_spv')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
+        ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
+        ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
+        ->select('tb_employees.NIK','tb_employees.employee_name','tb_departments.dept_code','tb_positions.position_name',DB::raw('SUM(amount) as total_amount'))
+        ->Where([['tb_overtime_spv.isVerified','1'],['tb_overtime_spv.isDelete','0'],['tb_overtime_spv.ot_date','>=',$start],['tb_overtime_spv.ot_date','<=',$end]])
+        ->groupby('tb_employees.NIK','tb_employees.employee_name','tb_employees.PIN','tb_employees.dept_id','tb_departments.dept_code','tb_positions.position_index','tb_positions.position_name')
+        ->get(['tb_employees.NIK','tb_employees.employee_name','tb_departments.dept_code','tb_positions.position_name']);
+
+        $menu='capture_assignment';
+
+        return view('payroll.capture_assignment', compact('tb1', 'start', 'end','menu'));
+    }
+    public function save_summary_assignment_old(Request $request)
+    {
+        $start = $request->start;
+        $end = $request->end;
+        $periode=date('Y-m', strtotime($end));
+        if (!$start || !$end) {
+            return redirect()->back()->with('error', 'Start and End dates are required.');
+        }
+
+        $tb1=DB::table('tb_overtime_spv')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
+        ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
+        ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
+        ->select('tb_employees.NIK','tb_employees.id','tb_employees.employee_name','tb_departments.dept_code','tb_positions.position_name',DB::raw('SUM(amount) as total_amount'))
+        ->Where([['tb_overtime_spv.isVerified','1'],['tb_overtime_spv.isDelete','0'],['tb_overtime_spv.ot_date','>=',$start],['tb_overtime_spv.ot_date','<=',$end]])
+        ->groupby('tb_employees.NIK','tb_employees.id','tb_employees.employee_name','tb_employees.PIN','tb_employees.dept_id','tb_departments.dept_code','tb_positions.position_index','tb_positions.position_name')
+        ->get(['tb_employees.NIK','tb_employees.id','tb_employees.employee_name','tb_departments.dept_code','tb_positions.position_name']);
+
+        // return $tb1;
+        foreach ($tb1 as $row) {
+            DB::table('tb_ot_summary')->updateOrInsert(
+                [
+                    'id_employee' => $row->id,
+                    'periode' => $periode,
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'kategori'=>'Assignment'
+                ],
+                [
+                    'nik' => $row->NIK,
+                    'employee_name' => $row->employee_name,
+                    'dept_code' => $row->dept_code,
+                    'ot_amount' => $row->total_amount,
+                    'gross_amount' => $row->total_amount,
+                    'net_amount' => $row->total_amount,
+                    'updated_at' => now(),
+                ]
+            );
+        }
+        $update_capture=DB::table('tb_overtime_spv')->where('ot_date', '>=', $start)->where('ot_date', '<=', $end)->where('isVerified', '1')->update([
+            'captured_at' => now(),
+        ]);
+
+        return redirect('/payroll/summary_assignment/' . $start . '/' . $end)->with('success', 'Summary data has been saved to tb_ot_summary.');
+    }
+    public function save_summary_assignment(Request $request) {
+        $start = $request->start;
+        $end = $request->end;
+        $periode=date('Y-m', strtotime($end));
+        if (!$start || !$end) {
+            return redirect()->back()->with('error', 'Start and End dates are required.');
+        }
+        // Note: Pastikan $start, $end, dan $periode sudah didefinisikan sebelumnya di dalam fungsi ini
+        
+        $tb1 = DB::table('tb_overtime_spv')
+            ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
+            ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
+            ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
+            ->select('tb_employees.NIK','tb_employees.id','tb_employees.employee_name','tb_departments.dept_code','tb_positions.position_name',DB::raw('SUM(amount) as total_amount'))
+            ->Where([['tb_overtime_spv.isVerified','1'],['tb_overtime_spv.isDelete','0'],['tb_overtime_spv.ot_date','>=',$start],['tb_overtime_spv.ot_date','<=',$end]])
+            ->groupby('tb_employees.NIK','tb_employees.id','tb_employees.employee_name','tb_employees.PIN','tb_employees.dept_id','tb_departments.dept_code','tb_positions.position_index','tb_positions.position_name')
+            ->get(['tb_employees.NIK','tb_employees.id','tb_employees.employee_name','tb_departments.dept_code','tb_positions.position_name']);
+        foreach ($tb1 as $row) {
+            
+            // --- 1. Ambil jumlah uang meal dari tb_meals berdasarkan range waktu ---
+            $meal = DB::table('tb_meals')
+                ->where('id_employee', $row->id)
+                ->whereBetween('date_on', [$start, $end])
+                ->where('is_deleted', '0') // asumsi Anda menggunakan soft delete (optional, hapus jika tidak perlu)
+                ->sum('meal'); // Jika Anda mengambil frekuensi, gunakan count('id') kemudian dikali budget harian meal
+            // --- 2. Kalkulasikan Total OT dan Meal ---
+            $total_gross = $row->total_amount + $meal;
+            $total_net = $row->total_amount + $meal; // Tambahkan pemotongan pph atau potongan lain di sini jika ada
+            // --- 3. Update atau Insert ke tb_ot_summary ---
+            DB::table('tb_ot_summary')->updateOrInsert(
+                [
+                    'id_employee' => $row->id,
+                    'periode' => $periode,
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'kategori' => 'Assignment' // atau sesuai kategori yang disepakati
+                ],
+                [
+                    'nik' => $row->NIK,
+                    'employee_name' => $row->employee_name,
+                    'dept_code' => $row->dept_code,
+                    'ot_amount' => $row->total_amount,
+                    'meal_amount' => $meal, // Menambahkan kolom baru hasil query meal
+                    'gross_amount' => $total_gross,
+                    'net_amount' => $total_net,
+                    'updated_at' => now(),
+                ]
+            );
+        }
+        $update_capture=DB::table('tb_overtime_spv')->where('ot_date', '>=', $start)->where('ot_date', '<=', $end)->where('isVerified', '1')->update([
+            'captured_at' => now(),
+        ]);
+
+        return redirect('/payroll/summary_assignment/' . $start . '/' . $end)->with('success', 'Summary data has been saved to tb_ot_summary.');
+    }
+
+    public function summary_assignment(Request $request, $start = null, $end = null)
+    {
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        }
+
+        $tb1 = DB::table('tb_ot_summary')
+        ->leftjoin('tb_employee_detail as a','a.id_employee','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_employees as b','b.id','=','tb_ot_summary.id_employee')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori','Assignment')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*','a.nomor_rekening','b.cc_code']);
+            
+        $menu = 'summary_assignment';
+
+        return view('payroll.summary_assignment', compact('tb1', 'start', 'end', 'menu'));
+    }
+    public function distribute_assignment_slip($start = null, $end = null)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        }
+
+        $update=DB::table('tb_ot_summary')
+        ->where('start_date', $start)
+        ->where('end_date', $end)
+        ->where('kategori','Assignment')
+        ->update([
+            'distribute' => '1',
+        ]);
+        
+        return redirect()->back()->with('success', 'Proses distribute selesai.');
+    }
+    public function tax_assignment_excel(Request $request, $start = null, $end = null)
+    {
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+
+        $tb1 = DB::table('tb_ot_summary')
+        ->leftjoin('tb_employee_detail as a','a.id_employee','=','tb_ot_summary.id_employee')
+        ->leftjoin('tb_employees as b','b.id','=','tb_ot_summary.id_employee')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori','Assignment')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*','a.nomor_rekening','b.cc_code']);
+            
+        $menu = 'overtime_tax';
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Assignment')->get();
+ 
+        return view('payroll.summary_assignment_excel', compact('tb1', 'start', 'end', 'menu', 'periode', 'id_employee', 'tb_approval'));
+    }
+    function tax_assignment_pdf($start, $end)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+        $tb1 = DB::table('tb_ot_summary')
             ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
             ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori', 'Assignment')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code']);
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Assignment')->get();
+        if (request()->user()->hasRole('payroll')) {
+            $FileName = 'Overtime_Summary_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/summary_assignment_pdf', ['tb1' => $tb1, 'periode' => $periode, 'start' => $start, 'end' => $end, 'menu' => 'payroll', 'juduls' => 'Summary Overtime', 'tb_approval' => $tb_approval, 'id_employee' => $id_employee])->setPaper('a3', 'landscape');
+            return $pdf->stream($FileName);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function tax_overtime_pdf($start, $end)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+        $tb1 = DB::table('tb_ot_summary')
+            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
+            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
+            ->leftjoin('tb_departments as d','d.id','=','b.dept_id')
             ->leftjoin('tb_positions as c', 'c.id', '=', 'b.position_id')
             ->where('start_date', $start)
             ->where('end_date', $end)
             ->where('kategori', 'Overtime')
+            ->where('b.position_id','<>','23')
+            ->orderby('comb_category', 'asc')
             ->orderby('dept_code', 'asc')
             ->orderby('employee_name', 'asc')
-            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code', 'c.position_name']);
-
-        $menu = 'overtime_tax';
-
-        return view('payroll.tax_overtime', compact('tb1', 'start', 'end', 'menu'));
+            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code', 'c.position_name','d.comb_category']);
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
+        if (request()->user()->hasRole('payroll')) {
+            $FileName = 'Overtime_Summary_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/tax_overtime_pdf', ['tb1' => $tb1, 'periode' => $periode, 'start' => $start, 'end' => $end, 'menu' => 'payroll', 'juduls' => 'Summary Overtime', 'tb_approval' => $tb_approval, 'id_employee' => $id_employee])->setPaper('a3', 'landscape');
+            return $pdf->stream($FileName);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function tax_overtime_psab_pdf($start, $end)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m');
+        }
+        $tb1 = DB::table('tb_ot_summary')
+            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
+            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
+            ->leftjoin('tb_departments as d','d.id','=','b.dept_id')
+            ->leftjoin('tb_positions as c', 'c.id', '=', 'b.position_id')
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->where('kategori', 'Overtime')
+            ->where('b.position_id','23')
+            ->orderby('comb_category', 'asc')
+            ->orderby('dept_code', 'asc')
+            ->orderby('employee_name', 'asc')
+            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code', 'c.position_name','d.comb_category']);
+        $nik = Auth::user()->nik;
+        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
+        if (request()->user()->hasRole('payroll')) {
+            $FileName = 'Overtime_Summary_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/tax_overtime_pdf', ['tb1' => $tb1, 'periode' => $periode, 'start' => $start, 'end' => $end, 'menu' => 'payroll', 'juduls' => 'Summary Overtime', 'tb_approval' => $tb_approval, 'id_employee' => $id_employee])->setPaper('a3', 'landscape');
+            return $pdf->stream($FileName);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    function tax_overtime_approval($tipe, $periode)
+    {
+        $admin = Auth::user()->name;
+        if ($periode == 0)
+            $periode = date('Y-m');
+        $check_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('category', 'payroll')->where('tipe', $tipe)->count();
+        if ($check_approval == 0) {
+            $tb1 = DB::table('v_approval')->where('group', '1')->orderby('sequance','asc')->get();
+            $no = 0;
+            foreach ($tb1 as $dt1) {
+                $no++;
+                $dt_id[$no] = $dt1->id;
+                $dt_name[$no] = $dt1->employee_name;
+                $dt_pos[$no] = $dt1->position_name;
+            }
+            $add_approval = DB::table('tb_payroll_approval')->insert([
+                'periode' => $periode,
+                'category' => 'payroll',
+                'tipe' => $tipe,
+                'id_approver_1' => $dt_id[1],
+                'id_approver_2' => $dt_id[2],
+                'id_approver_3' => $dt_id[3],
+                'id_approver_4' => $dt_id[4],
+                'id_approver_5' => $dt_id[5],
+                'name_1' => $dt_name[1],
+                'name_2' => $dt_name[2],
+                'name_3' => $dt_name[3],
+                'name_4' => $dt_name[4],
+                'name_5' => $dt_name[5],
+                'pos_1' => $dt_pos[1],
+                'pos_2' => $dt_pos[2],
+                'pos_3' => $dt_pos[3],
+                'pos_4' => $dt_pos[4],
+                'pos_5' => $dt_pos[5],
+                'created_by' => $admin
+            ]);
+            return redirect()->back()->with('success', 'Approval berhasil ditambahkan.');
+        } else {
+            return redirect()->back();
+        }
     }
 
     public function overtime_detail(Request $request)
@@ -77,7 +1015,7 @@ class PayrollController extends Controller
                 $query->whereNull('captured_at')
                     ->orWhere('captured_at', '');
             })
-            ->where('date_on', '>=', '2026-03-01')
+            ->where('date_on', '>=', '2026-02-01')
             ->where('isDelete', 0)
             ->select('id as idtrans', 'id_overtime', 'date_on', 'start_act', 'finish_act', 'hours_act', 'SLPJ', 'ammount')
             ->orderBy('date_on', 'asc')
@@ -125,8 +1063,7 @@ class PayrollController extends Controller
 
         return response()->json(['success' => false, 'message' => 'Gagal mengupdate data.'], 500);
     }
-
-    public function tax_overtime_excel(Request $request, $start = null, $end = null)
+    public function recap_overtime(Request $request, $start = null, $end = null)
     {
         $start = $start ?? $request->start;
         $end = $end ?? $request->end;
@@ -138,31 +1075,20 @@ class PayrollController extends Controller
             $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
             $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
             $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
-        } else {
-            $periode = date('Y-m');
+        }else{
+            $periode = date('Y-m', strtotime($end));
         }
 
-        $tb1 = DB::table('tb_ot_summary')
-            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
-            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
-            ->leftjoin('tb_positions as c', 'c.id', '=', 'b.position_id')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Overtime')
-            ->orderby('dept_code', 'asc')
-            ->orderby('employee_name', 'asc')
-            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code', 'c.position_name']);
+        //$tb1 = DB::table('view_recap_ot_nonpsab')->where('periode', $periode)->orderBy('dept_category', 'asc')->orderBy('dept_name', 'asc')->get();
+        $tb1 = DB::table('view_recap_ot_nonpsab')->where('periode', $periode)->orderBy('dept_category', 'asc')->orderBy('dept_name', 'asc')->orderby('cc_code','asc')->get();
+        $amount_ot = DB::table('view_recap_ot_nonpsab')->where('periode', $periode)->sum('total_ot_amount');
+                
+        $menu = 'overtime_recap';
+        $is_psab='';
 
-        $menu = 'overtime_tax';
-
-        $nik = Auth::user()->nik;
-        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
-        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
-
-
-        return view('payroll.tax_overtime_excel', compact('tb1', 'start', 'end', 'menu', 'periode', 'tb_approval', 'id_employee'));
+        return view('payroll.recap_overtime', compact('tb1', 'start', 'end', 'menu','amount_ot','is_psab'));
     }
-    function tax_overtime_pdf($start, $end)
+    function recap_overtime_pdf($start, $end)
     {
         if (!$start || !$end || $start == '0' || $end == '0') {
             $today = date('Y-m-d');
@@ -171,830 +1097,678 @@ class PayrollController extends Controller
             $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
             $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
             $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
-        } else {
-            $periode = date('Y-m');
+        }else{
+            $periode = date('Y-m', strtotime($end));
         }
-        $tb1 = DB::table('tb_ot_summary')
-            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
-            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
-            ->leftjoin('tb_positions as c', 'c.id', '=', 'b.position_id')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Overtime')
-            ->orderby('dept_code', 'asc')
-            ->orderby('employee_name', 'asc')
-            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code', 'c.position_name']);
-        $nik = Auth::user()->nik;
-        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
-        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Overtime')->get();
+
+        // $tb1 = DB::table('view_recap_ot')->where('periode', $periode)->orderBy('dept_category', 'asc')->orderBy('dept_name', 'asc')->get();
+        // $amount_ot = DB::table('view_recap_ot')->where('periode', $periode)->sum('total_ot_amount');
+        $tb1 = DB::table('view_recap_ot_nonpsab')->where('periode', $periode)->orderBy('dept_category', 'asc')->orderBy('dept_name', 'asc')->get();
+        $amount_ot = DB::table('view_recap_ot_nonpsab')->where('periode', $periode)->sum('total_ot_amount');
+
         if (request()->user()->hasRole('payroll')) {
-            $FileName = 'Overtime_Summary_' . $start . '_' . $end . '.pdf';
-            $pdf = PDF::loadview('payroll/tax_overtime_pdf', ['tb1' => $tb1, 'periode' => $periode, 'start' => $start, 'end' => $end, 'menu' => 'payroll', 'juduls' => 'Summary Overtime', 'tb_approval' => $tb_approval, 'id_employee' => $id_employee])->setPaper('a3', 'landscape');
+            $FileName = 'Overtime_Recap_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/recap_overtime_pdf', ['tb1' => $tb1, 'periode' => $periode,'amount_ot'=>$amount_ot, 'menu' => 'payroll', 'juduls' => 'Summary Overtime'])->setPaper(array(0,0,1800,1200));
             return $pdf->stream($FileName);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
     }
-    function tax_overtime_approval($tipe, $periode)
+    public function recap_overtime_psab(Request $request, $start = null, $end = null)
     {
-        $admin = Auth::user()->name;
-        if ($periode == 0)
-            $periode = date('Y-m');
-        $check_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('category', 'payroll')->where('tipe', $tipe)->count();
-        if ($check_approval == 0) {
-            $tb1 = DB::table('v_approval')->where('group', '1')->get();
-            $no = 0;
-            foreach ($tb1 as $dt1) {
-                $no++;
-                $dt_id[$no] = $dt1->id;
-                $dt_name[$no] = $dt1->employee_name;
-                $dt_pos[$no] = $dt1->position_name;
-            }
-            $add_approval = DB::table('tb_payroll_approval')->insert([
-                'periode' => $periode,
-                'category' => 'payroll',
-                'tipe' => $tipe,
-                'id_approver_1' => $dt_id[1],
-                'id_approver_2' => $dt_id[2],
-                'id_approver_3' => $dt_id[3],
-                'id_approver_4' => $dt_id[4],
-                'name_1' => $dt_name[1],
-                'name_2' => $dt_name[2],
-                'name_3' => $dt_name[3],
-                'name_4' => $dt_name[4],
-                'pos_1' => $dt_pos[1],
-                'pos_2' => $dt_pos[2],
-                'pos_3' => $dt_pos[3],
-                'pos_4' => $dt_pos[4],
-                'created_by' => $admin
-            ]);
-            return redirect()->back()->with('success', 'Approval berhasil ditambahkan.');
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        }else{
+            $periode = date('Y-m', strtotime($end));
+        }
+
+        $tb1 = DB::table('view_recap_ot_psab')->where('periode', $periode)->orderBy('dept_category', 'asc')->orderBy('dept_name', 'asc')->get();
+        $amount_ot = DB::table('view_recap_ot_psab')->where('periode', $periode)->sum('total_ot_amount');
+                
+        $menu = 'overtime_recap';
+        $is_psab='_psab';
+
+        return view('payroll.recap_overtime', compact('tb1', 'start', 'end', 'menu','amount_ot','is_psab'));
+    }
+    function recap_overtime_psab_pdf($start, $end)
+    {
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        }else{
+            $periode = date('Y-m', strtotime($end));
+        }
+
+        $tb1 = DB::table('view_recap_ot_psab')->where('periode', $periode)->orderBy('dept_category', 'asc')->orderBy('dept_name', 'asc')->get();
+        $amount_ot = DB::table('view_recap_ot_psab')->where('periode', $periode)->sum('total_ot_amount');
+
+        if (request()->user()->hasRole('payroll')) {
+            $FileName = 'Overtime_Recap_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/recap_overtime_pdf', ['tb1' => $tb1, 'periode' => $periode,'amount_ot'=>$amount_ot, 'menu' => 'payroll', 'juduls' => 'Summary Overtime'])->setPaper(array(0,0,1800,1200));
+            return $pdf->stream($FileName);
         } else {
-            return redirect()->back();
+            return abort(403, 'Anda tidak punya akses');
         }
     }
 
-    public function distribute_spl_slip($start = null, $end = null)
+    public function recap_assignment(Request $request, $start = null, $end = null)
     {
-        $update = DB::table('tb_ot_summary')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Overtime')
-            ->update([
-                'distribute' => '1',
-            ]);
-        if ($update)
-            return redirect()->back()->with('success', 'Data berhasil didistribusikan.');
-        else
-            return redirect()->back()->with('error', 'Data gagal didistribusikan.');
-    }
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
 
-    private function get_summary_data($start, $end)
-    {
-        $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
-
-        return DB::table('tb_overtime_details as a')
-            ->leftjoin('tb_employees as b', 'b.id', 'a.id_employee')
-            ->leftjoin('tb_departments as c', 'c.id', 'b.dept_id')
-            ->leftJoin('tb_salaries as d', function ($join) {
-                $join->on('d.id_employee', '=', 'b.id')
-                    ->where('d.status', 1);
-            })
-            ->select(
-                'b.id',
-                'b.NIK',
-                'b.employee_name',
-                'c.dept_code',
-                'b.position_id',
-                'd.slpj',
-                DB::raw('COUNT(*) as frekuensi'),
-                DB::raw('SUM(a.hours_act) as hours_act'),
-                DB::raw('SUM(a.hours_convertion) as hours_convertion'),
-                DB::raw("SUM(CASE WHEN b.position_id = '18' THEN $amt_driver ELSE (d.slpj * a.hours_convertion) END) as total_overtime")
-            )
-            ->selectSub(function ($query) use ($start, $end) {
-                $query->from('tb_meals')
-                    ->selectRaw('SUM(meal)')
-                    ->where('date_on', '>=', $start)
-                    ->where('date_on', '<=', $end)
-                    ->whereColumn('id_employee', 'b.id')
-                    ->where('is_deleted', '0');
-            }, 'total_meal')
-            ->where('a.date_on', '>=', $start)
-            ->where('a.date_on', '<=', $end)
-            ->where('a.status', '6')
-            ->groupBy('b.id', 'b.NIK', 'b.employee_name', 'c.dept_code', 'b.position_id', 'd.slpj')
-            ->orderby('c.dept_code', 'asc')
-            ->orderby('b.employee_name', 'asc')
-            ->get()
-            ->map(function ($item) {
-                $item->total_bayar = $item->total_overtime + $item->total_meal;
-                return $item;
-            });
-    }
-
-    public function save_summary(Request $request)
-    {
-        $start = $request->start;
-        $end = $request->end;
-        $periode = date('Y-m', strtotime($end));
-        if (!$start || !$end) {
-            return redirect()->back()->with('error', 'Start and End dates are required.');
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
         }
 
-        $data = $this->get_summary_data($start, $end);
-
-        foreach ($data as $row) {
-            DB::table('tb_ot_summary')->updateOrInsert(
-                [
-                    'id_employee' => $row->id,
-                    'periode' => $periode,
-                    'start_date' => $start,
-                    'end_date' => $end,
-                    'kategori' => 'Overtime',
-                ],
-                [
-                    'nik' => $row->NIK,
-                    'employee_name' => $row->employee_name,
-                    'dept_code' => $row->dept_code,
-                    'slpj' => $row->slpj,
-                    'hours_act' => $row->hours_act,
-                    'hour_convertion' => $row->hours_convertion,
-                    'ot_amount' => $row->total_overtime,
-                    'meal_amount' => $row->total_meal,
-                    'gross_amount' => $row->total_bayar,
-                    'updated_at' => now(),
-                ]
-            );
+        $year = date('Y', strtotime($start));
+        if ($request->has('year') && $request->year != "") {
+            $year = $request->year;
         }
-        $update_capture = DB::table('tb_overtime_details')->where('date_on', '>=', $start)->where('date_on', '<=', $end)->where('status', '6')->update([
-            'captured_at' => now(),
+        $periode_name = date('Y, F', strtotime($periode));
+
+        // Data table by department (use COLLATE to fix collation mismatch between tables)
+        $deptCodeCollation = DB::connection()->getDriverName() === 'sqlsrv'
+            ? 'DATABASE_DEFAULT'
+            : 'utf8mb4_unicode_ci';
+        $tb_rekap = DB::table('tb_ot_summary as s')
+            ->leftJoin('tb_departments as d', DB::raw("s.dept_code COLLATE $deptCodeCollation"), '=', DB::raw("d.dept_code COLLATE $deptCodeCollation"))
+            ->where('s.kategori', 'Assignment')
+            ->where('s.start_date', '>=', $start)
+            ->where('s.end_date', '<=', $end)
+            ->select('d.dept_name as department', 's.dept_code', DB::raw('SUM(s.net_amount) as nominal_incentive'))
+            ->groupBy('d.dept_name', 's.dept_code')
+            ->orderBy('d.dept_name')
+            ->get();
+
+        // Line chart data (month by month for the current year)
+        $months = [
+            '01' => 'JAN', '02' => 'FEB', '03' => 'MAR', '04' => 'APR', '05' => 'MEI', '06' => 'JUN',
+            '07' => 'JUL', '08' => 'AGUS', '09' => 'SEPT', '10' => 'OKT', '11' => 'NOV', '12' => 'DES'
+        ];
+        $monthly_data = [];
+        foreach($months as $m => $mName) {
+            $periode_m = $year . '-' . $m; 
+            $sum = DB::table('tb_ot_summary')
+                ->where('kategori', 'Assignment')
+                ->where('periode', $periode_m)
+                ->sum('net_amount');
+            $monthly_data[] = [
+                'month' => $mName,
+                'amount' => (int)$sum
+            ];
+        }
+        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Assignment')->get();
+
+        $menu = 'recap_assignment';
+        
+        return view('payroll.recap_assignment', [
+            'start' => $start,
+            'end' => $end,
+            'year' => $year,
+            'periode_name' => $periode_name,
+            'tb_rekap' => $tb_rekap,
+            'monthly_data' => $monthly_data,
+            'tb_approval'=>$tb_approval,
+            'menu' => $menu
         ]);
-
-        return redirect('/payroll/tax_overtime/' . $start . '/' . $end)->with('success', 'Summary data has been saved to tb_ot_summary.');
     }
 
-
-    public function import_rapel(Request $request)
+    public function recap_assignment_pdf($start = null, $end = null)
     {
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
-        ], [
-            'file.required' => 'File Excel wajib diunggah.',
-            'file.file' => 'File yang diunggah tidak valid.',
-            'file.mimes' => 'Format file harus berupa Excel (.xlsx, .xls) atau .csv.',
-            'file.max' => 'Ukuran file maksimal adalah 50MB.',
+        $request = request();
+        $start = $start ?? $request->start;
+        $end = $end ?? $request->end;
+
+        if (!$start || !$end || $start == '0' || $end == '0') {
+            $today = date('Y-m-d');
+            $periode = date('Y-m', strtotime($today));
+            $end = date('Y-m-d', strtotime($periode . '-24'));
+            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
+            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
+            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
+        } else {
+            $periode = date('Y-m', strtotime($end));
+        }
+
+        $periode_name = date('Y, F', strtotime($periode));
+
+        $deptCodeCollation = DB::connection()->getDriverName() === 'sqlsrv'
+            ? 'DATABASE_DEFAULT'
+            : 'utf8mb4_unicode_ci';
+        $tb_rekap = DB::table('tb_ot_summary as s')
+            ->leftJoin('tb_departments as d', DB::raw("s.dept_code COLLATE $deptCodeCollation"), '=', DB::raw("d.dept_code COLLATE $deptCodeCollation"))
+            ->where('s.kategori', 'Assignment')
+            ->where('s.start_date', '>=', $start)
+            ->where('s.end_date', '<=', $end)
+            ->select('d.dept_name as department', 's.dept_code', DB::raw('SUM(s.net_amount) as nominal_incentive'))
+            ->groupBy('d.dept_name', 's.dept_code')
+            ->orderBy('d.dept_name')
+            ->get();
+
+        // Build monthly chart data for the chart image
+        $months = ['01'=>'JAN','02'=>'FEB','03'=>'MAR','04'=>'APR','05'=>'MEI','06'=>'JUN',
+                   '07'=>'JUL','08'=>'AGUS','09'=>'SEPT','10'=>'OKT','11'=>'NOV','12'=>'DES'];
+        $year_chart = date('Y', strtotime($start));
+        $chartLabels = [];
+        $chartData = [];
+        foreach ($months as $m => $mName) {
+            $chartLabels[] = $mName;
+            $chartData[] = (int) DB::table('tb_ot_summary')
+                ->where('kategori', 'Assignment')
+                ->where('periode', $year_chart . '-' . $m)
+                ->sum('net_amount');
+        }
+
+        // Build QuickChart URL (free API - no JS needed in PDF)
+        $chartConfig = json_encode([
+            'type' => 'line',
+            'data' => [
+                'labels'   => $chartLabels,
+                'datasets' => [[
+                    'label'           => 'Incentive',
+                    'data'            => $chartData,
+                    'borderColor'     => 'rgba(54,115,169,1)',
+                    'backgroundColor' => 'rgba(54,115,169,0.1)',
+                    'borderWidth'     => 2,
+                    'pointRadius'     => 4,
+                    'fill'            => false,
+                    'tension'         => 0,
+                ]]
+            ],
+            'options' => [
+                'plugins' => ['legend' => ['display' => false]],
+                'scales'  => ['y' => ['beginAtZero' => true]]
+            ]
         ]);
+        $chart_url = 'https://quickchart.io/chart?c=' . urlencode($chartConfig) . '&width=600&height=300&backgroundColor=white';
 
-        try {
-            if (!$request->hasFile('file')) {
-                return redirect()->back()->with('error', 'Excel file is required.');
-            }
+        if (request()->user()->hasRole('payroll')) {
+            $FileName = 'Recap_Assignment_' . $start . '_' . $end . '.pdf';
+            $pdf = PDF::loadview('payroll/recap_assignment_pdf', [
+                'tb_rekap'     => $tb_rekap,
+                'periode_name' => $periode_name,
+                'start'        => $start,
+                'end'          => $end,
+                'chart_url'    => $chart_url,
+            ])->setPaper('a4', 'landscape');
+            return $pdf->stream($FileName);
+        } else {
+            return abort(403, 'Anda tidak punya akses');
+        }
+    }
+    public function recap_journal($periode)
+    {
+        $admin=Auth::user()->name;
+        $request = request();
+        if($periode==0)$periode=date('Y-m');
 
-            $array = Excel::toArray([], $request->file('file'))[0];
-            if (empty($array)) {
-                return redirect()->back()->with('error', 'File Excel yang diunggah kosong.');
-            }
-
-            // Skip header if it is likely a header row (check if column C is numeric)
-            $startRow = (isset($array[0][2]) && is_numeric($array[0][2])) ? 0 : 1;
-
-            $updatedCount = 0;
-            $insertedCount = 0;
-            for ($i = $startRow; $i < count($array); $i++) {
-                $nik = isset($array[$i][0]) ? trim((string)$array[$i][0]) : null;
-                $periode = isset($array[$i][1]) ? trim((string)$array[$i][1]) : null;
-                $rapel = (float) ($array[$i][2] ?? 0);
-
-                if ($nik && $periode) {
-                    $exists = DB::table('tb_ot_summary')
-                        ->where('nik', $nik)
-                        ->where('periode', $periode)
-                        ->exists();
-
-                    if ($exists) {
-                        $affected = DB::table('tb_ot_summary')
-                            ->where('nik', $nik)
-                            ->where('periode', $periode)
-                            ->update([
-                                'rapel_amount' => $rapel,
-                                'gross_amount' => DB::raw("COALESCE(ot_amount, 0) + COALESCE(meal_amount, 0) + $rapel"),
-                                'updated_at' => now()
-                            ]);
-                        if ($affected) $updatedCount++;
-                    } else {
-                        // Fetch employee details
-                        $employee = DB::table('tb_employees as b')
-                            ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
-                            ->leftJoin('tb_salaries as d', function($join) {
-                                $join->on('d.id_employee', '=', 'b.id')
-                                     ->where('d.status', 1);
-                            })
-                            ->where('b.NIK', $nik)
-                            ->select('b.id', 'b.NIK', 'b.employee_name', 'c.dept_code', 'd.slpj')
-                            ->first();
-
-                        if ($employee) {
-                            // Calculate start_date and end_date
-                            $end_date = date('Y-m-d', strtotime($periode . '-24'));
-                            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
-                            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
-                            $start_date = date('Y-m-d', strtotime($akhir_bulan . '-25'));
-
-                            DB::table('tb_ot_summary')->insert([
-                                'id_employee' => $employee->id,
-                                'periode' => $periode,
-                                'start_date' => $start_date,
-                                'end_date' => $end_date,
-                                'nik' => $employee->NIK,
-                                'employee_name' => $employee->employee_name,
-                                'dept_code' => $employee->dept_code,
-                                'slpj' => $employee->slpj,
-                                'rapel_amount' => $rapel,
-                                'gross_amount' => $rapel,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ]);
-                            $insertedCount++;
-                        }
+        //Payroll
+            $accounts = ['j_50020101', 'j_50020102', 'j_50020107', 'j_50020110'];
+            // 1. Direct
+            $tb1 = DB::table('tb_salary_summary as a')
+                ->leftJoin('tb_salary_contract as b', 'b.id_employee', '=', 'a.id_employee')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(COALESCE(a.pendapatan_bruto, 0)) - SUM(COALESCE(a.tunjangan_transport, 0)) - SUM(COALESCE(a.tunjangan_shift, 0)) AS j_50020101,
+                    SUM(a.tunjangan_transport) + SUM(a.tunjangan_shift) AS j_50020102,
+                    SUM(a.jaminan_hari_tua) + SUM(a.jaminan_pensiun) AS j_50020107,
+                    SUM(a.bpjs_kesehatan) AS j_50020110
+                ')
+                ->where('a.periode', $periode)
+                ->whereNotNull('a.tipe_kontrak')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '120%')
+                    ->orWhere('b.cc_code', 'LIKE', '124%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            
+            DB::beginTransaction();
+            try {
+                foreach ($tb1 as $dt1) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt1->cc_code,
+                                'category'     => 'Direct',
+                                'source'       => 'Payroll',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt1->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
                     }
                 }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
             }
 
-            if ($updatedCount === 0 && $insertedCount === 0) {
-                return redirect()->back()->with('error', 'Tidak ada data yang berhasil diproses. Pastikan format kolom NIK dan Periode (YYYY-MM) sesuai template.');
-            }
-
-            return redirect()->back()->with('success', $updatedCount . ' records updated, ' . $insertedCount . ' records inserted successfully.');
-        } catch (\Throwable $e) {
-            Log::error('Import rapel failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return redirect()->back()->with('error', 'Gagal memproses file: ' . $e->getMessage());
-        }
-    }
-
-    public function download_format_rapel()
-    {
-        return Excel::download(new \App\Exports\RapelFormatExport, 'format_import_rapel.xlsx');
-    }
-    public function collect_meals(Request $request)
-    {
-        $now = date('Y-m-d H:i:s');
-        $admin = Auth::user()->name;
-        $start = $request->start;
-        $end = $request->end;
-        $periode = date('Y-m', strtotime($end));
-        $fiscal_year = date('Y', strtotime($end));
-        if (!$start || !$end) {
-            return redirect()->back()->with('error', 'Start and End dates are required.');
-        }
-
-        $data = DB::table('tb_meals')
-            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_meals.id_employee')
-            ->leftjoin('tb_departments', 'tb_departments.id', '=', 'tb_employees.dept_id')
-            ->leftJoin('tb_salaries', function ($join) {
-                $join->on('tb_salaries.id_employee', '=', 'tb_employees.id')
-                    ->where('tb_salaries.status', 1);
-            })
-            ->selectRaw('tb_meals.id_employee,NIK,employee_name,dept_code,slpj, SUM(tb_meals.meal) as meals')
-            ->where('date_on', '>=', $start)
-            ->where('date_on', '<=', $end)
-            ->where('tb_meals.is_deleted', '0')
-            ->whereNotExists(function ($query) {
-                $query->select(DB::raw(1))
-                    ->from('tb_ot_summary')
-                    ->whereRaw('tb_ot_summary.id_employee = tb_meals.id_employee');
-            })
-            ->groupBy('tb_meals.id_employee', 'NIK', 'employee_name', 'dept_code', 'slpj')
-            ->limit(2)
-            ->get();
-
-        foreach ($data as $row) {
-            DB::table('tb_ot_summary')->insert([
-                'id_employee' => $row->id_employee,
-                'periode' => $periode,
-                'start_date' => $start,
-                'end_date' => $end,
-                'nik' => $row->NIK,
-                'employee_name' => $row->employee_name,
-                'dept_code' => $row->dept_code,
-                'slpj' => $row->slpj,
-                'meal_amount' => $row->meals,
-                'gross_amount' => $row->meals,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Summary data has been saved to tb_ot_summary.');
-    }
-
-    public function tax_overtime_calculation(Request $request)
-    {
-        $now = date('Y-m-d H:i:s');
-        $admin = Auth::user()->name;
-        $start = $request->start;
-        $end = $request->end;
-        $periode = date('Y-m', strtotime($end));
-        $fiscal_year = date('Y', strtotime($end));
-        if (!$start || !$end) {
-            return redirect()->back()->with('error', 'Start and End dates are required.');
-        }
-
-        $data = DB::table('tb_ot_summary')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Overtime')
-            ->get();
-
-        foreach ($data as $row) {
-            //MyScript
-            $tb_salary_contract_employee = $this->tb_salary_contract_employee($row->id_employee, '0');
-            foreach ($tb_salary_contract_employee as $dt) {
-                $category = $dt->kategori;
-                $status_pajak = $dt->status_pajak;
-            }
-            $penghasilan_bruto_pajak = $row->gross_amount;
-            $cum = $this->cum_salary_tax_ter($periode, $row->id_employee, 'tb_salary_earn_additional', 'overtime');
-            $cum_tax = $cum + $penghasilan_bruto_pajak;
-            $prev = $cum_tax - $penghasilan_bruto_pajak;
-            $tb_pph21_ter = $this->tb_pph21_ter($category, $cum_tax);
-            foreach ($tb_pph21_ter as $dt2) {
-                $ter_id = $dt2->id;
-                $ter = $dt2->prosentase;
-                $pph21_ter = ($ter * $cum_tax / 100);
-            }
-            $periksa_tax = $this->qty_salary_tax_ter($periode, $row->id_employee, 'tb_salary_earn_additional', 'overtime');
-            $prev_tax = $this->prev_salary_tax_ter($periode, $row->id_employee, 'tb_salary_earn_additional', 'overtime');
-            $balance_amount = $pph21_ter - $prev_tax;
-            //end tax calculation
-            if ($periksa_tax == 0) {
-                $lock = DB::table('tb_salary_ter_monthly')->where('periode', $periode)->where('id_employee', $row->id_employee)->update(['locked' => '1']);
-                $update_tax = DB::table('tb_salary_ter_monthly')->insert([
-                    'id_employee' => $row->id_employee,
-                    'fiscal_year' => $fiscal_year,
-                    'periode' => $periode,
-                    'related_table' => 'tb_salary_earn_additional',
-                    'category' => 'overtime',
-                    'previous_payment' => $prev_tax,
-                    'monthly_salary' => '0',
-                    'prev_amount' => $prev,
-                    'current_amount' => $penghasilan_bruto_pajak,
-                    'cumulative_amount' => $cum_tax,
-                    'status_pajak' => $status_pajak,
-                    'ter_id' => $ter_id,
-                    'prosentase' => $ter,
-                    'tax_amount' => $pph21_ter,
-                    'balance_amount' => $balance_amount,
-                    'admin' => $admin,
-                    'created_at' => $now,
-                    'updated_at' => $now
-                ]);
-            } else {
-                $update_tax = DB::table('tb_salary_ter_monthly')
-                    ->where('periode', $periode)
-                    ->where('id_employee', $row->id_employee)
-                    ->where('related_table', 'tb_salary_earn_additional')
-                    ->where('category', 'overtime')
-                    ->where('locked', '0')
-                    ->update([
-                        'id_employee' => $row->id_employee,
-                        'fiscal_year' => $fiscal_year,
-                        'periode' => $periode,
-                        'related_table' => 'tb_salary_earn_additional',
-                        'category' => 'overtime',
-                        'previous_payment' => $prev_tax,
-                        'prev_amount' => $prev,
-                        'current_amount' => $penghasilan_bruto_pajak,
-                        'cumulative_amount' => $cum_tax,
-                        'status_pajak' => $status_pajak,
-                        'ter_id' => $ter_id,
-                        'prosentase' => $ter,
-                        'tax_amount' => $pph21_ter,
-                        'balance_amount' => $balance_amount,
-                        'admin' => $admin,
-                        'updated_at' => $now
-                    ]);
-            }
-            //EndMyScrip
-
-            if ($update_tax) {
-                $paid = $row->gross_amount - $balance_amount;
-                DB::table('tb_ot_summary')->where('id', $row->id)->update([
-                    'pph21_amount' => $balance_amount,
-                    'net_amount' => $paid,
-                    'updated_at' => now(),
-                ]);
-            }
-        }
-
-        return redirect()->back()->with('success', 'Summary data has been saved to tb_ot_summary.');
-    }
-    public function tb_salary_contract_employee($id_employee)
-    {
-        $tabel = DB::table('tb_salary_contract')
-            ->leftjoin('tb_pph21_status', 'tb_pph21_status.id', '=', 'tb_salary_contract.status_pajak')
-            ->where('id_employee', $id_employee)
-            ->get(['tb_salary_contract.*', 'tb_pph21_status.status_pajak as statuspajak', 'tb_pph21_status.ptkp', 'tb_pph21_status.kategori']);
-        return $tabel;
-    }
-    public function cum_salary_tax_ter($periode, $id_employee, $related, $category)
-    {
-        $tb1 = DB::table('tb_salary_ter_monthly')
-            ->where('periode', $periode)
-            ->where('id_employee', $id_employee)
-            ->where('related_table', $related)
-            ->where('category', $category)
-            ->value('created_at');
-
-        if (!$tb1) {
-            $tb1 = date('Y-m-d H:i:s');
-        }
-
-        $tabel = DB::table('tb_salary_ter_monthly')
-            ->where('periode', $periode)
-            ->where('id_employee', $id_employee)
-            ->where('created_at', '<', $tb1)
-            ->get();
-        $total_tax_amount = $tabel->sum('current_amount');
-        return $total_tax_amount;
-    }
-    public function tb_pph21_ter($kategori, $bruto)
-    {
-        $tabel = DB::table('tb_pph21_ter')->where('ter', $kategori)->where('batas_bawah', '<', $bruto)->where('batas_atas', '>=', $bruto)->get();
-        return $tabel;
-    }
-    public function qty_salary_tax_ter($periode, $id_employee, $related, $category)
-    {
-        $tabel = DB::table('tb_salary_ter_monthly')
-            ->where('periode', $periode)
-            ->where('id_employee', $id_employee)
-            ->where('related_table', $related)
-            ->where('category', $category)
-            ->count();
-        return $tabel;
-    }
-    public function prev_salary_tax_ter($periode, $id_employee, $related, $category)
-    {
-        $tabel = DB::table('tb_salary_ter_monthly')
-            ->where('periode', $periode)
-            ->where('id_employee', $id_employee)
-            ->where('related_table', '<>', $related)
-            ->where('category', '<>', $category)
-            ->get();
-        $total_tax_amount = $tabel->sum('tax_amount');
-        return $total_tax_amount;
-    }
-    public function slip_overtime($start, $end, $id_employee)
-    {
-        if (request()->user()->hasRole('payroll')) {
-            $tabel = DB::table('tb_overtime_details')
-                ->where('date_on', '>=', $start)
-                ->where('date_on', '<=', $end)
-                ->where('id_employee', $id_employee)
-                ->where('status', '6')
-                ->where('captured_at', '<>', null)
-                ->orderBy('date_on', 'asc')
-                ->get()
-                ->keyBy('date_on');
-
-            $employee = DB::table('tb_employees as b')
-                ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
-                ->leftJoin('tb_salaries as d', function ($join) {
-                    $join->on('d.id_employee', '=', 'b.id')
-                        ->where('d.status', 1);
+            $accounts = ['j_50030101', 'j_50030102', 'j_50030107', 'j_50030110'];
+            // 2. InDirect
+            $tb1 = DB::table('tb_salary_summary as a')
+                ->leftJoin('tb_salary_contract as b', 'b.id_employee', '=', 'a.id_employee')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(COALESCE(a.pendapatan_bruto, 0)) - SUM(COALESCE(a.tunjangan_transport, 0)) - SUM(COALESCE(a.tunjangan_shift, 0)) AS j_50030101,
+                    SUM(a.tunjangan_transport) + SUM(a.tunjangan_shift) AS j_50030102,
+                    SUM(a.jaminan_hari_tua) + SUM(a.jaminan_pensiun) AS j_50030107,
+                    SUM(a.bpjs_kesehatan) AS j_50030110
+                ')
+                ->where('a.periode', $periode)
+                ->whereNotNull('a.tipe_kontrak')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '121%')
+                    ->orWhere('b.cc_code', 'LIKE', '122%')
+                    ->orWhere('b.cc_code', 'LIKE', '123%');
                 })
-                ->where('b.id', $id_employee)
-                ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
-                ->first();
-
-            $summary = DB::table('tb_ot_summary')
-                ->where('id_employee', $id_employee)
-                ->where('start_date', $start)
-                ->where('end_date', $end)
-                ->first();
-
-            $meals = DB::table('tb_meals')
-                ->where('id_employee', $id_employee)
-                ->where('date_on', '>=', $start)
-                ->where('date_on', '<=', $end)
-                ->where('is_deleted', 0)
-                ->get()
-                ->keyBy('date_on');
-
-            $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
-
-            $dates = [];
-            $current = strtotime($start);
-            $last = strtotime($end);
-            while ($current <= $last) {
-                $dates[] = date('Y-m-d', $current);
-                $current = strtotime('+1 day', $current);
+                ->groupBy('b.cc_code')
+                ->get();
+            
+            DB::beginTransaction();
+            try {
+                foreach ($tb1 as $dt1) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt1->cc_code,
+                                'category'     => 'InDirect',
+                                'source'       => 'Payroll',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt1->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
             }
 
-            $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
+            $accounts = ['j_60010100', 'j_60010200', 'j_60010700', 'j_60011000'];
+            // 3. Opex
+            $tb1 = DB::table('tb_salary_summary as a')
+                ->leftJoin('tb_salary_contract as b', 'b.id_employee', '=', 'a.id_employee')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(COALESCE(a.pendapatan_bruto, 0)) - SUM(COALESCE(a.tunjangan_transport, 0)) - SUM(COALESCE(a.tunjangan_shift, 0)) AS j_60010100,
+                    SUM(a.tunjangan_transport) + SUM(a.tunjangan_shift) AS j_60010200,
+                    SUM(a.jaminan_hari_tua) + SUM(a.jaminan_pensiun) AS j_60010700,
+                    SUM(a.bpjs_kesehatan) AS j_60011000
+                ')
+                ->where('a.periode', $periode)
+                ->whereNotNull('a.tipe_kontrak')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '11%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            
+            DB::beginTransaction();
+            try {
+                foreach ($tb1 as $dt1) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt1->cc_code,
+                                'category'     => 'Opex',
+                                'source'       => 'Payroll',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt1->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        // Payroll End
+        // Overtime
+            $accounts = ['j_50020103', 'j_50020110'];
+            // 1. Direct
+            $tb2 = DB::table('tb_ot_summary as a')
+                ->leftJoin('tb_employees as b', 'b.id', '=', 'a.id_employee')
+                ->leftjoin('tb_departments as c','c.id','=','b.dept_id')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(a.ot_amount)+SUM(a.rapel_amount) AS j_50020103,
+                    SUM(a.meal_amount) AS j_50020110
+                ')
+                ->where('a.periode', $periode)
+                ->where('a.kategori', 'Overtime')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '120%')
+                    ->orWhere('b.cc_code', 'LIKE', '124%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            DB::beginTransaction();
+            try {
+                foreach ($tb2 as $dt2) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt2->cc_code,
+                                'category'     => 'Direct',
+                                'source'       => 'Overtime',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt2->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+                
 
-            $FileName = 'SLIP_OT_' . ($employee->NIK ?? 'UNDEF') . '.PDF';
-            $pdf = PDF::loadview('payroll.slip_overtime', $data)->setPaper('A5', 'landscape');
-            return $pdf->stream($FileName);
-        } else {
-            return abort(403, 'Anda tidak punya akses');
-        }
-    }
-    public function slip_overtime_personal($start, $end, $id_employee)
-    {
-        $email = Auth::user()->email;
-        $id = DB::table('tb_emails')
-            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
-            ->where('email_address', $email)->value('tb_employees.id');
-        if ($id_employee != $id) {
-            return abort(403, 'Anda tidak punya akses');
-        }
-        $tabel = DB::table('tb_overtime_details')
-            ->where('date_on', '>=', $start)
-            ->where('date_on', '<=', $end)
-            ->where('id_employee', $id_employee)
-            ->where('status', '6')
-            ->where('captured_at', '<>', null)
-            ->orderBy('date_on', 'asc')
-            ->get()
-            ->keyBy('date_on');
+            $accounts = ['j_50030103', 'j_50030110'];
+            // 2. InDirect
+            $tb2 = DB::table('tb_ot_summary as a')
+                ->leftJoin('tb_employees as b', 'b.id', '=', 'a.id_employee')
+                ->leftjoin('tb_departments as c','c.id','=','b.dept_id')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(a.ot_amount)+SUM(a.rapel_amount) AS j_50030103,
+                    SUM(a.meal_amount) AS j_50030110
+                ')
+                ->where('a.periode', $periode)
+                ->where('a.kategori', 'Overtime')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '121%')
+                    ->orWhere('b.cc_code', 'LIKE', '122%')
+                    ->orWhere('b.cc_code', 'LIKE', '123%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            DB::beginTransaction();
+            try {
+                foreach ($tb2 as $dt2) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt2->cc_code,
+                                'category'     => 'InDirect',
+                                'source'       => 'Overtime',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt2->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+                
 
-        $employee = DB::table('tb_employees as b')
-            ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
-            ->leftJoin('tb_salaries as d', function ($join) {
-                $join->on('d.id_employee', '=', 'b.id')
-                    ->where('d.status', 1);
-            })
-            ->where('b.id', $id_employee)
-            ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
-            ->first();
+            $accounts = ['j_60010300', 'j_60011000'];
+            // 3. Ovex
+            $tb2 = DB::table('tb_ot_summary as a')
+                ->leftJoin('tb_employees as b', 'b.id', '=', 'a.id_employee')
+                ->leftjoin('tb_departments as c','c.id','=','b.dept_id')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(a.ot_amount)+SUM(a.rapel_amount) AS j_60010300,
+                    SUM(a.meal_amount) AS j_60011000
+                ')
+                ->where('a.periode', $periode)
+                ->where('a.kategori', 'Overtime')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '11%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            DB::beginTransaction();
+            try {
+                foreach ($tb2 as $dt2) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt2->cc_code,
+                                'category'     => 'Opex',
+                                'source'       => 'Overtime',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt2->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+                
 
-        $summary = DB::table('tb_ot_summary')
-            ->where('id_employee', $id_employee)
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->first();
+        // Overtime End
+        // Assignment
+            $accounts = ['j_50020113'];
+            // 1. Direct
+            $tb2 = DB::table('tb_ot_summary as a')
+                ->leftJoin('tb_employees as b', 'b.id', '=', 'a.id_employee')
+                ->leftjoin('tb_departments as c','c.id','=','b.dept_id')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(a.ot_amount)+SUM(a.rapel_amount) AS j_50020113
+                ')
+                ->where('a.periode', $periode)
+                ->where('a.kategori', 'Assignment')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '120%')
+                    ->orWhere('b.cc_code', 'LIKE', '124%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            DB::beginTransaction();
+            try {
+                foreach ($tb2 as $dt2) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt2->cc_code,
+                                'category'     => 'Direct',
+                                'source'       => 'Assignment',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt2->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+                
 
-        $meals = DB::table('tb_meals')
-            ->where('id_employee', $id_employee)
-            ->where('date_on', '>=', $start)
-            ->where('date_on', '<=', $end)
-            ->where('is_deleted', 0)
-            ->get()
-            ->keyBy('date_on');
+            $accounts = ['j_50030113'];
+            // 2. InDirect
+            $tb2 = DB::table('tb_ot_summary as a')
+                ->leftJoin('tb_employees as b', 'b.id', '=', 'a.id_employee')
+                ->leftjoin('tb_departments as c','c.id','=','b.dept_id')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(a.ot_amount)+SUM(a.rapel_amount) AS j_50030113
+                ')
+                ->where('a.periode', $periode)
+                ->where('a.kategori', 'Assignment')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '121%')
+                    ->orWhere('b.cc_code', 'LIKE', '122%')
+                    ->orWhere('b.cc_code', 'LIKE', '123%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            DB::beginTransaction();
+            try {
+                foreach ($tb2 as $dt2) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt2->cc_code,
+                                'category'     => 'InDirect',
+                                'source'       => 'Assignment',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt2->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+                
 
-        $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
+            $accounts = ['j_60011300'];
+            // 3. Opex
+            $tb2 = DB::table('tb_ot_summary as a')
+                ->leftJoin('tb_employees as b', 'b.id', '=', 'a.id_employee')
+                ->leftjoin('tb_departments as c','c.id','=','b.dept_id')
+                ->selectRaw('
+                    b.cc_code,
+                    SUM(a.ot_amount)+SUM(a.rapel_amount) AS j_60011300
+                ')
+                ->where('a.periode', $periode)
+                ->where('a.kategori', 'Assignment')
+                ->where(function ($q) {
+                    $q->where('b.cc_code', 'LIKE', '11%');
+                })
+                ->groupBy('b.cc_code')
+                ->get();
+            DB::beginTransaction();
+            try {
+                foreach ($tb2 as $dt2) {
+                    foreach ($accounts as $acc) {
+                        DB::table('tb_journals')->updateOrInsert(
+                            // Kunci unik (WHERE)
+                            [
+                                'periode'      => $periode,
+                                'account_code' => substr($acc, -8),
+                                'cc_code'      => $dt2->cc_code,
+                                'category'     => 'Opex',
+                                'source'       => 'Assignment',
+                            ],
+                            // Nilai yang di-update / di-insert
+                            [
+                                'amount'     => $dt2->$acc ?? 0,
+                                'admin'      => $admin,
+                                'updated_at' => now(),   // opsional
+                            ]
+                        );
+                    }
+                }
+            
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+                
 
-        $dates = [];
-        $current = strtotime($start);
-        $last = strtotime($end);
-        while ($current <= $last) {
-            $dates[] = date('Y-m-d', $current);
-            $current = strtotime('+1 day', $current);
-        }
+        // Assignment End
 
-        $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
-
-        $FileName = 'SLIP_OT_' . ($employee->NIK ?? 'UNDEF') . '.PDF';
-        $pdf = PDF::loadview('payroll.slip_overtime', $data)->setPaper('A5', 'landscape');
-        return $pdf->stream($FileName);
-    }
-    public function capture_assignment(Request $request, $start = null, $end = null)
-    {
-        $start = $start ?? $request->start;
-        $end = $end ?? $request->end;
-
-        if (!$start || !$end || $start == '0' || $end == '0') {
-            $today = date('Y-m-d');
-            $periode = date('Y-m', strtotime($today));
-            $end = date('Y-m-d', strtotime($periode . '-24'));
-            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
-            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
-            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
-        }
-
-        $tb1 = DB::table('tb_overtime_spv')
-            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_overtime_spv.id_employee')
-            ->leftjoin('tb_departments', 'tb_departments.id', '=', 'tb_employees.dept_id')
-            ->leftjoin('tb_positions', 'tb_positions.id', '=', 'tb_employees.position_id')
-            ->select('tb_employees.NIK', 'tb_employees.employee_name', 'tb_departments.dept_code', 'tb_positions.position_name', DB::raw('SUM(amount) as total_amount'))
-            ->Where([['tb_overtime_spv.isVerified', '1'], ['tb_overtime_spv.isDelete', '0'], ['tb_overtime_spv.ot_date', '>=', $start], ['tb_overtime_spv.ot_date', '<=', $end]])
-            ->groupby('tb_employees.NIK', 'tb_employees.employee_name', 'tb_employees.PIN', 'tb_employees.dept_id', 'tb_departments.dept_code', 'tb_positions.position_index', 'tb_positions.position_name')
-            ->get(['tb_employees.NIK', 'tb_employees.employee_name', 'tb_departments.dept_code', 'tb_positions.position_name']);
-
-        $menu = 'capture_assignment';
-
-        return view('payroll.capture_assignment', compact('tb1', 'start', 'end', 'menu'));
-    }
-    public function save_summary_assignment(Request $request)
-    {
-        $start = $request->start;
-        $end = $request->end;
-        $periode = date('Y-m', strtotime($end));
-        if (!$start || !$end) {
-            return redirect()->back()->with('error', 'Start and End dates are required.');
-        }
-
-        $tb1 = DB::table('tb_overtime_spv')
-            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_overtime_spv.id_employee')
-            ->leftjoin('tb_departments', 'tb_departments.id', '=', 'tb_employees.dept_id')
-            ->leftjoin('tb_positions', 'tb_positions.id', '=', 'tb_employees.position_id')
-            ->select('tb_employees.NIK', 'tb_employees.id', 'tb_employees.employee_name', 'tb_departments.dept_code', 'tb_positions.position_name', DB::raw('SUM(amount) as total_amount'))
-            ->Where([['tb_overtime_spv.isVerified', '1'], ['tb_overtime_spv.isDelete', '0'], ['tb_overtime_spv.ot_date', '>=', $start], ['tb_overtime_spv.ot_date', '<=', $end]])
-            ->groupby('tb_employees.NIK', 'tb_employees.id', 'tb_employees.employee_name', 'tb_employees.PIN', 'tb_employees.dept_id', 'tb_departments.dept_code', 'tb_positions.position_index', 'tb_positions.position_name')
-            ->get(['tb_employees.NIK', 'tb_employees.id', 'tb_employees.employee_name', 'tb_departments.dept_code', 'tb_positions.position_name']);
-
-        // return $tb1;
-        foreach ($tb1 as $row) {
-            DB::table('tb_ot_summary')->updateOrInsert(
-                [
-                    'id_employee' => $row->id,
-                    'periode' => $periode,
-                    'start_date' => $start,
-                    'end_date' => $end,
-                    'kategori' => 'Assignment'
-                ],
-                [
-                    'nik' => $row->NIK,
-                    'employee_name' => $row->employee_name,
-                    'dept_code' => $row->dept_code,
-                    'ot_amount' => $row->total_amount,
-                    'gross_amount' => $row->total_amount,
-                    'net_amount' => $row->total_amount,
-                    'updated_at' => now(),
-                ]
-            );
-        }
-        $update_capture = DB::table('tb_overtime_spv')->where('ot_date', '>=', $start)->where('ot_date', '<=', $end)->where('isVerified', '1')->update([
-            'captured_at' => now(),
-        ]);
-
-        return redirect('/payroll/summary_assignment/' . $start . '/' . $end)->with('success', 'Summary data has been saved to tb_ot_summary.');
-    }
-    public function summary_assignment(Request $request, $start = null, $end = null)
-    {
-        $start = $start ?? $request->start;
-        $end = $end ?? $request->end;
-
-        if (!$start || !$end || $start == '0' || $end == '0') {
-            $today = date('Y-m-d');
-            $periode = date('Y-m', strtotime($today));
-            $end = date('Y-m-d', strtotime($periode . '-24'));
-            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
-            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
-            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
-        }
-
-        $tb1 = DB::table('tb_ot_summary')
-            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
-            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Assignment')
-            ->orderby('dept_code', 'asc')
-            ->orderby('employee_name', 'asc')
-            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code']);
-
-        $menu = 'summary_assignment';
-
-        return view('payroll.summary_assignment', compact('tb1', 'start', 'end', 'menu'));
-    }
-    public function distribute_assignment_slip($start = null, $end = null)
-    {
-        $update = DB::table('tb_ot_summary')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Assignment')
-            ->update([
-                'distribute' => '1',
+        $tb_journal=DB::table('tb_journals')->where('periode',$periode)->where('amount','>','0')->get();
+        $today=date('Y-m-d');
+        $menu='recap_journal';
+        if (request()->user()->hasRole('accounting')) {
+            return view('payroll.recap_journal', [
+                'periode' => $periode,
+                'tb_journal' => $tb_journal,
+                'today'=>$today,
+                'menu' => $menu
             ]);
-        if ($update)
-            return redirect()->back()->with('success', 'Data berhasil didistribusikan.');
-        else
-            return redirect()->back()->with('error', 'Data gagal didistribusikan.');
-    }
-    public function tax_assignment_excel(Request $request, $start = null, $end = null)
-    {
-        $start = $start ?? $request->start;
-        $end = $end ?? $request->end;
-
-        if (!$start || !$end || $start == '0' || $end == '0') {
-            $today = date('Y-m-d');
-            $periode = date('Y-m', strtotime($today));
-            $end = date('Y-m-d', strtotime($periode . '-24'));
-            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
-            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
-            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
-        } else {
-            $periode = date('Y-m');
-        }
-
-        $tb1 = DB::table('tb_ot_summary')
-            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
-            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Assignment')
-            ->orderby('dept_code', 'asc')
-            ->orderby('employee_name', 'asc')
-            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code']);
-
-        $menu = 'summary_assignment';
-        $nik = Auth::user()->nik;
-        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
-        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Assignment')->get();
-        return view('payroll.summary_assignment_excel', compact('tb1', 'start', 'end', 'menu', 'periode', 'id_employee', 'tb_approval'));
-    }
-    function tax_assignment_pdf($start, $end)
-    {
-        if (!$start || !$end || $start == '0' || $end == '0') {
-            $today = date('Y-m-d');
-            $periode = date('Y-m', strtotime($today));
-            $end = date('Y-m-d', strtotime($periode . '-24'));
-            $awal_bulan = date('Y-m-d', strtotime($periode . '-01'));
-            $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
-            $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
-        } else {
-            $periode = date('Y-m');
-        }
-        $tb1 = DB::table('tb_ot_summary')
-            ->leftjoin('tb_employee_detail as a', 'a.id_employee', '=', 'tb_ot_summary.id_employee')
-            ->leftjoin('tb_employees as b', 'b.id', '=', 'tb_ot_summary.id_employee')
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->where('kategori', 'Assignment')
-            ->orderby('dept_code', 'asc')
-            ->orderby('employee_name', 'asc')
-            ->get(['tb_ot_summary.*', 'a.nomor_rekening', 'b.cc_code']);
-        $nik = Auth::user()->nik;
-        $id_employee = DB::table('tb_employees')->where('NIK', $nik)->value('id');
-        $tb_approval = DB::table('tb_payroll_approval')->where('periode', $periode)->where('tipe', 'Assignment')->get();
-        if (request()->user()->hasRole('payroll')) {
-            $FileName = 'Overtime_Summary_' . $start . '_' . $end . '.pdf';
-            $pdf = PDF::loadview('payroll/summary_assignment_pdf', ['tb1' => $tb1, 'periode' => $periode, 'start' => $start, 'end' => $end, 'menu' => 'payroll', 'juduls' => 'Summary Overtime', 'tb_approval' => $tb_approval, 'id_employee' => $id_employee])->setPaper('a3', 'landscape');
-            return $pdf->stream($FileName);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
     }
-    public function slip_assignment($start, $end, $id_employee)
-    {
-        $email = Auth::user()->email;
-        $id = DB::table('tb_emails')
-            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
-            ->where('email_address', $email)->value('tb_employees.id');
-        if ($id_employee != $id) {
-            return abort(403, 'Anda tidak punya akses');
-        }
-        $tabel = DB::table('tb_overtime_spv')
-            ->where('ot_date', '>=', $start)
-            ->where('ot_date', '<=', $end)
-            ->where('id_employee', $id_employee)
-            ->where('isVerified', '1')
-            ->where('captured_at', '<>', null)
-            ->orderBy('ot_date', 'asc')
-            ->get()
-            ->keyBy('ot_date');
-
-        $employee = DB::table('tb_employees as b')
-            ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
-            ->leftJoin('tb_salaries as d', function ($join) {
-                $join->on('d.id_employee', '=', 'b.id')
-                    ->where('d.status', 1);
-            })
-            ->where('b.id', $id_employee)
-            ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
-            ->first();
-
-        $summary = DB::table('tb_ot_summary')
-            ->where('id_employee', $id_employee)
-            ->where('start_date', $start)
-            ->where('end_date', $end)
-            ->first();
-
-        $meals = DB::table('tb_meals')
-            ->where('id_employee', $id_employee)
-            ->where('date_on', '>=', $start)
-            ->where('date_on', '<=', $end)
-            ->where('is_deleted', 0)
-            ->get()
-            ->keyBy('date_on');
-
-        $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
-
-        $dates = [];
-        $current = strtotime($start);
-        $last = strtotime($end);
-        while ($current <= $last) {
-            $dates[] = date('Y-m-d', $current);
-            $current = strtotime('+1 day', $current);
-        }
-
-        $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
-
-        $FileName = 'SLIP_ASSIGNMENT_' . ($employee->NIK ?? 'UNDEF') . '.PDF';
-        $pdf = PDF::loadview('page_ess.slip_assignment', $data)->setPaper('A5', 'landscape');
-        return $pdf->stream($FileName);
-    }
-
 }

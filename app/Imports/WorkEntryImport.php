@@ -7,7 +7,7 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 
 
-class WorkEntryImport implements ToModel,WithStartRow
+class WorkEntryImport implements ToModel, WithStartRow
 {
 
     /**
@@ -23,16 +23,18 @@ class WorkEntryImport implements ToModel,WithStartRow
         return new tb_work_entry([
             'id' => '',
             'id_employee' => $row[1],
-            'periode' => $row[5], 
-            'hari_kerja' => $row[6], 
-            'aktual_kerja' => $row[7], 
-            'cuti' => $row[8], 
-            'aktual_shift' => $row[9], 
-            'ijin'=>$row[10],
-            'sakit'=>$row[11],
-            'magkir'=>$row[12],
-            'absen'=>$row[13],
-            'import_status'=>'1'
+            'tipe_kontrak' => $row[2],
+            'periode' => $row[6],
+            'hari_kerja' => '0',
+            'aktual_kerja' => (int) (float) ($row[7] ?? 0),
+            'ot_weekend' => '0',
+            'cuti' => '0',
+            'aktual_shift' => (int) (float) ($row[8] ?? 0),
+            'ijin' => '0',
+            'sakit' => '0',
+            'mangkir' => '0',
+            'absen' => (int) (float) ($row[9] ?? 0),
+            'import_status' => '1'
         ]);
     }
 

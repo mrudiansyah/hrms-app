@@ -20,24 +20,6 @@
                     {{ session('success') }}
                 </div>
             @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <h4><i class="icon fa fa-ban"></i> Error!</h4>
-                    {{ session('error') }}
-                </div>
-            @endif
-            @if($errors->any())
-                <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <h4><i class="icon fa fa-ban"></i> Error!</h4>
-                    <ul style="margin-bottom: 0;">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
 
             <div class="row">
                 <div class="col-md-12">
@@ -47,8 +29,7 @@
                             <h3 class="box-title"><i class="fa fa-filter"></i> Filter Periode</h3>
                         </div>
                         <div class="box-body">
-                            <form action="{{ url('/payroll/tax_overtime') }}" method="GET" class="form-inline"
-                                style="display: inline-block;">
+                            <form action="{{ url('/payroll/tax_overtime') }}" method="GET" class="form-inline" style="display: inline-block;">
                                 <div class="form-group">
                                     <label for="start">Start Date: </label>
                                     <input type="date" name="start" id="start" class="form-control" value="{{ $start }}">
@@ -60,8 +41,7 @@
                                 <button type="submit" class="btn btn-primary" style="margin-left: 10px;">
                                     <i class="fa fa-search"></i> Filter
                                 </button>
-                                <button type="button" class="btn btn-info" style="margin-left: 5px;" data-toggle="modal"
-                                    data-target="#modal-import">
+                                <button type="button" class="btn btn-info" style="margin-left: 5px;" data-toggle="modal" data-target="#modal-import">
                                     <i class="fa fa-file-excel-o"></i> Rapel
                                 </button>
                             </form>
@@ -73,8 +53,7 @@
                                     <i class="fa fa-cutlery"></i> Meals
                                 </button>
                             </form>&nbsp;&nbsp;
-                            <form action="{{ url('/payroll/tax_overtime/calculation') }}" method="POST"
-                                style="display: inline-block;">
+                            <form action="{{ url('/payroll/tax_overtime/calculation') }}" method="POST" style="display: inline-block;">
                                 @csrf
                                 <input type="hidden" name="start" value="{{ $start }}">
                                 <input type="hidden" name="end" value="{{ $end }}">
@@ -82,12 +61,12 @@
                                     <i class="fa fa-calculator"></i> Tax Calculation
                                 </button>
                             </form>&nbsp;&nbsp;
-                            <a href="{{ url('/payroll/tax_overtime_excel/' . $start . '/' . $end) }}"
-                                class="btn btn-success btn-md" style="margin-left: 5px;"><i class="fa fa-file-excel-o"></i>
-                                &nbsp;Excel</a>
-                            <a href="{{ url('/payroll/distribute_spl_slip/' . $start . '/' . $end) }}"
-                                class="btn btn-primary btn-md" style="margin-left: 5px;"><i class="fa fa-envelope"></i>
-                                &nbsp;Distribute</a>
+                            @if($is_psab==1)
+                                <a href="{{ url('/payroll/tax_overtime_psab_excel/'.$start.'/'.$end) }}" class="btn btn-success btn-md" style="margin-left: 5px;"><i class="fa fa-file-excel-o"></i> &nbsp;Excel</a>
+                            @else
+    							<a href="{{ url('/payroll/tax_overtime_excel/'.$start.'/'.$end) }}" class="btn btn-success btn-md" style="margin-left: 5px;"><i class="fa fa-file-excel-o"></i> &nbsp;Excel</a>
+                            @endif
+							<a href="{{ url('/payroll/distribute_spl_slip/'.$start.'/'.$end) }}" class="btn btn-primary btn-md" style="margin-left: 5px;"><i class="fa fa-envelope"></i> &nbsp;Distribute</a>
                         </div>
                     </div>
 
@@ -96,12 +75,10 @@
                         <div class="modal-dialog" role="document">
                             <div class="modal-content">
                                 <div class="modal-header bg-aqua">
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                            aria-hidden="true">&times;</span></button>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                     <h4 class="modal-title">Import Rapel</h4>
                                 </div>
-                                <form action="{{ url('/payroll/import_rapel') }}" method="POST"
-                                    enctype="multipart/form-data">
+                                <form action="{{ url('/payroll/import_rapel') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <input type="hidden" name="start" value="{{ $start }}">
                                     <input type="hidden" name="end" value="{{ $end }}">
@@ -177,8 +154,7 @@
                     <!-- Data Box -->
                     <div class="box box-primary">
                         <div class="box-header with-border">
-                            <h3 class="box-title"><i class="fa fa-list"></i> Overtime Summary ({{ $start }} - {{ $end }})
-                            </h3>
+                            <h3 class="box-title"><i class="fa fa-list"></i> Overtime Summary ({{ $start }} - {{ $end }})</h3>
                         </div>
                         <div class="box-body">
                             <div class="table-responsive">
@@ -188,7 +164,7 @@
                                             <th>No</th>
                                             <th>Dept</th>
                                             <th>CC_Code</th>
-                                            <th>Name</th>
+                                            <th>Employee Name</th>
                                             <th>NIK</th>
                                             <th>Position</th>
                                             <th>SLPJ</th>
@@ -230,14 +206,13 @@
                                                     </button>
                                                 </td>
                                                 <td>{{ number_format($item->gross_amount, 0) }}</td>
-                                                <td>{{ number_format($item->pph21_amount, 0) }}</td>
-                                                <td>{{ number_format($item->net_amount, 0) }}</td>
+                                                <td>{{ number_format($item->pph21_amount, 0) }} <?php $x=$item->gross_amount-$item->pph21_amount;?></td>
+                                                <td>{{ number_format($x, 0) }}</td>
                                                 <td>{{ $item->nomor_rekening }}</td>
-                                                <td>{{ number_format($item->net_amount, 0) }}</td>
+                                                <td>{{ number_format($x, 0) }}</td>
                                                 <td>{{ $item->employee_name }}</td>
                                                 <td>
-                                                    <a href="{{ url('/payroll/slip/overtime/' . $start . '/' . $end . '/' . $item->id_employee) }}"
-                                                        class="btn btn-xs btn-primary"><i class="fa fa-print"></i></a>
+                                                    <a href="{{ url('/payroll/slip/overtime/'.$start.'/'.$end.'/'.$item->id_employee) }}" class="btn btn-xs btn-primary"><i class="fa fa-print"></i></a>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -254,15 +229,15 @@
 
 @section('Scripts')
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             $('#payroll-table').DataTable({
-                'paging': true,
+                'paging'      : true,
                 'lengthChange': true,
-                'searching': true,
-                'ordering': true,
-                'info': true,
-                'autoWidth': false,
-                "pageLength": 10,
+                'searching'   : true,
+                'ordering'    : true,
+                'info'        : true,
+                'autoWidth'   : false,
+                "pageLength"  : 10,
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
                 dom: 'Bfrtip',
                 buttons: [

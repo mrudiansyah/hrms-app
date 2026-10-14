@@ -152,7 +152,8 @@
 	<script>
 		$('body').on("change","#periode",function(){
 			var periode=document.getElementById('periode').value;
-			window.location.href="/Overtimes/Department/"+periode+"/0";
+			var dept="{{$dept_id}}";
+			window.location.href="/EMS/AbsensiRate/"+periode+"/"+dept;
 		});
 	</script>
 	<!-- Tabel Configuration -->

@@ -81,24 +81,36 @@
                     $hari = $hari_id[$hari_en] ?? strtoupper($hari_en);
                     
                     $isEndOfWeek = in_array($hari, ['SABTU', 'MINGGU']);
-                    $ot = $tabel->get($date);
-                    $meal = $meals->get($date);
+
+                    // Ambil semua row OT di tanggal ini (bisa >1 row)
+                    $otsOnDate = $tabel->where('date_on', $date);
+                    $ot = $otsOnDate->first(); // untuk jam awal/akhir (ambil pertama)
+                    $meal = $meals->where('date_on', $date)->first();
                     
                     $slpj = $employee->slpj ?? 0;
                     
                     $jam_awal = '';
                     $jam_akhir = '';
-                    $total_jam = '';
-                    $konversi = '';
+                    $total_jam = 0;
+                    $konversi = 0;
                     $uang_lembur = 0;
                     $uang_makan_ot = 0;
                     $uang_makan_tl = 0;
 
-                    if ($ot) {
-                        $jam_awal = $ot->start_act ? date('H:i', strtotime($ot->start_act)) : '';
-                        $jam_akhir = $ot->finish_act ? date('H:i', strtotime($ot->finish_act)) : '';
-                        $total_jam = $ot->hours_act;
-                        $konversi = $ot->hours_convertion;
+                    if ($otsOnDate->isNotEmpty()) {
+                        // Kumpulkan semua jam awal & akhir dari setiap row
+                        $jam_awal_arr  = [];
+                        $jam_akhir_arr = [];
+                        foreach ($otsOnDate as $otRow) {
+                            $jam_awal_arr[]  = $otRow->start_act  ? date('H:i', strtotime($otRow->start_act))  : '-';
+                            $jam_akhir_arr[] = $otRow->finish_act ? date('H:i', strtotime($otRow->finish_act)) : '-';
+                        }
+                        $jam_awal  = implode('<br>', $jam_awal_arr);
+                        $jam_akhir = implode('<br>', $jam_akhir_arr);
+
+                        // Jumlahkan hours_act & hours_convertion dari semua row
+                        $total_jam = $otsOnDate->sum('hours_act');
+                        $konversi  = $otsOnDate->sum('hours_convertion');
                         
                         if(($employee->position_id ?? 0) == 18) {
                             $uang_lembur = $amt_driver;
@@ -120,20 +132,22 @@
                     $grand_uang_makan_tl += $uang_makan_tl;
                     $grand_total_bayar += $total_bayar;
                 @endphp
+                @if($otsOnDate->isNotEmpty() || $isEndOfWeek)
                 <tr>
                     <td class="{{ $isEndOfWeek ? 'bg-red' : '' }}">{{ str_pad($no++, 2, '0', STR_PAD_LEFT) }}</td>
                     <td class="{{ $isEndOfWeek ? 'bg-red' : '' }}">{{ $hari }}</td>
                     <td>{{ $date != '' ? date('d-m-Y', strtotime($date)) : '' }}</td>
                     <td>{{ $slpj > 0 ? number_format($slpj, 0, '.', ',') : '' }}</td>
-                    <td>{{ $jam_awal }}</td>
-                    <td>{{ $jam_akhir }}</td>
-                    <td>{{ $total_jam ?: '' }}</td>
-                    <td>{{ $konversi ?: '' }}</td>
+                    <td>{!! $jam_awal !!}</td>
+                    <td>{!! $jam_akhir !!}</td>
+                    <td>{{ $total_jam > 0 ? $total_jam : '' }}</td>
+                    <td>{{ $konversi > 0 ? $konversi : '' }}</td>
                     <td>{{ $uang_lembur > 0 ? number_format($uang_lembur, 0, '.', ',') : '' }}</td>
-                    <td>{{ $uang_lembur || $uang_makan_ot ? number_format($uang_makan_ot, 0, '.', ',') : ($ot ? '0' : '') }}</td>
-                    <td>{{ $uang_lembur || $uang_makan_tl ? number_format($uang_makan_tl, 0, '.', ',') : ($ot ? '0' : '') }}</td>
+                    <td>{{ $uang_lembur || $uang_makan_ot ? number_format($uang_makan_ot, 0, '.', ',') : ($otsOnDate->isNotEmpty() ? '0' : '') }}</td>
+                    <td>{{ $uang_lembur || $uang_makan_tl ? number_format($uang_makan_tl, 0, '.', ',') : ($otsOnDate->isNotEmpty() ? '0' : '') }}</td>
                     <td>{{ $total_bayar > 0 ? number_format($total_bayar, 0, '.', ',') : '' }}</td>
                 </tr>
+                @endif
             @endforeach
 
             <tr>

@@ -1434,7 +1434,7 @@ class performance_controller extends Controller
                 }
             }
             if (request()->user()->hasRole('root') || request()->user()->hasRole('hr_access') || request()->user()->hasRole('performance')) {
-                return view('page/performance/performance_hr', ['menu' => 'performanceAll', 'tb_employee' => $tb_employee, 'periode' => $periode, 'jumlah' => $jumlah, 'level' => $level, 'tb_department' => $tb_department, 'tb_position' => $tb_position, 'nm_level' => $nm_level, 'dept' => $dept, 'today' => $today, 'status' => '1']);
+                return view('page/performance/performance_hr', ['menu' => 'performanceHR', 'tb_employee' => $tb_employee, 'periode' => $periode, 'jumlah' => $jumlah, 'level' => $level, 'tb_department' => $tb_department, 'tb_position' => $tb_position, 'nm_level' => $nm_level, 'dept' => $dept, 'today' => $today, 'status' => '1']);
             }
 
         }

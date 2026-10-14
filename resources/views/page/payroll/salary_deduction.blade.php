@@ -1,0 +1,316 @@
+@extends('layouts/payroll')
+@section('Contents')
+	<section class="content">
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="box box-primary" style="background:#FFF;">
+					<div class="box-header">
+					&nbsp;	
+					<button type="button" class="btn btn-primary btn-md import-modal" id="import"><i class="fa fa-upload"></i> &nbsp;Import</button>
+						<div class="pull-left">
+							<input type="month" id="periode" class="form-control" value="{{$periode}}">	
+						</div>
+						<div class="pull-right">
+							<button class="btn btn-primary btn-md" id="form" data-idcomponent="" data-periode="{{$periode}}" data-idemployee="" data-amount="0" data-component="" data-description=""><i class="fa fa-plus"></i> &nbsp;Add New</button>
+						</div>
+					</div>
+					<div class="box-body">
+						<table id="tables" class="table table-bordered">
+							<thead>
+								<tr>
+								<th style="width:50px;">No</th>
+									<th style="width:90px;">NIK</th>
+									<th style="width:200px;">EMPLOYEE</th>
+									<th style="width:50px;">POSITION</th>
+									<th style="width:50px;">DEPT</th>
+									<th style="width:50px;">TAX_STATUS</th>
+									<th style="width:50px;">PERIOD</th>
+									<th style="width:50px;">COMPONENT</th>
+									<th style="width:50px;">AMOUNT</th>
+									<th>DESCRIPTION</th>
+								</tr>
+							</thead>
+							<tbody>
+							<?php $no=0;?>
+							@foreach($tb_salary_deduction as $dt)
+								<tr>
+									<td>
+										<?php $no++;?>
+										{{$no}}
+									</td>
+									<td>{{$dt->NIK}}</td>
+									<td>{{$dt->nama_karyawan}}</td>
+									<td>{{$dt->jabatan}}</td>
+									<td>{{$dt->department}}</td>
+									<td>{{$dt->statuspajak}}</td>
+									<td>{{$dt->periode}}</td>
+									<td><?php echo strtoupper($dt->component_name);?></td>
+									<td><?php echo number_format($dt->deduction_amount,0);?></td>
+									<td>
+										{{$dt->description}}
+										<div class="pull-right">
+											<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="{{$dt->id}}" data-delname="{{$dt->nama_karyawan}}" data-akses="<?php if($status==1)echo 'Delete';else echo 'Recreate';?>"><i class="<?php if($status==1)echo 'fa fa-trash';else echo 'fa fa-upload';?>"></i></button>
+											<button class="btn btn-primary btn-xs" id="form" data-idcomponent="{{$dt->id}}" data-periode="{{$dt->periode}}" data-idemployee="{{$dt->id_employee}}" data-amount="<?php echo number_format($dt->deduction_amount,0,",",".");?>" data-componentname="{{$dt->component_name}}" data-description="{{$dt->description}}"><i class="fa fa-edit"></i></button>
+										</div>
+									</td>
+								</tr>
+							@endforeach
+							</tbody>
+						</table>
+					</div>
+					<!-- /.box-body -->
+				</div>
+
+			</div>
+		</div>
+	</section>
+@endsection
+@section('Modals')
+	<div class="modal fade" id="modal-form">
+		<div class="modal-dialog box box-primary" style="width:350px;">
+			<div class="modal-content">
+					<form>
+					{{ csrf_field() }}
+						<div class="modal-header">	
+							FORM CONDITIONAL DEDUCTION
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span></button>
+						</div>
+						<div class="modal-body">
+							<input type="hidden" id="idComponent" class="form-control">
+							<div class="form-group opsitambah">
+								<label>Employee</label>
+								<!-- <select id="idKaryawan" class="form-control selectpicker" data-live-search="true"> -->
+								<select id="idemployeeShow" class="form-control selectpicker" data-live-search="true">
+									<option value=""></option>
+									@foreach($tb_employee as $dt2)
+										<option value="{{$dt2->id_employee}}">{{$dt2->id_employee}} {{$dt2->nama_karyawan}} ({{$dt2->NIK}})</option>
+									@endforeach
+
+								</select>
+							</div>
+							<div class="form-group opsiedit">
+								<label>Employee</label>
+								<select id="idemployee" class="form-control" disabled>
+									<option value=""></option>
+									@foreach($tb_employee as $dt2)
+										<option value="{{$dt2->id}}">{{$dt2->nama_karyawan}} ({{$dt2->NIK}})</option>
+									@endforeach
+
+								</select>
+							</div>
+							<div class="form-group">
+								<label>Periode</label>
+								<input type="month" id="periodeEarn" class="form-control">
+							</div>
+							<div class="form-group">
+								<label>Komponen</label>
+								<!-- <select id="idKaryawan" class="form-control selectpicker" data-live-search="true"> -->
+								<select id="componentName" class="form-control">
+									<option value="koperasi">Koperasi</option>
+									<option value="standby_oncall">Stanby on Call (OFF)</option>
+									<option value="seragam">Seragam</option>
+									<option value="pants">Pants</option>
+									<option value="pph21_kurang_bayar">PPh21 Kurang Bayar</option>
+									<option value="lain_lain">Lain-lain</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label>Amount</label>
+								<input type="text" id="amount" class="form-control" onclick="select();">
+							</div>
+							<div class="form-group">
+								<label>Remark</label>
+								<textarea id="description" class="form-control"></textarea>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+							<button type="button" class="btn btn-primary pull-right" id="simpan" data-dismiss="modal">Save</button>
+						</div>
+					</form>
+			</div>
+
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+	<div class="modal fade" id="modal-delete">
+		<div class="modal-dialog box box-danger" style="width:400px;">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Confirmation</h4>
+				</div>
+				<div class="modal-body">
+					<b id="aksesText">Delete </b> <b id="delname"></b> ?
+					<input type="hidden" id="delid">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger pull-left delete" data-dismiss="modal">Yes, Delete</button>
+					<button type="button" class="btn btn-default pull-right" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+			
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+	<div class="modal fade" id="modal-import">
+		<div class="modal-dialog box box-primary" style="width:400px;">
+				<div class="modal-content">
+					<form method="post" action="{{$site}}/Deduction/Import" enctype="multipart/form-data">
+						<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title">Import File Excel</h4>
+						</div>
+						<div class="modal-body">
+							{{ csrf_field() }}
+							<label></label>
+							<div class="form-group">
+								<input type="file" name="file" required="required">
+							</div>
+						</div>
+						<div class="modal-footer">
+							<a href="{{$site}}/DeductionTemplate/{{$periode}}/{{$tipe}}" id="template" target="_blank" class="btn btn-default btn-md"><i class="fa fa-download"></i> &nbsp;Template</a>
+							<button type="button" class="btn btn-default pull-right" data-dismiss="modal">Cancel</button>
+							<button type="submit" class="btn btn-primary pull-left">Import</button>
+						</div>
+					</form>		
+				</div>
+
+				<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+    </div>
+@endsection
+@section('Scripts')
+	<script>
+		$('body').on("change","#periode",function(){
+			var department=document.getElementById('idDepartment').value;
+			var periode=document.getElementById('periode').value;
+			if(periode=='') var periode=0;
+			var tipe="<?php echo $tipe;?>";
+			window.location.href="{{$site}}/Deduction/"+periode+"/"+department+"/0/"+tipe;
+		});
+		$('body').on("change","#idDepartment",function(){
+			var department=document.getElementById('idDepartment').value;
+			var periode=document.getElementById('periode').value;
+			if(periode=='') var periode=0;
+			var tipe="<?php echo $tipe;?>";
+			window.location.href="{{$site}}/Deduction/"+periode+"/"+department+"/0/"+tipe;
+		});
+		window.setTimeout(function() {
+			$(".alert").fadeTo(500, 0).slideUp(500, function(){
+			$(this).remove(); 
+			});
+		}, 5000);
+ 		$(document).on('click', '#form', function() {
+			$('#idComponent').val($(this).data('idcomponent'));
+			$('#periodeEarn').val($(this).data('periode'));
+			$('#idemployee').val($(this).data('idemployee'));
+			$('#amount').val($(this).data('amount'));
+			$('#componentName').val($(this).data('componentname'));
+			$('#description').val($(this).data('description'));
+			var kondisi=$(this).data('idemployee');
+			if(kondisi>0){
+				$('.opsiedit').show();
+				$('.opsitambah').hide();
+			}else{
+				$('.opsiedit').hide();
+				$('.opsitambah').show();
+			}
+			var angka = $('#amount').val();
+			formatRupiahS(angka,'amount');
+			$('#modal-form').modal('show');
+		});
+		$(document).on('change', '#idemployeeShow', function() {
+			$('#idemployee').val($(this).val());
+		});
+		$(document).on('keyup', '#amount', function() {
+			var biaya = document.getElementById('amount');
+			biaya.addEventListener('keyup', function(e){
+				biaya.value = formatRupiah(this.value, '');
+			});
+		});
+		$(document).on('click', '#simpan', function() {
+			var idcomponent=$('#idComponent').val();
+			var periodeearn=$('#periodeEarn').val();
+			var idemployee=$('#idemployeeShow').val();
+			var amount=$('#amount').val().replace(/\./g,'');
+			var componentname=$('#componentName').val();
+			var description=$('#description').val();
+			var tipe="{{$tipe}}";
+			//alert(idemployee)
+
+			$.ajaxSetup({
+				type:"POST",
+				url: "{{$site}}/Deduction/Simpan",
+				cache: false,
+				headers: {
+					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+				}
+			});
+			$.ajax({
+				data:{idcomponent:idcomponent,periodeearn:periodeearn,idemployee:idemployee,amount:amount,componentname:componentname,description:description,tipe:tipe},
+				success: function(respond){
+					location.reload();
+					// if(respond=='Sukses'){
+					// 	location.reload();
+					// }else{
+					// 	alert(respond);
+					// }
+				}
+			})
+		});
+		function formatRupiah(angka, prefix){
+			var number_string = angka.replace(/[^,\d]/g, '').toString(),
+			split   		= number_string.split(','),
+			sisa     		= split[0].length % 3,
+			rupiah     		= split[0].substr(0, sisa),
+			ribuan     		= split[0].substr(sisa).match(/\d{3}/gi);
+ 
+			if(ribuan){
+				separator = sisa ? '.' : '';
+				rupiah += separator + ribuan.join('.');
+			}
+ 
+			rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+			return prefix == undefined ? rupiah : (rupiah ? '' + rupiah : '');
+		}
+		function formatRupiahS(angka,pemilik){
+			var number_string = angka.replace(/[^,\d]/g, '').toString(),
+			split   		= number_string.split(','),
+			sisa     		= split[0].length % 3,
+			rupiah     		= split[0].substr(0, sisa),
+			ribuan     		= split[0].substr(sisa).match(/\d{3}/gi);
+ 
+			if(ribuan){
+				separator = sisa ? '.' : '';
+				rupiah += separator + ribuan.join('.');
+			}
+ 
+			rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+			$('#'+pemilik).val(rupiah);
+		}
+		$(document).on('click', '.delete-modal', function() {
+			$('#delid').val($(this).data('delid'));
+			$('#delname').text($(this).data('delname'));
+			$('#aksesText').text($(this).data('akses'));
+			$('#modal-delete').modal('show');
+		});
+		$('.modal-footer').on('click', '.delete', function() {
+			var x=$('#delid').val();
+			window.location.href='{{$site}}/Deduction/Delete/'+x;
+		});
+
+	</script>
+	<script>
+		$(document).on('click', '.import-modal', function() {
+			$('#modal-import').modal('show');
+		});
+
+	</script>
+@endsection

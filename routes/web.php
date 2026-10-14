@@ -61,14 +61,14 @@ Route::post('/ConfirmPassword', [App\Http\Controllers\DashboardController::class
 Route::get('/PasswordShow/{password}', [App\Http\Controllers\DashboardController::class, 'password_show']);
 
 Route::get('/payroll/summary_overtime/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'summary_overtime']);
-Route::post('/payroll/save_summary', [App\Http\Controllers\PayrollController::class, 'save_summary']);
+Route::post('/payroll/save_summary', [App\Http\Controllers\PayrollController::class, 'save_summary'])->middleware('throttle:10,1'); // max 10x per menit
 Route::get('/payroll/tax_overtime/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime']);
+Route::get('/payroll/tax_overtime_psab/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_psab']);
 Route::get('/payroll/tax_overtime_excel/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_excel']);
-Route::get('/payroll/tax_overtime_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_pdf']);
-Route::get('/payroll/tax_overtime_approval/{tipe?}/{periode?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_approval']);
-Route::post('/payroll/import_rapel', [App\Http\Controllers\PayrollController::class, 'import_rapel']);
+Route::get('/payroll/tax_overtime_psab_excel/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_psab_excel']);
+Route::post('/payroll/import_rapel', [App\Http\Controllers\PayrollController::class, 'import_rapel'])->middleware('throttle:5,1'); // max 5x per menit
 Route::get('/payroll/download_format_rapel', [App\Http\Controllers\PayrollController::class, 'download_format_rapel']);
-Route::post('/payroll/tax_overtime/calculation', [App\Http\Controllers\PayrollController::class, 'tax_overtime_calculation']);
+Route::post('/payroll/tax_overtime/calculation', [App\Http\Controllers\PayrollController::class, 'tax_overtime_calculation'])->middleware('throttle:5,1'); // max 5x per menit
 Route::get('/payroll/slip/overtime/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_overtime']);
 Route::get('/payroll/distribute_spl_slip/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'distribute_spl_slip']);
 Route::post('/payroll/collect_meals', [App\Http\Controllers\PayrollController::class, 'collect_meals']);
@@ -78,9 +78,22 @@ Route::post('/payroll/capture_rapel', [App\Http\Controllers\PayrollController::c
 Route::get('/payroll/capture_assignment/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'capture_assignment']);
 Route::post('/payroll/save_summary_assignment', [App\Http\Controllers\PayrollController::class, 'save_summary_assignment']);
 Route::get('/payroll/summary_assignment/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'summary_assignment']);
+Route::get('/payroll/recap_assignment/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'recap_assignment']);
+Route::get('/payroll/recap_assignment_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'recap_assignment_pdf']);
 Route::get('/payroll/tax_assignment_excel/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_assignment_excel']);
-Route::get('/payroll/tax_assignment_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_assignment_pdf']);
 Route::get('/payroll/distribute_assignment_slip/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'distribute_assignment_slip']);
+
+Route::get('/payroll/tax_assignment_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_assignment_pdf']);
+Route::get('/payroll/tax_overtime_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_pdf']);
+Route::get('/payroll/tax_overtime_psab_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_psab_pdf']);
+Route::get('/payroll/tax_overtime_approval/{tipe?}/{periode?}', [App\Http\Controllers\PayrollController::class, 'tax_overtime_approval']);
+
+Route::get('/payroll/recap_overtime/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'recap_overtime']);
+Route::get('/payroll/recap_overtime_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'recap_overtime_pdf']);
+Route::get('/payroll/recap_overtime_psab/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'recap_overtime_psab']);
+Route::get('/payroll/recap_overtime_psab_pdf/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'recap_overtime_psab_pdf']);
+Route::get('/payroll/recap_assignment/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'recap_assignment']);
+Route::get('/payroll/recap_journal/{periode?}', [App\Http\Controllers\PayrollController::class, 'recap_journal']);
 
 //ESS
 Route::get('/Profile', [App\Http\Controllers\ess_controller::class, 'index']);
@@ -423,6 +436,7 @@ Route::get('/AbsensiRateDetail/{periode}', [App\Http\Controllers\tms_controller:
 Route::get('/FailedFinger/{start}/{end}', [App\Http\Controllers\tms_controller::class, 'gagalFinger']);
 Route::post('/FingerConfirm', [App\Http\Controllers\tms_controller::class, 'confirmFinger']);
 Route::get('/Absency/Finger/{id}/{id1}/{id2}', [App\Http\Controllers\absency_controller::class, 'iclock']);
+Route::get('/Absency/Rate/{id}/{id1}/{id2}', [App\Http\Controllers\absency_controller::class, 'absensiRate']);
 
 Route::get('/Performance/{periode}', [App\Http\Controllers\performance_controller::class, 'index']);
 Route::get('/PerformanceDetail/{idperformance}/{periode}/{triwulan}/{employee_name}/{created_by}', [App\Http\Controllers\performance_controller::class, 'performanceDetail']);
@@ -445,9 +459,155 @@ Route::post('/Performance/RankLeaderUpdate', [App\Http\Controllers\performance_c
 Route::get('/Performances/Progress/{periode}/{dept}/{level}', [App\Http\Controllers\performance_controller::class, 'performanceProgress']);
 Route::get('/Performances/Distribution/{periode}/{level}/{rank}', [App\Http\Controllers\performance_controller::class, 'performanceDistribution']);
 Route::post('/Performance/RankResetBOD', [App\Http\Controllers\performance_controller::class, 'rankResetBOD']);
+Route::get('/Performances/{periode}/{dept}/{level}', [App\Http\Controllers\performance_controller::class, 'performanceHR']);
 
 Route::get('/ManualCheck', [App\Http\Controllers\guest_controller::class, 'index']);
 Route::post('/Compress', [App\Http\Controllers\guest_controller::class, 'compress']);
+
+// WhatsApp Wuzapi Routes
+use App\Http\Controllers\WuzapiController;
+Route::get('/whatsapp', [WuzapiController::class, 'index']);
+Route::post('/whatsapp/send', [WuzapiController::class, 'storeWeb'])->middleware('throttle:30,1'); // max 30x per menit
+
+//Payroll
+Route::get('/Contract/{department}/{periode}/{type}', [App\Http\Controllers\payroll_controller::class, 'index']);
+Route::post('Contract/Submit', [App\Http\Controllers\payroll_controller::class, 'simpanKontrak']);
+Route::get('/ContractDelete/{id}', [App\Http\Controllers\payroll_controller::class, 'deleteKontrak']);
+Route::get('/Archive/Contract/{department}/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'arsifKontrak']);
+Route::get('/ContractOther/PSAB', [App\Http\Controllers\ContractOtherController::class, 'psab']);
+Route::post('/ContractOther/Update', [App\Http\Controllers\ContractOtherController::class, 'update']);
+Route::get('/WorkEntryOther/{periode}', [App\Http\Controllers\ContractOtherController::class, 'workEntry']);
+Route::post('/WorkEntryOther/Update', [App\Http\Controllers\ContractOtherController::class, 'updateWorkEntry']);
+Route::get('/SummaryOther/{periode}', [App\Http\Controllers\ContractOtherController::class, 'summary']);
+Route::get('/SummaryOther/Refresh/{periode}', [App\Http\Controllers\ContractOtherController::class, 'refreshSummary']);
+Route::get('/WorkEntryOther/Template/{periode}', [App\Http\Controllers\ContractOtherController::class, 'templateWorkEntryOther']);
+Route::post('/WorkEntryOther/Import', [App\Http\Controllers\ContractOtherController::class, 'importWorkEntryOther']);
+
+Route::get('/ContractOther/PKL', [App\Http\Controllers\ContractOtherController::class, 'pkl']);
+Route::post('/ContractOther/UpdatePKL', [App\Http\Controllers\ContractOtherController::class, 'update_pkl']);
+Route::get('/WorkEntryPKL/{periode}', [App\Http\Controllers\ContractOtherController::class, 'workEntryPKL']);
+Route::get('/WorkEntryPKL/Template/{periode}', [App\Http\Controllers\ContractOtherController::class, 'templateWorkEntryPKL']);
+Route::post('/WorkEntryPKL/Import', [App\Http\Controllers\ContractOtherController::class, 'importWorkEntryPKL']);
+Route::post('/WorkEntryPKL/Update', [App\Http\Controllers\ContractOtherController::class, 'updateWorkEntryPKL']);
+Route::get('/SummaryPKL/{periode}', [App\Http\Controllers\ContractOtherController::class, 'summaryPKL']);
+Route::get('/SummaryPKL/Refresh/{periode}', [App\Http\Controllers\ContractOtherController::class, 'refreshSummaryPKL']);
+
+Route::get('/ContractNew/{id}', [App\Http\Controllers\payroll_controller::class, 'newKontrak']);
+Route::get('/ContractDtl/{department}/{periode}/{type}', [App\Http\Controllers\payroll_controller::class, 'salary_detail']);
+
+
+Route::get('/Earn/{periode}/{department}/{component}/{type}', [App\Http\Controllers\payroll_controller::class, 'earn']);
+Route::get('/Earn/Delete/{id}', [App\Http\Controllers\payroll_controller::class, 'earnDelete']);
+Route::post('/Earn/Simpan', [App\Http\Controllers\payroll_controller::class, 'earnSimpan']);
+
+Route::get('/Deduction/{periode}/{department}/{component}/{type}', [App\Http\Controllers\payroll_controller::class, 'deduction']);
+Route::get('/Deduction/Delete/{id}', [App\Http\Controllers\payroll_controller::class, 'deductionDelete']);
+Route::post('/Deduction/Simpan', [App\Http\Controllers\payroll_controller::class, 'deductionSimpan']);
+
+Route::get('/WorkEntry/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'workEntry']);
+Route::get('/Template/WorkEntry/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'templateWorkEntry']);
+Route::post('/WorkEntry/Import', [App\Http\Controllers\payroll_controller::class, 'ImportWorkEntry']);
+Route::get('/Reset/WorkEntry/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'resetWorkEntry']);
+Route::post('/WorkEntry/Simpan', [App\Http\Controllers\payroll_controller::class, 'simpanWorkEntry']);
+Route::get('/WorkEntry/Delete/{id}', [App\Http\Controllers\payroll_controller::class, 'workentryDelete']);
+
+Route::get('/Summary/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'summary']);
+Route::get('/SummaryExcel/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'summaryPDF']);
+Route::get('/SummaryDownloadPDF/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'summaryDownloadPDF']);
+Route::get('/SummaryUpdate/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'updateSummary']);
+Route::get('/SummaryUpdateTer/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'updateSummaryTer']);
+Route::get('/SummaryUpdateOne/{periode}/{idemployee}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'updateSummaryOne']);
+Route::post('/Summary/Rapel', [App\Http\Controllers\payroll_controller::class, 'updateRapel']);
+Route::get('/Tax/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'tax']);
+Route::get('/TaxTerMonthly/{periode}/{department}/{tipe}/{category}', [App\Http\Controllers\payroll_controller::class, 'taxter_monthly']);
+Route::get('/PaySlip/{periode}/{department}/{kategori}', [App\Http\Controllers\payroll_controller::class, 'slip']);
+Route::get('/SendMail/{periode}/{department}/{tipe}/{tabel}', [App\Http\Controllers\payroll_controller::class, 'sendMail']);
+Route::get('/SendMailOne/{id}/{tabel}', [App\Http\Controllers\payroll_controller::class, 'sendMailOne']);
+Route::get('/SendMailCompensation/{id}', [App\Http\Controllers\payroll_controller::class, 'sendMailCompensation']);
+
+Route::get('/ConditionalTax/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'taxConditional']);
+Route::get('/ConditionalTax/Template/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'taxConditional_template']);
+Route::post('/ConditionalTax/Import', [App\Http\Controllers\payroll_controller::class, 'ImportTax']);
+Route::post('/ConditionalTax/Update', [App\Http\Controllers\payroll_controller::class, 'UpdateTax']);
+
+Route::get('/Recap/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'recap']);
+Route::get('/RecapPDF/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'recapPDF']);
+Route::post('/RecapSave', [App\Http\Controllers\payroll_controller::class, 'recapSave']);
+
+Route::get('/Compensation/{periode}', [App\Http\Controllers\payroll_controller::class, 'compensation']);
+Route::get('/CompensationUpdate/{periode}', [App\Http\Controllers\payroll_controller::class, 'compensationUpdate']);
+Route::post('/CompensationDelete/{id}', [App\Http\Controllers\payroll_controller::class, 'compensationDelete']);
+Route::get('/Compensation/Slip/{id}', [App\Http\Controllers\payroll_controller::class, 'compensationSlip']);
+Route::get('/Additionals/Tax/{periode}/{department}/{component}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'additionalTax']);
+Route::get('/Additionals/TaxTer/{periode}/{department}/{component}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'additionalTaxTer']);
+Route::get('/Additionals/Slip/{id}', [App\Http\Controllers\payroll_controller::class, 'additionalSlip']);
+Route::get('/Rapels/Slip/{id}', [App\Http\Controllers\payroll_controller::class, 'rapelSlip']);
+Route::get('/CompensationExcel/{periode}', [App\Http\Controllers\payroll_controller::class, 'compensationExcel']);
+Route::get('/CompensationDownloadPDF/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'compensationDownloadPDF']);
+
+Route::get('/PermanentList/{cutoff}', [App\Http\Controllers\payroll_controller::class, 'permanentList']);
+Route::post('/Pesangon/Capture', [App\Http\Controllers\payroll_controller::class, 'capture_pesangon']);
+Route::get('/Pesangon/Delete/{id}', [App\Http\Controllers\payroll_controller::class, 'delete_pesangon']);
+Route::get('/Pesangon/Distribute/{id}', [App\Http\Controllers\payroll_controller::class, 'distribute_pesangon']);
+Route::get('/Pesangon/{status}', [App\Http\Controllers\payroll_controller::class, 'pesangon']);
+
+Route::get('/Resignation/Delete/{id}', [App\Http\Controllers\payroll_controller::class, 'delete_resignation']);
+Route::get('/Resignation/Distribute/{id}', [App\Http\Controllers\payroll_controller::class, 'distribute_resignation']);
+Route::get('/Resignation/PermanentList/{cutoff}', [App\Http\Controllers\payroll_controller::class, 'resignation_permanent_list']);
+Route::post('/Resignation/Capture', [App\Http\Controllers\payroll_controller::class, 'capture_resignation']);
+Route::get('/Resignation/{status}', [App\Http\Controllers\payroll_controller::class, 'resignation']);
+
+
+Route::get('/Additional/{periode}/{department}/{component}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'additionalEarn']);
+Route::get('/AdditionalTer/{periode}/{department}/{component}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'additionalEarnTer']);
+Route::post('/Additional/Simpan', [App\Http\Controllers\payroll_controller::class, 'additionalEarnSimpan']);
+Route::get('/Additional/Delete/{id}', [App\Http\Controllers\payroll_controller::class, 'additionalEarnDelete']);
+Route::get('/Additional/Reset/{periode}/{component}', [App\Http\Controllers\payroll_controller::class, 'additionalEarnReset']);
+Route::get('/Additionals/Template/{periode}/{component}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'additionalEarnTemplate']);
+Route::post('/Additional/Import', [App\Http\Controllers\payroll_controller::class, 'ImportEarn']);
+Route::post('/Additional/Generate', [App\Http\Controllers\payroll_controller::class, 'GenerateEarn']);
+
+Route::get('/Rapels/{periode}/{department}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'additionalRapel']);
+Route::get('/RapelTemplate/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'specialrapelTemplate']);
+Route::post('/Rapels/Import', [App\Http\Controllers\payroll_controller::class, 'ImportRapel']);
+Route::get('/RapelDistribute/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'distributeRapel']);
+
+Route::get('/DeductionTemplate/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'deductionTemplate']);
+Route::post('/Deduction/Import', [App\Http\Controllers\payroll_controller::class, 'ImportDeduction']);
+
+
+Route::get('/SummaryReset/{periode}/{tipe}', [App\Http\Controllers\payroll_controller::class, 'resetSummary']);
+Route::get('/SummaryOvertime/{periode}', [App\Http\Controllers\payroll_controller::class, 'summaryOvertime']);
+
+use App\Http\Controllers\LoanController;
+Route::prefix('loans')->group(function () {
+    Route::get('/', [LoanController::class, 'index'])->name('loans.index');
+    Route::get('/create', [LoanController::class, 'create'])->name('loans.create');
+    Route::post('/store', [LoanController::class, 'store'])->name('loans.store');
+    Route::post('/delete/{id}', [LoanController::class, 'destroy'])->name('loans.destroy');
+    Route::get('/details/{id}', [LoanController::class, 'getDetails'])->name('loans.details');
+    Route::get('/show/{id}', [LoanController::class, 'show'])->name('loans.show');
+    Route::put('/loan-detail/status/{id}', [LoanController::class, 'updateDetailStatus'])->name('loans.detail.status.update');
+});
+
+Route::get('/Meals/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'index']);
+Route::get('/MealsCheck/{id}', [App\Http\Controllers\meal_controller::class, 'checkDouble']);
+Route::get('/MealsDelete/{id}', [App\Http\Controllers\meal_controller::class, 'deleteData']);
+Route::post('/Meals/Create', [App\Http\Controllers\meal_controller::class, 'createData']);
+Route::get('/MealsShifts/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'shiftMeals']);
+Route::get('/MealsShift/Temp/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'tempMeal']);
+Route::get('/MealsShift/Detail/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'shiftDetail']);
+Route::get('/MealsShift/Check', [App\Http\Controllers\meal_controller::class, 'shiftCheck']);
+Route::get('/MealsShift/Create/{id}', [App\Http\Controllers\meal_controller::class, 'shiftCreate']);
+Route::get('/MealsShift/Delete/{id}', [App\Http\Controllers\meal_controller::class, 'shiftDelete']);
+Route::get('/MealsMonth/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'mealMonth']);
+Route::post('/MealsMonth/Update', [App\Http\Controllers\meal_controller::class, 'mealUpdate']);
+Route::get('/MealsVendorStay/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'vendor_stay']);
+Route::post('/MealsVendorAdd', [App\Http\Controllers\meal_controller::class, 'addVendorStay']);
+Route::get('/MealsVendorStayDelete/{id}', [App\Http\Controllers\meal_controller::class, 'deleteVendorStay']);
+
+
+//End Payroll
 
 
 // Route::post('/PerformanceDetail', [App\Http\Controllers\performance_controller::class, 'performance']);
@@ -457,7 +617,6 @@ Route::post('/Compress', [App\Http\Controllers\guest_controller::class, 'compres
 // Route::post('/Performance/RankUpdate', [App\Http\Controllers\performance_controller::class, 'rankUpdate']);
 // Route::post('/Performance/TriwulanReset', [App\Http\Controllers\performance_controller::class, 'triwulanReset']);
 // Route::post('/Performance/RankUpdate', [App\Http\Controllers\performance_controller::class, 'rankUpdate']);
-// Route::get('/Performances/{periode}/{dept}/{level}', [App\Http\Controllers\performance_controller::class, 'performanceHR']);
 // Route::post('/Performance/RankUpdateBOD', [App\Http\Controllers\performance_controller::class, 'rankUpdateBOD']);
 
 

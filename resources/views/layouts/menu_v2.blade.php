@@ -294,7 +294,7 @@
                                             </ul>
                                         </li>
                                         <?php }?>
-                                        <li class="treeview<?phpif (isset($menu) && ($menu == 'SkillMatric1'))echo ' active';?>">
+                                        <li class="treeview<?php if (isset($menu) && ($menu == 'SkillMatric1'))echo ' active';?>">
                                             <a href="#">
                                                 <i class="fa fa-edit"></i> <span>Update Competence</span>
                                                 <span class="pull-right-container">

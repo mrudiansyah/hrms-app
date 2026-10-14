@@ -79,12 +79,9 @@
 						<thead>
 							<tr>
 								<th style="width:30px;">No</th>
-								<th>Document Name</th>
 								<th>Code Document</th>
-								<th>Category</th>
-								<th>Skill</th>
-								<th>Nomor</th>
-								<th>Revision</th>
+								<th>Document Name</th>
+								<th>File Name</th>
 								<th>Department</th>
 								<th>Keywords</th>
 								<th>Status</th>
@@ -96,12 +93,9 @@
 							<?php $__currentLoopData = $tb_training_document; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 							<tr>
 								<td><?php $no++;echo $no;?></td>
-								<td><?php echo e($dt->document_name); ?></td>
 								<td><?php echo e($dt->code_document); ?></td>
-								<td><?php echo e($dt->category); ?></td>
-								<td><?php echo e($dt->skill); ?></td>
-								<td><?php echo e($dt->nomor); ?></td>
-								<td><?php echo e($dt->revision); ?></td>
+								<td><?php echo e($dt->document_name); ?></td>
+								<td><?php echo e($dt->file_name); ?></td>
 								<td><?php echo e($dt->department); ?></td>
 								<td><?php echo e($dt->keywords); ?></td>
 								<td>
@@ -115,12 +109,21 @@
 										<?php
 											$extensi = strtolower(pathinfo($dt->file_name, PATHINFO_EXTENSION));
 										?>
-										<?php if(in_array($extensi, ['mp4', 'webm', 'ogg', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])): ?>
+										<?php if(in_array($extensi, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'])): ?>
 											<a href="/Training/<?php echo e($action_route ?? 'Document'); ?>/<?php echo e($dt->id); ?>" title="Preview" type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
+										<?php elseif(in_array($extensi, ['mp4'])): ?>
+											<a href="<?php echo e($dt->related_link); ?>"
+											onclick="window.open(this.href, '_blank', 'width=800,height=700,scrollbars=yes,resizable=yes,noopener,noreferrer'); return false;"
+											title="Preview"
+											class="btn btn-primary btn-xs">
+												<i class="fa fa-tv"></i>
+											</a>
+										<?php else: ?>
+											<a href="" target="_blank" title="Preview" type="button" class="btn btn-primary btn-xs" disabled><i class="fa fa-tv"></i></a>
 										<?php endif; ?>
-										<a href="/Document/Download/<?php echo e($dt->id); ?>" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
-										<button title="Keyword" type="button" class="keyword-form btn btn-primary btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>"><i class="fa fa-key"></i></button>
-										<button title="Edit" type="button" class="form btn btn-primary btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>" data-training-name="<?php echo e($dt->training_name); ?>" data-category="<?php echo e($dt->category); ?>" data-skill="<?php echo e($dt->skill); ?>" data-nomor="<?php echo e($dt->nomor); ?>" data-revision="<?php echo e($dt->revision); ?>" data-code-document="<?php echo e($dt->code_document); ?>" data-department="<?php echo e($dt->department); ?>" data-information="<?php echo e($dt->information); ?>" data-status="<?php echo e($dt->status); ?>"><i class="fa fa-edit"></i></button>
+										<a href="/Document/Download/<?php echo e($dt->id); ?>" title="Download" type="button" class="btn btn-info btn-xs"<?php if($extensi=='mp4')echo " disabled";?>><i class="fa fa-download"></i></a>
+										<button title="Keyword" type="button" class="keyword-form btn btn-warning btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>"><i class="fa fa-key"></i></button>
+										<button title="Edit" type="button" class="form btn btn-success btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>" data-training-name="<?php echo e($dt->training_name); ?>" data-category="<?php echo e($dt->category); ?>" data-skill="<?php echo e($dt->skill); ?>" data-nomor="<?php echo e($dt->nomor); ?>" data-revision="<?php echo e($dt->revision); ?>" data-code-document="<?php echo e($dt->code_document); ?>" data-department="<?php echo e($dt->department); ?>" data-information="<?php echo e($dt->information); ?>" data-status="<?php echo e($dt->status); ?>"><i class="fa fa-edit"></i></button>
 										<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->document_name); ?>"><i class="fa fa-trash"></i></button>
 									</div>
 								</td>
@@ -148,14 +151,7 @@
 						$encodedName = rawurlencode($file_name);
 						$document = url('/Show/' . $encodedName);
 					?>
-					<?php if(in_array($type, ['mp4', 'webm', 'ogg'])): ?>
-						<div class="embed-responsive embed-responsive-16by9">
-							<video class="embed-responsive-item" controls style="max-height:800px; width:100%;">
-								<source src="<?php echo e($document); ?>" type="video/<?php echo e($type); ?>">
-								Browser Anda tidak mendukung pemutaran video.
-							</video>
-						</div>
-					<?php elseif($type == 'pdf'): ?>
+					<?php if($type == 'pdf'): ?>
 						<div style="width:100%; height:800px;">
 							<iframe src="<?php echo e($document); ?>" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
 						</div>
@@ -163,12 +159,8 @@
 			        	<div class="text-center" style="padding:15px;">
 							<img src="<?php echo e($document); ?>" alt="<?php echo e($document_name); ?>" style="max-width:100%; max-height:800px; object-fit:contain;">
 						</div>
-					<?php elseif(in_array($type, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])): ?>
-						<div style="width:100%; height:800px;">
-							<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=<?php echo e(urlencode($document)); ?>" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
-						</div>
 					<?php else: ?>
-						<div class="alert alert-info text-center" style="padding:30px;">
+						<div style="width:100%; height:120px;">
 							<i class="fa fa-file-text-o" style="font-size:36px;"></i>
 							<p style="margin-top:10px;">Format file <strong>.<?php echo e($type); ?></strong> tidak mendukung pratinjau langsung di browser.</p>
 							<a href="<?php echo e(url('/Download/' . $encodedName)); ?>" class="btn btn-primary btn-sm">
@@ -507,7 +499,7 @@
 					data:{id:x},
 					success: function(respond){
 						if(respond=='Sukses'){
-							window.location.href = '/Training/Document/0';
+							window.location.reload();
 						}else{
 							alert(respond);
 						}

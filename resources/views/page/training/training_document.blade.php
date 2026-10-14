@@ -79,12 +79,9 @@
 						<thead>
 							<tr>
 								<th style="width:30px;">No</th>
-								<th>Document Name</th>
 								<th>Code Document</th>
-								<th>Category</th>
-								<th>Skill</th>
-								<th>Nomor</th>
-								<th>Revision</th>
+								<th>Document Name</th>
+								<th>File Name</th>
 								<th>Department</th>
 								<th>Keywords</th>
 								<th>Status</th>
@@ -96,12 +93,9 @@
 							@foreach($tb_training_document as $dt)
 							<tr>
 								<td><?php $no++;echo $no;?></td>
-								<td>{{$dt->document_name}}</td>
 								<td>{{$dt->code_document}}</td>
-								<td>{{$dt->category}}</td>
-								<td>{{$dt->skill}}</td>
-								<td>{{$dt->nomor}}</td>
-								<td>{{$dt->revision}}</td>
+								<td>{{$dt->document_name}}</td>
+								<td>{{$dt->file_name}}</td>
 								<td>{{$dt->department}}</td>
 								<td>{{$dt->keywords}}</td>
 								<td>
@@ -115,12 +109,21 @@
 										@php
 											$extensi = strtolower(pathinfo($dt->file_name, PATHINFO_EXTENSION));
 										@endphp
-										@if(in_array($extensi, ['mp4', 'webm', 'ogg', 'pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']))
+										@if(in_array($extensi, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']))
 											<a href="/Training/{{ $action_route ?? 'Document' }}/{{ $dt->id }}" title="Preview" type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
+										@elseif(in_array($extensi, ['mp4']))
+											<a href="{{ $dt->related_link }}"
+											onclick="window.open(this.href, '_blank', 'width=800,height=700,scrollbars=yes,resizable=yes,noopener,noreferrer'); return false;"
+											title="Preview"
+											class="btn btn-primary btn-xs">
+												<i class="fa fa-tv"></i>
+											</a>
+										@else
+											<a href="" target="_blank" title="Preview" type="button" class="btn btn-primary btn-xs" disabled><i class="fa fa-tv"></i></a>
 										@endif
-										<a href="/Document/Download/{{$dt->id}}" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
-										<button title="Keyword" type="button" class="keyword-form btn btn-primary btn-xs" data-iddocument="{{$dt->id}}" data-documentname="{{$dt->document_name}}"><i class="fa fa-key"></i></button>
-										<button title="Edit" type="button" class="form btn btn-primary btn-xs" data-iddocument="{{$dt->id}}" data-documentname="{{$dt->document_name}}" data-training-name="{{$dt->training_name}}" data-category="{{$dt->category}}" data-skill="{{$dt->skill}}" data-nomor="{{$dt->nomor}}" data-revision="{{$dt->revision}}" data-code-document="{{$dt->code_document}}" data-department="{{$dt->department}}" data-information="{{$dt->information}}" data-status="{{$dt->status}}"><i class="fa fa-edit"></i></button>
+										<a href="/Document/Download/{{$dt->id}}" title="Download" type="button" class="btn btn-info btn-xs"<?php if($extensi=='mp4')echo " disabled";?>><i class="fa fa-download"></i></a>
+										<button title="Keyword" type="button" class="keyword-form btn btn-warning btn-xs" data-iddocument="{{$dt->id}}" data-documentname="{{$dt->document_name}}"><i class="fa fa-key"></i></button>
+										<button title="Edit" type="button" class="form btn btn-success btn-xs" data-iddocument="{{$dt->id}}" data-documentname="{{$dt->document_name}}" data-training-name="{{$dt->training_name}}" data-category="{{$dt->category}}" data-skill="{{$dt->skill}}" data-nomor="{{$dt->nomor}}" data-revision="{{$dt->revision}}" data-code-document="{{$dt->code_document}}" data-department="{{$dt->department}}" data-information="{{$dt->information}}" data-status="{{$dt->status}}"><i class="fa fa-edit"></i></button>
 										<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="{{$dt->id}}" data-delname="{{$dt->document_name}}"><i class="fa fa-trash"></i></button>
 									</div>
 								</td>
@@ -148,14 +151,7 @@
 						$encodedName = rawurlencode($file_name);
 						$document = url('/Show/' . $encodedName);
 					@endphp
-					@if(in_array($type, ['mp4', 'webm', 'ogg']))
-						<div class="embed-responsive embed-responsive-16by9">
-							<video class="embed-responsive-item" controls style="max-height:800px; width:100%;">
-								<source src="{{ $document }}" type="video/{{ $type }}">
-								Browser Anda tidak mendukung pemutaran video.
-							</video>
-						</div>
-					@elseif($type == 'pdf')
+					@if($type == 'pdf')
 						<div style="width:100%; height:800px;">
 							<iframe src="{{ $document }}" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
 						</div>
@@ -163,12 +159,8 @@
 			        	<div class="text-center" style="padding:15px;">
 							<img src="{{ $document }}" alt="{{ $document_name }}" style="max-width:100%; max-height:800px; object-fit:contain;">
 						</div>
-					@elseif(in_array($type, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']))
-						<div style="width:100%; height:800px;">
-							<iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($document) }}" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
-						</div>
 					@else
-						<div class="alert alert-info text-center" style="padding:30px;">
+						<div style="width:100%; height:120px;">
 							<i class="fa fa-file-text-o" style="font-size:36px;"></i>
 							<p style="margin-top:10px;">Format file <strong>.{{ $type }}</strong> tidak mendukung pratinjau langsung di browser.</p>
 							<a href="{{ url('/Download/' . $encodedName) }}" class="btn btn-primary btn-sm">
@@ -505,7 +497,7 @@
 					data:{id:x},
 					success: function(respond){
 						if(respond=='Sukses'){
-							window.location.href = '/Training/Document/0';
+							window.location.reload();
 						}else{
 							alert(respond);
 						}

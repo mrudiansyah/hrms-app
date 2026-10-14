@@ -607,6 +607,7 @@ Route::post('/MealsVendorAdd', [App\Http\Controllers\meal_controller::class, 'ad
 Route::get('/MealsVendorStayDelete/{id}', [App\Http\Controllers\meal_controller::class, 'deleteVendorStay']);
 
 
+
 //End Payroll
 
 

@@ -221,12 +221,12 @@
                                                         </span>
                                                     </a>
                                                     <ul class="treeview-menu">
-                                                        <li><a href="/Training/Periode/0"><i class="fa fa-circle-o"></i> Plan Schedule</a>
+                                                        <li><a href="/Training/Periode/0"><i class="fa fa-circle-o"></i> Schedule</a>
                                                         </li>
                                                         <li class="treeview<?php        if (isset($menu) && $menu == 'training_actual')
                                 echo ' active';?>">
                                                             <a href="#">
-                                                                <i class="fa fa-circle-o"></i> <span>Actual Activity</span>
+                                                                <i class="fa fa-circle-o"></i> <span>Actual</span>
                                                                 <span class="pull-right-container">
                                                                     <i class="fa fa-angle-left pull-right"></i>
                                                                 </span>
@@ -265,71 +265,6 @@
                                                 <?php endif; ?>
                                             </ul>
                                         </li>
-                            <?php endif; ?>
-                            <?php if(request()->user()->hasRole('competence') || request()->user()->hasRole('hr_access')): ?>
-                                <li
-                                    class="treeview<?php if (isset($menu) && ($menu == 'SkillMatric' || $menu == 'SkillMatric1' || $menu == 'SkillMatric2')) echo ' active';?>">
-                                    <a href="#">
-                                        <i class="fa fa-bar-chart"></i> <span>Skill Competence</span>
-                                        <span class="pull-right-container">
-                                            <i class="fa fa-angle-left pull-right"></i>
-                                        </span>
-                                    </a>
-                                    <ul class="treeview-menu">
-                                        <?php if (request()->user()->hasRole('competence')) {?>
-                                        <li
-                                            class="treeview<?php            if (isset($menu) && ($menu == 'SkillMatric' || $menu == 'SkillMatric0')) echo ' active';?>">
-                                            <a href="#">
-                                                <i class="fa fa-cog"></i> <span>Set Up Skill</span>
-                                                <span class="pull-right-container">
-                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                </span>
-                                            </a>
-                                            <ul class="treeview-menu">
-                                                <li><a href="/SkillMatric/Type"><i class="fa fa-circle-o"></i> Skill Type</a></li>
-                                                <li><a href="/SkillMatric/Group"><i class="fa fa-circle-o"></i> Skill Group</a></li>
-                                                <li><a href="/SkillMatric"><i class="fa fa-circle-o"></i> Competence List</a></li>
-                                                <li><a href="/SkillMatric/Group/0"><i class="fa fa-circle-o"></i> Competence
-                                                        Group</a></li>
-                                            </ul>
-                                        </li>
-                                        <?php }?>
-                                        <li class="treeview<?phpif (isset($menu) && ($menu == 'SkillMatric1'))echo ' active';?>">
-                                            <a href="#">
-                                                <i class="fa fa-edit"></i> <span>Update Competence</span>
-                                                <span class="pull-right-container">
-                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                </span>
-                                            </a>
-                                            <ul class="treeview-menu">
-                                                <li><a href="/SkillMatric/MainJob"><i class="fa fa-circle-o"></i> Employee List</a>
-                                                </li>
-                                                <li><a href="/SkillMatric/CompetenceEmployee/0"><i class="fa fa-circle-o"></i>
-                                                        Competence Employee</a></li>
-                                                <li><a href="/SkillMatric/EmployeeCompetence/0/0"><i class="fa fa-circle-o"></i>
-                                                        Employee Competence</a></li>
-                                            </ul>
-                                        </li>
-                                        <li class="treeview<?php if (isset($menu) && ($menu == 'SkillMatric2'))echo ' active';?>">
-                                            <a href="#">
-                                                <i class="fa fa-bar-chart"></i> <span>Report Competence</span>
-                                                <span class="pull-right-container">
-                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                </span>
-                                            </a>
-                                            <ul class="treeview-menu">
-                                                <li><a href="/SkillMatric/Groups"><i class="fa fa-circle-o"></i> Group
-                                                        Competence</a></li>
-                                                <li><a href="/SkillMatric/Employees/0"><i class="fa fa-circle-o"></i> Employee
-                                                        Matric</a></li>
-                                                <li><a href="/SkillMatric/FelxibilityChart/0/0"><i class="fa fa-circle-o"></i>
-                                                        Flexibility Chart</a></li>
-                                                <li><a href="/SkillMatric/LineEmployee/0/0"><i class="fa fa-circle-o"></i> Matric Mc
-                                                        Line</a></li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
                             <?php endif; ?>
                             <!-- IMPROVEMENT -->
                             <?php if(request()->user()->hasRole('improvement')): ?>

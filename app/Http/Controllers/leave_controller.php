@@ -20,7 +20,7 @@ class leave_controller extends Controller
     }
     function index(){
         date_default_timezone_set("Asia/Bangkok");
-        $kalendar=CAL_GREGORIAN;
+
         $Tgl=date('Y-m-d');
         $jam=date('Y-m-d H:i:s');
         //Daily Refresh
@@ -108,7 +108,7 @@ class leave_controller extends Controller
             }
             //return $tb_employee_leave;
             date_default_timezone_set("Asia/Bangkok");
-            $kalendar=CAL_GREGORIAN;
+
             $Tgl=date('Y-m-d');
             $sekarang=date('Y-m-d H:i:s');
             $MinTgl=date('Y-m-d',strtotime('1 weeks',strtotime($Tgl)));
@@ -496,7 +496,7 @@ class leave_controller extends Controller
     }
     function approveLeave($awal,$akhir){
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar=CAL_GREGORIAN;
+
         if($awal==0){
             $periode=date('Y-m');
             $periodeBefore=date('Y-m-d',strtotime('-1 days',strtotime($periode.'-01')));
@@ -657,7 +657,7 @@ class leave_controller extends Controller
             $submenu='legalized';
         }
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar=CAL_GREGORIAN;
+
         if($awal==0){
             $periode=date('Y-m');
             $periodeBefore=date('Y-m-d',strtotime('-1 days',strtotime($periode.'-01')));
@@ -735,7 +735,7 @@ class leave_controller extends Controller
             $submenu='legalized';
         }
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar=CAL_GREGORIAN;
+
         if($awal==0){
             $periode=date('Y-m');
             $periodeBefore=date('Y-m-d',strtotime('-1 days',strtotime($periode.'-01')));
@@ -1040,7 +1040,7 @@ class leave_controller extends Controller
     }
     function skd($awal,$akhir){
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar=CAL_GREGORIAN;
+
         
         if($awal==0){
             $periode=date('Y-m');
@@ -1152,7 +1152,7 @@ class leave_controller extends Controller
         //return("Under Maintenance");
         $admin=Auth::user()->name;
         date_default_timezone_set("Asia/Bangkok");
-        $kalendar=CAL_GREGORIAN;
+
         $Tgl=date('Y-m-d');
         $now=date('Y-m-d H:i:s');
 
@@ -1300,7 +1300,7 @@ class leave_controller extends Controller
     function createNow($id){
         $nama=Auth::user()->name;
         date_default_timezone_set("Asia/Bangkok");
-        $kalendar=CAL_GREGORIAN;
+
         $Tgl=date('Y-m-d');
         $MinTgl=date('Y-m-d',strtotime('1 weeks',strtotime($Tgl)));
 
@@ -1423,7 +1423,7 @@ class leave_controller extends Controller
     }
     public function AutoCreateCuti(Request $request){
         date_default_timezone_set("Asia/Bangkok");
-        $kalendar=CAL_GREGORIAN;
+
         $Tgl=date('Y-m-d');
         $sekarang=date('Y-m-d H:i:s');
         $MinTgl=date('Y-m-d',strtotime('1 weeks',strtotime($Tgl)));

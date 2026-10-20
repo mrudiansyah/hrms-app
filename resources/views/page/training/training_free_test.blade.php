@@ -52,7 +52,7 @@
 	</style>
 	<section class="content-header">
 		<h1 onclick="">
-			Free Test
+			Pre Test
 		</h1>
 	</section>
 
@@ -130,7 +130,7 @@
 						<div class="box box-primary" style="background:#FFF;">
 							<div class="box-header">
 								<i class="fa fa-square-check"></i>
-								<h3 class="box-title">Free Test Value</h3>
+								<h3 class="box-title">Pre Test Value</h3>
 								<div class="box-tools pull-right">
 									<!-- <a href="/Training/Invitation" title="Schedule" type="button" class="btn btn-default btn-xs"><i class="fa fa-angle-double-left"></i> &nbsp; Back</a> -->
 									<button id="finishtest" title="Examination" type="button" class="btn btn-primary">Finish

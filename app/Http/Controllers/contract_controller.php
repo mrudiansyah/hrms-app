@@ -2777,6 +2777,10 @@ class contract_controller extends Controller
       $id_agreement='';
       $nomor_perjanjian='';
       $contract_name='';
+      $next_contract=0;
+      $judge='';
+      $tanggal_mulai='';
+      $tanggal_akhir='';
       $check=DB::table('tb_ksk_detail')->where('id_kontrak',$data->idstatus)->count();
       if($check>0){
         $tb_status=DB::table('tb_statuses')->where('id',$data->idstatus)->get();
@@ -2785,6 +2789,7 @@ class contract_controller extends Controller
         }
         $tb_ksk_detail=DB::table('tb_ksk_detail')->where('id_kontrak',$data->idstatus)->get();
         foreach($tb_ksk_detail as $dt){
+          $tgl_akhir=$dt->finish_contract;
           $tb_agreement=DB::table('tb_contract')->where('id_ksk_detail',$dt->id)->get();
           foreach($tb_agreement as $dt2){
             $id_agreement=$dt2->id;
@@ -2792,6 +2797,8 @@ class contract_controller extends Controller
             $tanggal_mulai=$dt2->tanggal_mulai;
             $tanggal_akhir=$dt2->tanggal_akhir;
           }
+          $judge=$dt->judge;
+          $next_contract=$dt->next_contract;
         }
       }else{
         $tb_employee=DB::table('tb_employees')->where('id',$data->idemployee)->get();
@@ -2806,7 +2813,26 @@ class contract_controller extends Controller
           }
         }
       }
-      return $id_agreement."#".$nomor_perjanjian."#".$contract_name."#".$tanggal_mulai."#".$tanggal_akhir;
+      if($judge=='NOT EXTEND'){
+        $new_contract_name='End Contract';
+        $new_awal=date('Y-m-d',strtotime('+1 days',strtotime($tgl_akhir)));
+        $new_akhir=$new_awal;
+      }elseif($judge=='EXTEND'){
+        $new_contract_name=$contract_name;
+        $periode=date('Y-m',strtotime('+'.$next_contract.' months',strtotime($tgl_akhir)));
+        $new_awal=date('Y-m-d',strtotime('+1 days',strtotime($tgl_akhir)));
+        $new_akhir=$periode.'-24';
+      }elseif($judge=='PERMANENT'){
+        $new_contract_name='Permanent';
+        $new_awal=date('Y-m-d',strtotime('+1 days',strtotime($tgl_akhir)));
+        $new_akhir=$new_awal;
+      }
+      if($tanggal_mulai==''||$tanggal_akhir==''){
+        $tanggal_mulai=$new_awal;
+        $tanggal_akhir=$new_akhir;
+      }
+      $result=$id_agreement."#".$nomor_perjanjian."#".$new_contract_name."#".$tanggal_mulai."#".$tanggal_akhir."#".$new_contract_name;
+      return response($result, 200)->header('Content-Type', 'text/plain');
     }
     public function notificationKSK($id){
         $tb_ksk=DB::connection('mysql')->table('tb_ksk')
@@ -2849,5 +2875,34 @@ class contract_controller extends Controller
             return 'Failed';
         }
     }
+    function kskExecute($periode){
+        $tb1 = DB::table('tb_ksk_detail as t1')
+            ->leftJoin('tb_ksk as t2', 't2.id', '=', 't1.id_ksk')
+            ->leftJoin('tb_statuses as t3', 't3.id', '=', 't1.id_kontrak')
+            ->select(
+                't1.id as id_ksk_detail',
+                't1.id_employee',
+                't1.id_kontrak',
+                't1.start_contract',
+                't1.finish_contract',
+                't1.judge',
+                't2.no_ksk',
+                't2.periode',
+                DB::raw("
+                    CASE 
+                        WHEN t1.finish_contract IS NULL OR t1.next_contract IS NULL THEN NULL
+                        ELSE CONVERT(varchar(10),
+                            DATEADD(DAY, -7,
+                                DATEADD(MONTH, t1.next_contract, t1.finish_contract)
+                            ),
+                            23
+                        )
+                    END AS new_contract
+                ")
+            )
+            ->where('t2.periode', $periode)
+            ->get();
 
+        return $tb1;
+    }
 }

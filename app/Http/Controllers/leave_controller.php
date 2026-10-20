@@ -347,10 +347,11 @@ class leave_controller extends Controller
             //$outstanding=4;
         //return $outstanding." ".$data->leave_count." ".$data->category;
         if($approve1=='')$approve1=0;
+        $simpan=0;
         if($outstanding >= $data->leave_count || $data->category == 'special' || $data->category == 'docter'){
             $check=DB::table('tb_leaves')->where('id_leave',$data->id_leave)->where('start_leave',$data->start_leave)->where('finish_leave',$data->finish_leave)->where('status_legalized','0')->count();
             if($check==0){
-                $simpan=DB::table('tb_leaves')->insert([
+                $id=DB::table('tb_leaves')->insertGetId([
                 'id_leave'=>$data->id_leave,
                 'id_doc'=>$data->id_doc,
                 'doc_date'=>$doc_date,
@@ -374,8 +375,30 @@ class leave_controller extends Controller
                 'status'=>$status,
                 'overlap_doc'=>$namaFile,
                 ]);
+                $simpan=$id > 0;
                 if($simpan){
-                    $id=DB::table('tb_leaves')->where('id_leave',$data->id_leave)->where('start_leave',$data->start_leave)->where('finish_leave',$data->finish_leave)->value('id');
+                    $clientIp = $data->ip();
+                    $arpOutput = shell_exec('arp -a ' . $clientIp);
+                    $macAddress = null;
+                    if (preg_match('/([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})/', $arpOutput, $matches)) {
+                        $macAddress = $matches[0];
+                    }
+                    $digitalApprovals[] = [
+                        'document_name' => 'Employee Leave',
+                        'approval_pos' => 'Requested',
+                        'approval_status' => '1',
+                        'approver' => $admin,
+                        'created_at' => $sekarang,
+                        'ip_address' => $data->ip(),
+                        'mac_address' => $macAddress,
+                        'link_document' => '',
+                        'table_name' => 'tb_leaves',
+                        'id_table' => $id,
+                    ];
+                    if(!empty($digitalApprovals)){
+                        DB::table('tb_digital_approval')->insert($digitalApprovals);
+                    }
+
                     //$notification=$this->notificationLeave($id);
                 }
             }
@@ -383,7 +406,7 @@ class leave_controller extends Controller
         } else{
             return redirect()->back()->with(['error'=>' Sudah mencapai batas cuti']);
         }
-        if($simpan){
+        if($simpan!=0){
             if($data->category=='annual'){
                 $tb_employee_leave=DB::table('tb_employee_leaves')->where('id',$data->id_leave)->get();
                 foreach($tb_employee_leave as $dt){

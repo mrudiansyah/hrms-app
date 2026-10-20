@@ -54,7 +54,7 @@
 						<div class="box-tools pull-right">
 							<div class="box-tools">
 								<a href="/FreeTest/<?php echo e($id_participant); ?>" <?php if ($data['pre_test'] != '') echo "disabled";?>
-									title="Free Test" type="button" class="btn btn-primary btn-xs">Start Pre Test
+									title="Pre Test" type="button" class="btn btn-primary btn-xs">Start Pre Test
 								</a>
 							</div>
 						</div>
@@ -73,24 +73,39 @@
 									<tr>
 										<td><?php $no++; echo $no;?></td>
 										<td>
-											<?php echo e($dt->file_name); ?>
+											<?php if($dt->file_name == ''): ?>
+												<?php echo e($dt->document_name); ?>
 
+											<?php else: ?>
+												<?php echo e($dt->file_name); ?>
+
+											<?php endif; ?>
 											<input type="hidden" name="doc_id" id="doc_id" value=<?php echo e($doc); ?>>
 											<?php if($doc == 1): ?>
-																			<div class="pull-right">
-																				<?php
-												$panjang = strlen($dt->file_name);
-												$mulai = $panjang - 4;
-												$extensi = substr($dt->file_name, $mulai, 4);
-												if ($extensi == '.mp4' || $extensi == '.pdf' || $extensi == 'pptx') {?>
-																				
-																				<button class="btn btn-primary btn-xs" id="preview"
-																					onclick="GetPreview(<?php echo e($dt->id_doc); ?>)">Lihat Materi</button>
-																				<?php }?>
-																				<!-- 
-																																																				<a href="/Training/Document/Download/<?php echo e($dt->id); ?>" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
-																																																				-->
-																			</div>
+												<div class="pull-right">
+													<?php
+														$extensi = strtolower(pathinfo($dt->file_name, PATHINFO_EXTENSION));
+													?>
+													<?php if($dt->related_link): ?>
+														<a href="<?php echo e($dt->related_link); ?>" target="_blank" rel="noopener noreferrer" title="Open Link" class="btn btn-primary btn-xs">Lihat Materi</a>
+													<?php elseif(in_array($extensi, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'])): ?>
+														<button class="btn btn-primary btn-xs" id="preview" onclick="GetPreview(<?php echo e($dt->id_doc); ?>)">Lihat Materi</button>
+													<?php elseif(in_array($extensi, ['mp4'])): ?>
+														<a href="<?php echo e($dt->related_link); ?>"
+														onclick="window.open(this.href, '_blank', 'width=800,height=700,scrollbars=yes,resizable=yes,noopener,noreferrer'); return false;"
+														title="Preview"
+														class="btn btn-primary btn-xs">
+															Lihat Materi
+														</a>
+													<?php else: ?>
+														<a href="" target="_blank" title="Preview" type="button" class="btn btn-primary btn-xs" disabled>Lihat Materi</a>
+													<?php endif; ?>
+													<?php if($dt->file_name && $extensi != 'mp4'): ?>
+														<a href="/Document/Download/<?php echo e($dt->id_doc); ?>" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
+													<?php else: ?>
+														<a href="#" title="Download unavailable" type="button" class="btn btn-info btn-xs disabled" aria-disabled="true"><i class="fa fa-download"></i></a>
+													<?php endif; ?>
+												</div>
 											<?php endif; ?>
 										</td>
 									</tr>
@@ -116,7 +131,7 @@
 						<table id="table3" class="table table-hover">
 							<thead>
 								<tr>
-									<th>Nilai Free Test</th>
+									<th>Nilai Pre Test</th>
 									<th>Nilai Post Test</th>
 									<th>Nilai Minimum</th>
 									<th>Hasil Training</th>

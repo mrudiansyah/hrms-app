@@ -164,7 +164,7 @@
                                         <th style="text-align: center;">Plan Qty</th>
                                         <th style="text-align: center;">Actual Qty</th>
                                         <th style="text-align: center;">Achievement (%)</th>
-                                        <th style="text-align: center;">Avg Free Test</th>
+                                        <th style="text-align: center;">Avg Pre Test</th>
                                         <th style="text-align: center;">Avg Post Test</th>
                                         <th style="text-align: center;">Gain Score</th>
                                     </tr>
@@ -284,7 +284,7 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Avg Free Test (Pre)',
+                            label: 'Avg Pre Test (Pre)',
                             backgroundColor: 'rgba(60, 141, 188, 0.85)',
                             borderColor: 'rgba(60, 141, 188, 1)',
                             borderWidth: 1,

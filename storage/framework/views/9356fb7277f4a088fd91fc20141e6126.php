@@ -95,7 +95,14 @@
 								<td><?php $no++;echo $no;?></td>
 								<td><?php echo e($dt->code_document); ?></td>
 								<td><?php echo e($dt->document_name); ?></td>
-								<td><?php echo e($dt->file_name); ?></td>
+								<td>
+									<?php if($dt->file_name): ?>
+										<?php echo e($dt->file_name); ?>
+
+									<?php elseif($dt->related_link): ?>
+										<a href="<?php echo e($dt->related_link); ?>" target="_blank" rel="noopener noreferrer">Open document link</a>
+									<?php endif; ?>
+								</td>
 								<td><?php echo e($dt->department); ?></td>
 								<td><?php echo e($dt->keywords); ?></td>
 								<td>
@@ -109,7 +116,9 @@
 										<?php
 											$extensi = strtolower(pathinfo($dt->file_name, PATHINFO_EXTENSION));
 										?>
-										<?php if(in_array($extensi, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'])): ?>
+										<?php if($dt->related_link): ?>
+											<a href="<?php echo e($dt->related_link); ?>" target="_blank" rel="noopener noreferrer" title="Open Link" class="btn btn-primary btn-xs"><i class="fa fa-external-link"></i></a>
+										<?php elseif(in_array($extensi, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'])): ?>
 											<a href="/Training/<?php echo e($action_route ?? 'Document'); ?>/<?php echo e($dt->id); ?>" title="Preview" type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
 										<?php elseif(in_array($extensi, ['mp4'])): ?>
 											<a href="<?php echo e($dt->related_link); ?>"
@@ -121,9 +130,13 @@
 										<?php else: ?>
 											<a href="" target="_blank" title="Preview" type="button" class="btn btn-primary btn-xs" disabled><i class="fa fa-tv"></i></a>
 										<?php endif; ?>
-										<a href="/Document/Download/<?php echo e($dt->id); ?>" title="Download" type="button" class="btn btn-info btn-xs"<?php if($extensi=='mp4')echo " disabled";?>><i class="fa fa-download"></i></a>
+										<?php if($dt->file_name && $extensi != 'mp4'): ?>
+											<a href="/Document/Download/<?php echo e($dt->id); ?>" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
+										<?php else: ?>
+											<a href="#" title="Download unavailable" type="button" class="btn btn-info btn-xs disabled" aria-disabled="true"><i class="fa fa-download"></i></a>
+										<?php endif; ?>
 										<button title="Keyword" type="button" class="keyword-form btn btn-warning btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>"><i class="fa fa-key"></i></button>
-										<button title="Edit" type="button" class="form btn btn-success btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>" data-training-name="<?php echo e($dt->training_name); ?>" data-category="<?php echo e($dt->category); ?>" data-skill="<?php echo e($dt->skill); ?>" data-nomor="<?php echo e($dt->nomor); ?>" data-revision="<?php echo e($dt->revision); ?>" data-code-document="<?php echo e($dt->code_document); ?>" data-department="<?php echo e($dt->department); ?>" data-information="<?php echo e($dt->information); ?>" data-status="<?php echo e($dt->status); ?>"><i class="fa fa-edit"></i></button>
+										<button title="Edit" type="button" class="form btn btn-success btn-xs" data-iddocument="<?php echo e($dt->id); ?>" data-documentname="<?php echo e($dt->document_name); ?>" data-training-name="<?php echo e($dt->training_name); ?>" data-category="<?php echo e($dt->category); ?>" data-skill="<?php echo e($dt->skill); ?>" data-nomor="<?php echo e($dt->nomor); ?>" data-revision="<?php echo e($dt->revision); ?>" data-code-document="<?php echo e($dt->code_document); ?>" data-department="<?php echo e($dt->department); ?>" data-information="<?php echo e($dt->information); ?>" data-status="<?php echo e($dt->status); ?>" data-related-link="<?php echo e($dt->related_link); ?>"><i class="fa fa-edit"></i></button>
 										<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->document_name); ?>"><i class="fa fa-trash"></i></button>
 									</div>
 								</td>
@@ -151,7 +164,14 @@
 						$encodedName = rawurlencode($file_name);
 						$document = url('/Show/' . $encodedName);
 					?>
-					<?php if($type == 'pdf'): ?>
+					<?php if(!empty($related_link)): ?>
+						<div class="text-center" style="padding:30px;">
+							<p>Dokumen ini tersedia melalui tautan eksternal.</p>
+							<a href="<?php echo e($related_link); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+								<i class="fa fa-external-link"></i> Buka Link Dokumen
+							</a>
+						</div>
+					<?php elseif($type == 'pdf'): ?>
 						<div style="width:100%; height:800px;">
 							<iframe src="<?php echo e($document); ?>" width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
 						</div>
@@ -248,10 +268,28 @@
 								<label>Information</label>
 								<textarea class="form-control" name="information" id="information" rows="3"></textarea>
 							</div>
-							<div class="form-group">
-								<input type="file" name="training_doc" id="trainingdoc">								
+							<div class="form-group" id="content-source-group">
+								<label>Document Content</label>
+								<div>
+									<label class="radio-inline" id="keep-content-option">
+										<input type="radio" name="content_type" value="keep" id="content-keep"> Keep current content
+									</label>
+									<label class="radio-inline">
+										<input type="radio" name="content_type" value="file" id="content-file-mode" checked> Upload file
+									</label>
+									<label class="radio-inline">
+										<input type="radio" name="content_type" value="link" id="content-link-mode"> Paste link
+									</label>
+								</div>
+								<div class="form-group" id="upload-file-group" style="margin-top:10px;">
+									<input type="file" name="training_doc" id="trainingdoc">
+									<i>File extension: pdf, jpg, png, mp4</i>
+								</div>
+								<div class="form-group" id="document-link-group" style="display:none;margin-top:10px;">
+									<label for="relatedlink">Document/video link (OneDrive, Microsoft Teams, etc.)</label>
+									<input type="url" class="form-control" name="related_link" id="relatedlink" maxlength="2048" placeholder="https://...">
+								</div>
 							</div>
-							<i>File extension: pdf, jpg, png, mp4</i>
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
@@ -444,10 +482,24 @@
 			$(document).on('click', '.form', function() {
 				var formButton = $(this);
 				var docid=formButton.data('iddocument');
+				var isEditing = docid !== '';
+				var $form = $('#document-form');
+				var setContentMode = function(mode) {
+					$('input[name="content_type"]').prop('checked', false);
+					$('input[name="content_type"][value="' + mode + '"]').prop('checked', true);
+					$('#upload-file-group').toggle(mode === 'file');
+					$('#document-link-group').toggle(mode === 'link');
+					$('#trainingdoc').prop('required', mode === 'file');
+					$('#relatedlink').prop('required', mode === 'link');
+				};
+
+				$form[0].reset();
 				$('#idComponent').val(docid);
 				$('#documentname').val(formButton.data('documentname'));
-				if(docid!=''){
-					document.getElementById("trainingdoc").style.visibility = "hidden";
+				if(isEditing){
+					$('#keep-content-option').show();
+					setContentMode('keep');
+					$('#relatedlink').val(formButton.data('related-link') || '');
 					$('#status-group').show();
 					$('#trainingname').val(formButton.data('training-name'));
 					$('#category').val(formButton.data('category'));
@@ -461,7 +513,9 @@
 					$('#information').val(formButton.data('information'));
 					$('#status').val(formButton.data('status'));
 				}else{
-					document.getElementById("trainingdoc").style.visibility = "visible";
+					$('#keep-content-option').hide();
+					setContentMode('file');
+					$('#relatedlink').val('');
 					$('#status-group').hide();
 					$('#status').val('2');
 					$('#trainingname').val('');
@@ -475,6 +529,13 @@
 					$('#information').val('');
 				}
 				$('#modal-form').modal('show');
+			});
+			$(document).on('change', 'input[name="content_type"]', function() {
+				var mode = $(this).val();
+				$('#upload-file-group').toggle(mode === 'file');
+				$('#document-link-group').toggle(mode === 'link');
+				$('#trainingdoc').prop('required', mode === 'file');
+				$('#relatedlink').prop('required', mode === 'link');
 			});
 
 		// Form End

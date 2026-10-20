@@ -252,7 +252,7 @@
 										<th>NIK</th>
 										<th>Name</th>
 										<th>
-											Free Test
+											Pre Test
 											<div class="box-tools pull-right">
 												<a href="/Training/Monitor/Free/{{$id_training}}" title="Monitoring"
 													type="button" class="btn btn-primary btn-xs"><i

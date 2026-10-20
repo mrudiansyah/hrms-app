@@ -340,47 +340,24 @@
 												<td <?php echo $efek;?> >{{$dt2->leave_count}} / {{$outstanding}}</td>
 												<td>{{$dt2->reason}}, {{$dt2->remark}}</td>
 												<td class="relative">
-													<?php 
-														$ttd_app=asset('public/approval/'.$dt2->id_employee.'.png');
-														$confirm=asset('public/approval/confirm.png');
-														$reject=asset('public/approval/rejected.png');
-														$filename = 'c:/xampp/htdocs/public/approval/'.$dt2->id_employee.'.png';
-														if (file_exists($filename)){?>
-															<i style="color:#FFF;">&nbsp;</i>
-															<img src='{{ $ttd_app }}' class="absolute">
-														<?php }else{echo "Confirm";}
-													?>
+													<?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1'));?>
 												</td>
 												<td class="relative" style="width:75px;">
 													<?php 
 														if($dt2->status_approved=='1'){
-															$ttd_app=asset('public/approval/'.$dt2->approved.'.png');
-															$confirm=asset('public/approval/confirm.png');
-															$reject=asset('public/approval/rejected.png');
-															$filename = 'c:/xampp/htdocs/public/approval/'.$dt2->approved.'.png';
-															if (file_exists($filename)){?>
-																<i style="color:#FFF;">&nbsp;</i>
-																<img src='{{ $ttd_app }}' class="absolute" title="{{$dt2->approved_name}}, {{$dt2->date_approved}}">
-															<?php }else{echo "Confirm";}
+															echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/2'));
 														}elseif($dt2->status_approved=='2'){echo "Not Approve";}
 													?>
 												</td>
 												<td class="relative" style="width:75px;">
 													<?php 
 														if($dt2->status_approved2=='1'){
-															$ttd_app=asset('public/approval/'.$dt2->approved2.'.png');
-															$confirm=asset('public/approval/confirm.png');
-															$reject=asset('public/approval/rejected.png');
-															$filename = 'c:/xampp/htdocs/public/approval/'.$dt2->approved2.'.png';
-															if (file_exists($filename)){?>
-																<i style="color:#FFF;">Confirm</i>
-																<img src='{{ $ttd_app }}' class="absolute" title="{{$dt2->approved1_name}}, {{$dt2->date_approved2}}">
-															<?php }else{echo "Confirm";}
+															echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/3'));
 														}elseif($dt2->status_approved2=='2'){echo "Not Approve";}
 													?>
 												</td>
-												<td><?php if($dt2->status_legalized==1)echo "Confirm";else if($dt2->status_legalized==2)echo "Not Approve";?></td>
-												<td><?php if($dt2->status_reported==1)echo "Confirm";?></td>
+												<td><?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));else if($dt2->status_legalized==2)echo "Not Approve";?></td>
+												<td><?php if($dt2->status_reported==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/5'));?></td>
 											</tr>
 										<?php }?>
 										@endforeach
@@ -458,10 +435,10 @@
 											<td>{{$dt2->start_working}}</td>
 											<td>{{$dt2->leave_count}}</td>
 											<td>{{$dt2->remark}}</td>
-											<td>Confirm</td>
-											<td><?php if($dt2->status_approved==1)echo "Confirm";?></td>
-											<td><?php if($dt2->status_legalized==1)echo "Confirm";?></td>
-											<td><?php if($dt2->status_reported==1)echo "Confirm";?></td>
+											<td><?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1')); ?></td>
+											<td><?php if($dt2->status_approved==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/2'));else if($dt2->status_approved==2)echo "Not Approved";?></td>
+											<td><?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));else if($dt2->status_legalized==2)echo "Not Approved";?></td>
+											<td><?php if($dt2->status_reported==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/5'));?></td>
 										</tr>
 										@endforeach
 										<?php for($i=$no;$i<6;$i++){?>
@@ -533,10 +510,15 @@
 											<td>{{$dt2->leave_count}}</td>
 											<td>{{$dt2->reason}}</td>
 											<td>{{$dt2->remark}}</td>
-											<td>Confirm</td>
-											<td><?php if($dt2->status_approved==1)echo "Confirm";if($dt2->status_approved==2)echo "Not Approved";?></td>
-											<td><?php if($dt2->status_legalized==1)echo "Confirm";if($dt2->status_legalized==2)echo "Cancel";?></td>
-											<td><?php if($dt2->status_reported==1)echo "Confirm";if($dt2->status_reported==2)echo "Cancel";?></td>
+											<td><?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1'));?></td>
+											<td><?php
+													$qr1=url('/DigitalApproval/tb_leaves/'.$dt2->id.'/2');
+
+												?>
+												{!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->margin(1)->generate($qr1) !!}
+											</td>
+											<td><?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));if($dt2->status_legalized==2)echo "Cancel";?></td>
+											<td><?php if($dt2->status_reported==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/5'));if($dt2->status_reported==2)echo "Cancel";?></td>
 										</tr>
 										@endforeach
 										<?php for($i=$no;$i<6;$i++){?>
@@ -598,8 +580,8 @@
 					<div class="col-xs-4" style="padding:0px;padding-left:3px;">
 						<div class="form-group">
 							<label>Jumlah Cuti</label>
-							<input type="number" name="leave_count" min="0" id="leavecount2" class="form-control" disabled>
-							<input type="number" name="leave_count" min="0" id="leavecount" class="form-control" <?php if($sisa_anual<=0)echo " disabled";?>>
+							<input type="number" name="leave_count2" min="0" id="leavecount2" class="form-control" disabled>
+							<input type="hidden" name="leave_count" min="0" id="leavecount" class="form-control">
 						</div>
 					</div>
 					<div class="col-xs-6" style="padding:0px;padding-right:3px;">
@@ -797,7 +779,7 @@
 					$(".tambahan").show();
 					document.getElementById("confirm").disabled = true;
 				}else{
-					$(".tambahan").hide();
+					//$(".tambahan").hide();
 					document.getElementById("confirm").disabled = false;
 				}
 				$.ajaxSetup({

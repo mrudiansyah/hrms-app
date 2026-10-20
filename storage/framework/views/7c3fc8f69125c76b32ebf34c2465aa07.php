@@ -193,10 +193,7 @@
                                                 </span>
                                             </a>
                                             <ul class="treeview-menu">
-                                                <li><a href="/TrainingGraph/Periode/0"><i class="fa fa-bar-chart text-green"></i> Training
-                                                        Overview</a></li>
-                                                <li><a href="/Training/Overview/0"><i class="fa fa-calendar-check-o text-green"></i> Annual
-                                                        Schedule</a></li>
+                                                <li><a href="/TrainingGraph/Periode/0"><i class="fa fa-bar-chart text-green"></i> Overview</a></li>
                                                 <li class="treeview<?php        if (isset($menu) && $menu == 'training_tools' || $menu == 'training')
                                 echo ' active';?>">
                                                     <a href="#">
@@ -221,23 +218,8 @@
                                                         </span>
                                                     </a>
                                                     <ul class="treeview-menu">
-                                                        <li><a href="/Training/Periode/0"><i class="fa fa-circle-o"></i> Schedule</a>
-                                                        </li>
-                                                        <li class="treeview<?php        if (isset($menu) && $menu == 'training_actual')
-                                echo ' active';?>">
-                                                            <a href="#">
-                                                                <i class="fa fa-circle-o"></i> <span>Actual</span>
-                                                                <span class="pull-right-container">
-                                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                                </span>
-                                                            </a>
-                                                            <ul class="treeview-menu">
-                                                                <li><a href="/Training/Actuals/0/0"><i class="fa fa-group"></i> Group
-                                                                        Class</a></li>
-                                                                <li><a href="/Training/Personal"><i class="fa fa-user"></i> Employee
-                                                                        History</a></li>
-                                                            </ul>
-                                                        </li>
+                                                        <li><a href="/Training/Periode/0"><i class="fa fa-calendar"></i> Schedule</a></li>
+                                                        <li><a href="/Training/Actuals/0/0"><i class="fa fa-calendar-check-o"></i> Realization</a></li>
                                                     </ul>
                                                 </li>
                                             </ul>

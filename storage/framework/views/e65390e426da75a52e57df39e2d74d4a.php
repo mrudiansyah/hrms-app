@@ -54,7 +54,7 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1 onclick="">
-                Actual Training
+                Training Realization
             </h1>
         </section>
 
@@ -64,10 +64,11 @@
                 <div class="col-lg-12 col-md-10 col-xs-12">
                     <div class="box box-primary" style="background:#FFF;">
                         <div class="box-header">
-                            <i class="fa fa-users"></i>
-                            <h3 class="box-title">Training List</h3>
+                            <i class="fa fa-list"></i>
+                            <h3 class="box-title">Implemented Training</h3>
                             <div class="box-tools pull-right">
-                                <!-- <button type="button" class="btn btn-success btn-xs form"><i class="fa fa-plus"></i> &nbsp;Add New</button> -->
+                                <a href="/Training/Actuals/0/0" class="btn btn-info btn-xs"><i class="fa fa-list"></i> &nbsp;Implemented Training</a>
+                                <a href="/Training/Personal" class="btn btn-default btn-xs"><i class="fa fa-user"></i> &nbsp;Employee Training</a>
                             </div>
                         </div>
                         <div class="box-body">
@@ -114,6 +115,11 @@
                                         <th>Date</th>
                                         <th>Time</th>
                                         <th>Location</th>
+                                        <th>Plan</th>
+                                        <th>Invite</th>
+                                        <th>Present</th>
+                                        <th>Attendance</th>
+                                        <th>AveScore</th>
                                         <th>&nbsp;</th>
                                     </tr>
                                 </thead>
@@ -140,6 +146,24 @@
                                                                                 Virtual
                                                                             <?php else: ?>
                                                                                 InClass
+                                                                            <?php endif; ?>
+                                                                        </td>
+                                                                        <td><?php echo e($dt->draft_qty ?? 0); ?></td>
+                                                                        <td><?php echo e($dt->plan_qty ?? 0); ?></td>
+                                                                        <td><?php echo e($dt->actual_qty ?? 0); ?></td>
+                                                                        <td>
+                                                                            <?php if((int) ($dt->plan_qty ?? 0) > 0): ?>
+                                                                                <?php echo e(number_format(((int) ($dt->actual_qty ?? 0) / (int) $dt->plan_qty) * 100, 1)); ?>%
+                                                                            <?php else: ?>
+                                                                                -
+                                                                            <?php endif; ?>
+                                                                        </td>
+                                                                        <td>
+                                                                            <?php if($dt->average_score !== null): ?>
+                                                                                <?php echo e(number_format((float) $dt->average_score, 2)); ?>
+
+                                                                            <?php else: ?>
+                                                                                -
                                                                             <?php endif; ?>
                                                                         </td>
                                                                         <td>

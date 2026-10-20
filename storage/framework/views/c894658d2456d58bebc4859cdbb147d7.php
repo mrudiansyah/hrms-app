@@ -58,9 +58,7 @@
 						<i class="fa fa-list"></i>
 						<h3 class="box-title">Training Schedule</h3>
 						<div class="box-tools pull-right">
-							<button type="button" class="btn btn-primary btn-xs form"><i class="fa fa-plus"></i> &nbsp;Add New</button>
-							<a href="/EMS/Training/Periode/Refresh/<?php echo e($periode); ?>" type="button" class="btn btn-info btn-xs"><i class="fa fa-refresh"></i> &nbsp;Refresh</a>
-							<!-- <a href="/EMS/Training/Plan/Print/<?php echo e($tahun); ?>" type="button" class="btn btn-success btn-xs"><i class="fa fa-download"></i> &nbsp;Download All</a> -->
+							<button type="button" class="btn btn-primary btn-xs form"><i class="fa fa-plus"></i> &nbsp;Add Schedule</button>
 						</div>
 					</div>
 					<div class="box-body">
@@ -73,36 +71,51 @@
 							<thead>
 								<tr>
 									<th style="width:30px;">No</th>
-									<th>Training Name</th>
-									<th>Category</th>
+									<th>Training</th>
+									<th>Schedule Type</th>
 									<th>Trainer</th>
-									<th>Backup Trainer</th>
 									<th>Level</th>
 									<th>Location</th>
 									<th>Department</th>
-									<th>Periode</th>
-									<th>Week</th>
 									<th>Date</th>
 									<th>Plan</th>
 									<th>Invite</th>
 									<th>Actual</th>
-									<th>&nbsp;</th>
+									<th>Status</th>
+									<th>Action</th>
 								</tr>
 							</thead>
 							<tbody>
 								<?php $no=0;?>
 								<?php $__currentLoopData = $tb_training_schedule; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+								<?php
+									if($dt->skill_code=='BS')$warna='primary';
+									elseif($dt->skill_code=='SS')$warna='success';
+									elseif($dt->skill_code=='MS')$warna='warning';
+									else $warna='default';
+								?>
 								<tr>
 									<td><?php $no++;echo $no;?></td>
-									<td><?php echo e($dt->training_name); ?></td>
-									<td><?php echo e($dt->skill_type); ?></td>
-									<td><?php echo e($dt->nara_sumber); ?></td>
-									<td><?php echo e($dt->nara_sumber_backup); ?></td>
-									<td><?php echo e(implode(', ', $training_level_names_by_schedule->get($dt->id, []))); ?></td>
+									<td><?php echo e($dt->training_name); ?> <label class="label label-<?php echo e($warna); ?>"><?php echo e($dt->skill_code); ?></label></td>
+									<td><?php echo e($dt->schedule_type); ?></td>
+									<td title="Backup Trainer: <?php echo e($dt->nara_sumber_backup); ?>"><?php echo e($dt->nara_sumber); ?></td>
+									<?php
+										$levelNames = $training_level_names_by_schedule->get($dt->id, []);
+									?>
+									<td>
+										<?php if(count($levelNames) > 1): ?>
+											<details>
+												<summary style="cursor:pointer;color:blue;"><u>Multi_Levels</u></summary>
+												<?php echo e(implode(', ', $levelNames)); ?>
+
+											</details>
+										<?php else: ?>
+											<?php echo e(implode(', ', $levelNames)); ?>
+
+										<?php endif; ?>
+									</td>
 									<td><?php echo e($dt->home_line); ?></td>
 									<td><?php echo e($dt->department); ?></td>
-									<td><?php echo e($dt->periode); ?></td>
-									<td><?php echo e($dt->week_number); ?></td>
 									<td><?php echo e($dt->tanggal); ?>
 
 										<?php 
@@ -115,10 +128,26 @@
 									<td><?php echo e($dt->plan_qty); ?></td>
 									<td><?php echo e($dt->actual_qty); ?></td>
 									<td>
+										<?php if(!empty($dt->tanggal) && \Carbon\Carbon::parse($dt->tanggal)->lt(today())&&$dt->actual_qty==0): ?>
+											<label class="label label-danger">Overdue</label>
+										<?php elseif($dt->plan_qty==0): ?>
+											<label class="label label-warning">Draft</label>
+										<?php elseif($dt->actual_qty==0): ?>
+											<label class="label label-primary">OnPlan</label>
+										<?php elseif($dt->actual_qty>0): ?>
+											<label class="label label-success">Conducted</label>
+										<?php endif; ?>
+									</td>
+									<td style="width:100px;">
 										<div class="pull-right">
 											<a href="/Training/Plan/<?php echo e($dt->id); ?>" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i></a>
-											<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="<?php echo e($dt->id); ?>" data-idtraining="<?php echo e($dt->id_training); ?>" data-levels="<?php echo e(implode(',', $training_levels_by_schedule->get($dt->id, []))); ?>" data-narasumber="<?php echo e($dt->nara_sumber); ?>" data-narasumberbackup="<?php echo e($dt->nara_sumber_backup); ?>" data-tanggal="<?php echo e($dt->tanggal); ?>" data-start="<?php echo e($dt->start); ?>" data-finish="<?php echo e($dt->finish); ?>" data-draftqty="<?php echo e($dt->draft_qty); ?>" data-weeknumber="<?php echo e($dt->week_number); ?>" data-homeline="<?php echo e($dt->home_line); ?>" data-department="<?php echo e($dt->department); ?>"><i class="fa fa-edit"></i></button>
-											<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->training_name); ?>"><i class="fa fa-trash"></i></button>
+											<?php if($dt->plan_qty == 0): ?>
+												<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="<?php echo e($dt->id); ?>" data-idtraining="<?php echo e($dt->id_training); ?>" data-scheduletype="<?php echo e($dt->schedule_type); ?>" data-levels="<?php echo e(implode(',', $training_levels_by_schedule->get($dt->id, []))); ?>" data-narasumber="<?php echo e($dt->nara_sumber); ?>" data-narasumberbackup="<?php echo e($dt->nara_sumber_backup); ?>" data-tanggal="<?php echo e($dt->tanggal); ?>" data-start="<?php echo e($dt->start); ?>" data-finish="<?php echo e($dt->finish); ?>" data-draftqty="<?php echo e($dt->draft_qty); ?>" data-weeknumber="<?php echo e($dt->week_number); ?>" data-homeline="<?php echo e($dt->home_line); ?>" data-department="<?php echo e($dt->department); ?>"><i class="fa fa-edit"></i></button>
+												<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->training_name); ?>"><i class="fa fa-trash"></i></button>
+											<?php else: ?>
+												<button title="Edit" type="button" class="form btn btn-success btn-xs" disabled><i class="fa fa-edit"></i></button>
+												<button title="Delete" type="button" class="btn btn-danger btn-xs" disabled><i class="fa fa-trash"></i></button>
+											<?php endif; ?>
 										</div>
 									</td>
 								</tr>
@@ -137,7 +166,7 @@
     <!-- /.Content -->
 
 	<div class="modal fade" id="modal-form">
-		<div class="modal-dialog box box-success" style="width:350px;">
+		<div class="modal-dialog modal-lg" style="width:700px;max-width:95%;">
 			<div class="modal-content">
 					<form>
 					<?php echo e(csrf_field()); ?>
@@ -148,7 +177,18 @@
 							<span aria-hidden="true">&times;</span></button>
 						</div>
 						<div class="modal-body">
+							<div class="row">
 							<input type="hidden" id="idComponent" class="form-control">
+							<div class="col-md-12" id="reschedule-option-group" style="display:none;">
+								<div class="form-group">
+									<label>
+										<input type="checkbox" id="is_reschedule" value="1">
+										Reschedule this schedule
+									</label>
+									<p class="help-block">A new schedule will be created with the existing details and invitations. Only the date and time can be changed.</p>
+								</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
 							<div class="form-group">
 								<label>Training</label>
 								<select id="idtraining" class="form-control selectpicker" data-live-search="true">
@@ -160,6 +200,8 @@
 
 								</select>
 							</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
 							<div class="form-group">
 								<label>Level</label>
 								<select id="levels" class="form-control selectpicker" multiple data-live-search="true" title="Select level">
@@ -168,14 +210,30 @@
 									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</select>
 							</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
+								<div class="form-group">
+									<label>Schedule Type</label>
+									<select id="schedule_type" class="form-control" required>
+										<option value="Annual Plan">Annual Plan</option>
+										<option value="UnPlan">UnPlan</option>
+										<option value="Reschedule">Reschedule</option>
+									</select>
+								</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
 							<div class="form-group opsiedit">
 								<label>Trainer Name</label>
 								<input type="text" id="narasumber" class="form-control">
 							</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
 							<div class="form-group opsiedit">
 								<label>Trainer Name (Backup)</label>
 								<input type="text" id="narasumber_backup" class="form-control">
 							</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
 							<div class="form-group opsiedit">
 								<label>Department</label>
 								<select id="department" class="form-control">
@@ -185,56 +243,53 @@
 									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</select>
 							</div>
-							<div class="row">
-								<div class="col-lg-6 col-md-6 col-xs-12">
-									<div class="form-group opsiedit">
-										<label>Date</label>
-										<input type="date" id="tanggal" class="form-control">
-									</div>
-								</div>
-								<div class="col-lg-6 col-md-6 col-xs-12">
-									<div class="form-group">
-										<label>Week Number</label>
-										<input type="number" min="1" max="53" id="weeknumber" class="form-control">
-									</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
+								<div class="form-group opsiedit">
+									<label>Date</label>
+									<input type="date" id="tanggal" class="form-control">
 								</div>
 							</div>
-							<div class="row">
-								<div class="col-lg-6 col-md-6 col-xs-12">
-									<div class="form-group opsiedit">
-										<label>Start</label>
-										<input type="time" id="start" class="form-control">
-									</div>
-								</div>
-								<div class="col-lg-6 col-md-6 col-xs-12">
-									<div class="form-group opsiedit">
-										<label>Finish</label>
-										<input type="time" id="finish" class="form-control">
-									</div>
+							<div class="col-md-6 col-sm-6">
+								<div class="form-group">
+									<label>Week Number</label>
+									<input type="number" min="1" max="53" id="weeknumber" class="form-control">
 								</div>
 							</div>
-							<div class="row">
-								<div class="col-lg-6 col-md-6 col-xs-12">
-									<div class="form-group opsiedit">
-										<label>Location</label>
-										<select id="homeline" class="form-control">
-											<option value=""></option>
-											<option value="Internal">Internal</option>
-											<option value="External">External</option>
-										</select>
-									</div>
+							<div class="col-md-6 col-sm-6">
+								<div class="form-group opsiedit">
+									<label>Start</label>
+									<input type="time" id="start" class="form-control">
 								</div>
-								<div class="col-lg-6 col-md-6 col-xs-12">
-									<div class="form-group opsiedit">
-										<label>Qty Plan Participant</label>
-										<input type="number" id="draftqty" class="form-control">
-									</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
+								<div class="form-group opsiedit">
+									<label>Finish</label>
+									<input type="time" id="finish" class="form-control">
 								</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
+								<div class="form-group opsiedit">
+									<label>Location</label>
+									<select id="homeline" class="form-control">
+										<option value=""></option>
+										<option value="Internal">Internal</option>
+										<option value="Inhouse">Inhouse</option>
+										<option value="External">External</option>
+									</select>
+								</div>
+							</div>
+							<div class="col-md-6 col-sm-6">
+								<div class="form-group opsiedit">
+									<label>Qty Plan Participant</label>
+									<input type="number" id="draftqty" class="form-control">
+								</div>
+							</div>
 							</div>
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
-							<button type="button" class="btn btn-success pull-right" id="simpan" data-dismiss="modal">Save</button>
+							<button type="button" class="btn btn-success pull-right" id="simpan">Save</button>
 						</div>
 					</form>
 			</div>
@@ -353,8 +408,11 @@
 
 			$(document).on('click', '.form', function() {
 				var button = $(this);
+				var isEditing = Boolean(button.data('idtrainingplan'));
 				$('#idComponent').val(button.data('idtrainingplan') || '');
 				$('#idtraining').val(button.data('idtraining') || '').trigger('change');
+				var originalScheduleType = button.data('scheduletype') || 'Annual Plan';
+				$('#schedule_type').data('original-value', originalScheduleType).val(originalScheduleType);
 				jQuery_3_2_1('#levels').selectpicker('val', (button.data('levels') || '').toString().split(',').filter(Boolean));
 				$('#narasumber').val(button.data('narasumber') || '');
 				$('#narasumber_backup').val(button.data('narasumberbackup') || '');
@@ -365,7 +423,23 @@
 				$('#weeknumber').val(button.data('weeknumber') || '');
 				$('#homeline').val(button.data('homeline') || '');
 				$('#department').val(button.data('department') || '');
+				$('#is_reschedule').prop('checked', false);
+				$('#reschedule-option-group').toggle(isEditing);
+				$('#schedule_type option[value="Reschedule"]').prop('disabled', true);
+				$('#is_reschedule').trigger('change');
 				$('#modal-form').modal('show');
+			});
+
+			$(document).on('change', '#is_reschedule', function() {
+				var isReschedule = $(this).is(':checked');
+				var rescheduleLockedFields = '#idtraining,#levels,#narasumber,#narasumber_backup,#department,#weeknumber,#homeline,#draftqty';
+				$(rescheduleLockedFields).prop('disabled', isReschedule);
+				$('#schedule_type option[value="Reschedule"]').prop('disabled', !isReschedule);
+				$('#schedule_type')
+					.val(isReschedule ? 'Reschedule' : ($('#schedule_type').data('original-value') || 'Annual Plan'))
+					.prop('disabled', isReschedule);
+				$('#tanggal,#start,#finish').prop('disabled', false);
+				jQuery_3_2_1('#idtraining,#levels').selectpicker('refresh');
 			});
 
 		// Form End
@@ -384,7 +458,9 @@
 	<script>
 		$(document).on('click', '#simpan', function() {
 			var idcomponent=$('#idComponent').val();
+			var is_reschedule=$('#is_reschedule').is(':checked') ? 1 : 0;
 			var idtraining=$('#idtraining').val();
+			var schedule_type=$('#schedule_type').val();
 			var levels=$('#levels').val() || [];
 			var narasumber=$('#narasumber').val();
 			var narasumber_backup=$('#narasumber_backup').val();
@@ -405,7 +481,7 @@
 				}
 			});
 			$.ajax({
-				data:{idcomponent:idcomponent,idtraining:idtraining,levels:levels,narasumber:narasumber,narasumber_backup:narasumber_backup,tanggal:tanggal,start:start,finish:finish,draftqty:draftqty,weeknumber:weeknumber,department:department,homeline:homeline},
+				data:{idcomponent:idcomponent,is_reschedule:is_reschedule,idtraining:idtraining,schedule_type:schedule_type,levels:levels,narasumber:narasumber,narasumber_backup:narasumber_backup,tanggal:tanggal,start:start,finish:finish,draftqty:draftqty,weeknumber:weeknumber,department:department,homeline:homeline},
 				success: function(respond){
 					if(respond=='Sukses'){
 						location.reload();

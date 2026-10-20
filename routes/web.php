@@ -212,6 +212,7 @@ Route::get('/Status/KSK/Print/{id}', [App\Http\Controllers\contract_controller::
 Route::get('/Status/KSK/Performance/{id}/{id2}', [App\Http\Controllers\contract_controller::class, 'kskPerformance']);
 Route::post('/Status/KSK/Update', [App\Http\Controllers\contract_controller::class, 'kskUpdate']);
 Route::post('/Status/KSKDetail/Refresh', [App\Http\Controllers\contract_controller::class, 'kskDetailRefresh']);
+Route::get('/Status/KSK/Execute/{periode}', [App\Http\Controllers\contract_controller::class, 'kskExecute']);
 
 Route::get('/Employee/{id}/{id2}', [App\Http\Controllers\employee_controller::class, 'employee']);
 
@@ -606,6 +607,7 @@ Route::get('/MealsVendorStay/{id}/{id1}', [App\Http\Controllers\meal_controller:
 Route::post('/MealsVendorAdd', [App\Http\Controllers\meal_controller::class, 'addVendorStay']);
 Route::get('/MealsVendorStayDelete/{id}', [App\Http\Controllers\meal_controller::class, 'deleteVendorStay']);
 
+Route::get('/DigitalApproval/{tb_name}/{id}/{pos}', [App\Http\Controllers\DigitalApprovalController::class, 'index']);
 
 
 //End Payroll

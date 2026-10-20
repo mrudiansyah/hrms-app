@@ -55,14 +55,14 @@ class training_controller extends Controller
     function training_plan()
     {
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            $tb_training_schedule = DB::connection('training')->table('tb_training_schedule')
+            $tb_training_schedule = DB::table('tb_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
                 ->where('tb_training_schedule.is_delete', '0')
                 ->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
-            $tb_training_list = DB::connection('training')->table('tb_training_list')->orderby('training_name', 'asc')->get();
+            $tb_training_list = DB::table('tb_training_list')->orderby('training_name', 'asc')->get();
 
-            $tb_department = DB::connection('mysql')->table('tb_departments')->orderby('dept_name', 'asc')->get();
+            $tb_department = DB::table('tb_departments')->orderby('dept_name', 'asc')->get();
 
             return view('page/training/training_plan', ['tb_training_list' => $tb_training_list, 'tb_training_schedule' => $tb_training_schedule, 'tb_department' => $tb_department, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
@@ -84,8 +84,8 @@ class training_controller extends Controller
             if ($periode != 0) {
                 $tb_training_schedule = $tb_training_schedule->where('tb_training_schedule.periode', $periode);
             }
-            $tb_training_schedule = $tb_training_schedule->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
-            $tb_training_list = DB::table('tb_training_list')->orderby('training_name', 'asc')->get();
+            $tb_training_schedule = $tb_training_schedule->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type', 'tb_skill_type.skill_code']);
+            $tb_training_list = DB::table('tb_training_list')->where('is_delete', '0')->orderby('training_name', 'asc')->get();
 
             $tb_department = DB::table('tb_departments')->orderby('dept_name', 'asc')->get();
             $tb_level = DB::table('tb_level')->orderby('nama_level', 'asc')->get();
@@ -416,7 +416,7 @@ class training_controller extends Controller
                 ->orderby('tb_training_schedule.id', 'desc')->get(['tb_training_schedule.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
             $tb_training_invitation = DB::table('tb_training_invitation')->where('id_training_schedule', $id)->orderby('id', 'desc')->get();
 
-            $tb_training_document = DB::table('tb_training_document')->orderby('document_name', 'asc')->get();
+            $tb_training_document = DB::table('tb_training_document')->where('status','1')->orderby('document_name', 'asc')->get();
             $tb_related_document = DB::table('tb_related_document')
                 ->leftjoin('tb_training_document', 'tb_training_document.id', '=', 'tb_related_document.id_document')
                 ->where('id_training_schedule', $id)->orderby('id', 'desc')->get(['tb_related_document.*', 'tb_training_document.document_name', 'tb_training_document.file_name']);
@@ -443,17 +443,34 @@ class training_controller extends Controller
                     $skill_type = $dt->skill_type;
             }
 
+            $participant_scores = DB::table('tb_training_participant')
+                ->select('id_training_actual')
+                ->selectRaw("AVG(TRY_CONVERT(float, NULLIF(LTRIM(RTRIM(post_test)), ''))) as average_score")
+                ->groupBy('id_training_actual');
+
             $tb_training_actual = DB::table('tb_training_actual')
                 ->leftjoin('tb_training_schedule', 'tb_training_schedule.id', '=', 'tb_training_actual.id_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
+                ->leftJoinSub($participant_scores, 'participant_scores', function ($join) {
+                    $join->on('participant_scores.id_training_actual', '=', 'tb_training_actual.id');
+                })
                 ->where('tb_training_actual.is_delete', '0');
             if ($type > 0)
                 $tb_training_actual = $tb_training_actual->where('tb_training_list.id_type', $type);
             if ($category != 'All Category')
                 $tb_training_actual = $tb_training_actual->where('tb_training_list.category', $category);
             $tb_training_actual = $tb_training_actual->orderby('tb_training_actual.id', 'desc')
-                ->get(['tb_training_actual.*', 'tb_training_list.training_name', 'tb_training_list.category', 'tb_skill_type.skill_type']);
+                ->get([
+                    'tb_training_actual.*',
+                    'tb_training_schedule.draft_qty',
+                    'tb_training_schedule.plan_qty',
+                    'tb_training_schedule.actual_qty',
+                    'tb_training_list.training_name',
+                    'tb_training_list.category',
+                    'tb_skill_type.skill_type',
+                    'participant_scores.average_score',
+                ]);
             return view('page/training/training_actual_group', ['tb_training_actual' => $tb_training_actual, 'tb_skill_type' => $tb_skill_type, 'skill_type' => $skill_type, 'type' => $type, 'category' => $category, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Actual Training']);
         } else {
             return abort(403, 'Anda tidak punya akses');
@@ -462,14 +479,14 @@ class training_controller extends Controller
     function training_actual()
     {
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            $tb_training_actual = DB::connection('training')->table('tb_training_actual')
+            $tb_training_actual = DB::table('tb_training_actual')
                 ->leftjoin('tb_training_schedule', 'tb_training_schedule.id', '=', 'tb_training_actual.id_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
                 ->where('tb_training_actual.is_delete', '0')
                 //->where('tb_training_actual.in_class','1')
                 ->orderby('tb_training_actual.id', 'desc')->get(['tb_training_actual.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
-            $tb_training_personal = DB::connection('training')->table('tb_training_actual')
+            $tb_training_personal = DB::table('tb_training_actual')
                 ->leftjoin('tb_training_schedule', 'tb_training_schedule.id', '=', 'tb_training_actual.id_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
@@ -477,7 +494,7 @@ class training_controller extends Controller
                 ->where('tb_training_actual.is_delete', '0')
                 //->where('tb_training_actual.in_class','0')
                 ->orderby('tb_training_actual.id', 'desc')->get(['tb_training_actual.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type', 'tb_training_participant.nama_karyawan', 'tb_training_participant.NIK', 'tb_training_participant.department', 'tb_training_participant.jabatan']);
-            $tb_training_schedule = DB::connection('training')->table('tb_training_schedule')
+            $tb_training_schedule = DB::table('tb_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
                 ->where('tb_training_schedule.is_delete', '0')
@@ -504,14 +521,14 @@ class training_controller extends Controller
                 10 => 'status_dicatat',
                 11 => 'status_paid'
             );
-            $tb_training_actual = DB::connection('training')->table('tb_training_actual')
+            $tb_training_actual = DB::table('tb_training_actual')
                 ->leftjoin('tb_training_schedule', 'tb_training_schedule.id', '=', 'tb_training_actual.id_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
                 ->where('tb_training_actual.is_delete', '0')
                 //->where('tb_training_actual.in_class','1')
                 ->orderby('tb_training_actual.id', 'desc')->get(['tb_training_actual.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
-            $tb_training_schedule = DB::connection('training')->table('tb_training_schedule')
+            $tb_training_schedule = DB::table('tb_training_schedule')
                 ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
                 ->where('tb_training_schedule.is_delete', '0')
@@ -610,12 +627,14 @@ class training_controller extends Controller
         $related_file = DB::table('tb_training_document')->where('id', $id_doc)->get();
         $file_name = '';
         $document_name = '';
+        $related_link = '';
         foreach ($related_file as $dt) {
             $file_name = $dt->file_name;
             $document_name = $dt->document_name;
+            $related_link = $dt->related_link;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Active', 'action_route' => 'Document']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'related_link' => $related_link, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Active', 'action_route' => 'Document']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -649,12 +668,14 @@ class training_controller extends Controller
         $related_file = DB::table('tb_training_document')->where('id', $id_doc)->get();
         $file_name = '';
         $document_name = '';
+        $related_link = '';
         foreach ($related_file as $dt) {
             $file_name = $dt->file_name;
             $document_name = $dt->document_name;
+            $related_link = $dt->related_link;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Draft', 'action_route' => 'DocumentDraft']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'related_link' => $related_link, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document Draft', 'action_route' => 'DocumentDraft']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -688,12 +709,14 @@ class training_controller extends Controller
         $related_file = DB::table('tb_training_document')->where('id', $id_doc)->get();
         $file_name = '';
         $document_name = '';
+        $related_link = '';
         foreach ($related_file as $dt) {
             $file_name = $dt->file_name;
             $document_name = $dt->document_name;
+            $related_link = $dt->related_link;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document InActive', 'action_route' => 'DocumentArchieve']);
+            return view('page/training/training_document', ['tb_training_document' => $tb_training_document, 'tb_skill_type' => $tb_skill_type, 'tb_department' => $tb_department, 'tb_training_document_numbers' => $tb_training_document_numbers, 'id_doc' => $id_doc, 'file_name' => $file_name, 'related_link' => $related_link, 'document_name' => $document_name, 'menu' => 'elibrary', 'juduls' => 'Document InActive', 'action_route' => 'DocumentArchieve']);
             //}elseif (request()->user()->hasRole('ess')){
             //return view('page/training/document',['tb_training_document'=>$tb_training_document,'site'=>$this->site,'menu'=>'training_tools','juduls'=>'Training Documents']);
         } else {
@@ -796,8 +819,8 @@ class training_controller extends Controller
     {
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
             return "Masuk";
-            $tb_training_test = DB::connection('training')->table('tb_training_test')->where('id', $id)->orderby('id', 'desc')->get();
-            $tb_question = DB::connection('training')->table('tb_question')->where('id_training_test', $id)->orderby('index_question', 'desc')->get();
+            $tb_training_test = DB::table('tb_training_test')->where('id', $id)->orderby('id', 'desc')->get();
+            $tb_question = DB::table('tb_question')->where('id_training_test', $id)->orderby('index_question', 'desc')->get();
             foreach ($tb_training_test as $dt) {
                 $test_name = $dt->test_name;
             }
@@ -808,12 +831,12 @@ class training_controller extends Controller
     }
     function training_monitor_free($id_training_actual)
     {
-        $tb_training_actual = DB::connection('training')->table('tb_training_actual')->where('id', $id_training_actual)->get();
+        $tb_training_actual = DB::table('tb_training_actual')->where('id', $id_training_actual)->get();
         foreach ($tb_training_actual as $dt) {
             $id_training_schedule = $dt->id_training_schedule;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            $tb_question = DB::connection('training')->table('tb_related_test')
+            $tb_question = DB::table('tb_related_test')
                 ->leftjoin('tb_question', 'tb_question.id_training_test', '=', 'tb_related_test.id_test')
                 ->where('tb_related_test.id_training_schedule', $id_training_schedule)->orderby('tb_question.index_question', 'asc')
                 ->get(['tb_question.*']);
@@ -825,12 +848,12 @@ class training_controller extends Controller
     }
     function training_monitor_post($id_training_actual)
     {
-        $tb_training_actual = DB::connection('training')->table('tb_training_actual')->where('id', $id_training_actual)->get();
+        $tb_training_actual = DB::table('tb_training_actual')->where('id', $id_training_actual)->get();
         foreach ($tb_training_actual as $dt) {
             $id_training_schedule = $dt->id_training_schedule;
         }
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            $tb_question = DB::connection('training')->table('tb_related_test')
+            $tb_question = DB::table('tb_related_test')
                 ->leftjoin('tb_question', 'tb_question.id_training_test', '=', 'tb_related_test.id_test')
                 ->where('tb_related_test.id_training_schedule', $id_training_schedule)->orderby('tb_question.index_question', 'asc')
                 ->get(['tb_question.*']);
@@ -843,7 +866,7 @@ class training_controller extends Controller
     function training_monitor_update(request $data)
     {
         $konten = '';
-        $tabel = DB::connection('training')->table('tb_training_participant')->where('id_training_actual', $data->idtraining)->get();
+        $tabel = DB::table('tb_training_participant')->where('id_training_actual', $data->idtraining)->get();
         $no = 0;
         foreach ($tabel as $dt) {
             $no++;
@@ -852,7 +875,7 @@ class training_controller extends Controller
             $konten .= "<td>" . $dt->NIK . "</td>";
             $konten .= "<td>" . $dt->nama_karyawan . "</td>";
             if ($data->type == 'Free') {
-                $tabel2 = DB::connection('training')->table('tb_free_test')->where('id_participant', $dt->id)->get();
+                $tabel2 = DB::table('tb_free_test')->where('id_participant', $dt->id)->get();
                 $konten .= "<td style='text-align:center;'>";
                 foreach ($tabel2 as $dt2) {
                     if ($dt2->answer_code == $dt2->answer_actual && $dt2->answer_late == 0) {
@@ -870,7 +893,7 @@ class training_controller extends Controller
 
                 $konten .= "<td>" . $dt->free_test . "</td>";
             } else {
-                $tabel2 = DB::connection('training')->table('tb_post_test')->where('id_participant', $dt->id)->get();
+                $tabel2 = DB::table('tb_post_test')->where('id_participant', $dt->id)->get();
                 $konten .= "<td style='text-align:center;'>";
 
                 foreach ($tabel2 as $dt2) {
@@ -931,6 +954,11 @@ class training_controller extends Controller
     function simpan_plan(request $data)
     {
         $data->validate([
+            'is_reschedule' => 'sometimes|boolean',
+            'schedule_type' => 'required|in:Annual Plan,UnPlan,Reschedule',
+            'tanggal' => 'required|date',
+            'start' => 'nullable|date_format:H:i',
+            'finish' => 'nullable|date_format:H:i',
             'levels' => 'sometimes|array',
             'levels.*' => 'integer|exists:tb_level,id',
         ]);
@@ -939,8 +967,118 @@ class training_controller extends Controller
         $admin = Auth::user()->name;
         $levelIds = array_values(array_unique($data->input('levels', [])));
         $periode = date('Y-m', strtotime($data->tanggal));
-        return DB::transaction(function () use ($data, $now, $admin, $levelIds, $periode) {
+        $isReschedule = $data->boolean('is_reschedule');
+        return DB::transaction(function () use ($data, $now, $admin, $levelIds, $periode, $isReschedule) {
+            if ($isReschedule) {
+                $sourceSchedule = DB::table('tb_training_schedule')
+                    ->where('id', $data->idcomponent)
+                    ->where('is_delete', '0')
+                    ->first();
+                if (!$sourceSchedule) {
+                    return "Original schedule not found";
+                }
+
+                $newDate = Carbon::parse($data->tanggal);
+                $newStart = $data->input('start') ?: null;
+                $newFinish = $data->input('finish') ?: null;
+                if (
+                    $newDate->toDateString() === Carbon::parse($sourceSchedule->tanggal)->toDateString()
+                    && $newStart === ($sourceSchedule->start ? substr((string) $sourceSchedule->start, 0, 5) : null)
+                    && $newFinish === ($sourceSchedule->finish ? substr((string) $sourceSchedule->finish, 0, 5) : null)
+                ) {
+                    return "Please change the date or time for rescheduling";
+                }
+
+                $scheduleExists = DB::table('tb_training_schedule')
+                    ->where('id_training', $sourceSchedule->id_training)
+                    ->where('tanggal', $newDate->toDateString())
+                    ->where('is_delete', '0')
+                    ->where('id', '<>', $sourceSchedule->id)
+                    ->exists();
+                if ($scheduleExists) {
+                    return "A schedule for this training already exists on the selected date";
+                }
+
+                $newScheduleId = DB::table('tb_training_schedule')->insertGetId([
+                    'id_training' => $sourceSchedule->id_training,
+                    'schedule_type' => 'Reschedule',
+                    'nara_sumber' => $sourceSchedule->nara_sumber,
+                    'nara_sumber_backup' => $sourceSchedule->nara_sumber_backup,
+                    'tanggal' => $newDate->toDateString(),
+                    'start' => $newStart,
+                    'finish' => $newFinish,
+                    'home_line' => $sourceSchedule->home_line,
+                    'department' => $sourceSchedule->department,
+                    'draft_qty' => $sourceSchedule->draft_qty,
+                    'periode' => $newDate->format('Y-m'),
+                    'week_number' => $newDate->isoWeek(),
+                    'admin' => $admin,
+                    'is_delete' => '0',
+                    'created_at' => $now,
+                ]);
+
+                $sourceLevelIds = DB::table('tb_training_level')
+                    ->where('id_training_schedule', $sourceSchedule->id)
+                    ->pluck('id_level')
+                    ->map(function ($id) {
+                        return (int) $id;
+                    })
+                    ->all();
+                $this->saveTrainingLevels($newScheduleId, $sourceLevelIds);
+
+                $invitations = DB::table('tb_training_invitation')
+                    ->where('id_training_schedule', $sourceSchedule->id)
+                    ->get(['id_employee', 'NIK', 'nama_karyawan', 'department', 'jabatan']);
+                if ($invitations->isNotEmpty()) {
+                    DB::table('tb_training_invitation')->insert($invitations->map(function ($invitation) use ($newScheduleId, $admin) {
+                        return [
+                            'id_training_schedule' => $newScheduleId,
+                            'id_employee' => $invitation->id_employee,
+                            'NIK' => $invitation->NIK,
+                            'nama_karyawan' => $invitation->nama_karyawan,
+                            'department' => $invitation->department,
+                            'jabatan' => $invitation->jabatan,
+                            'admin' => $admin,
+                        ];
+                    })->all());
+                }
+
+                $relatedDocuments = DB::table('tb_related_document')
+                    ->where('id_training_schedule', $sourceSchedule->id)
+                    ->pluck('id_document');
+                if ($relatedDocuments->isNotEmpty()) {
+                    DB::table('tb_related_document')->insert($relatedDocuments->map(function ($documentId) use ($newScheduleId, $admin) {
+                        return [
+                            'id_training_schedule' => $newScheduleId,
+                            'id_document' => $documentId,
+                            'admin' => $admin,
+                        ];
+                    })->all());
+                }
+
+                $relatedTests = DB::table('tb_related_test')
+                    ->where('id_training_schedule', $sourceSchedule->id)
+                    ->pluck('id_test');
+                if ($relatedTests->isNotEmpty()) {
+                    DB::table('tb_related_test')->insert($relatedTests->map(function ($testId) use ($newScheduleId, $admin) {
+                        return [
+                            'id_training_schedule' => $newScheduleId,
+                            'id_test' => $testId,
+                            'admin' => $admin,
+                        ];
+                    })->all());
+                }
+
+                $this->update_tb_schedule($newScheduleId);
+
+                return "Sukses";
+            }
+
             if ($data->idcomponent == '') {
+                if ($data->schedule_type === 'Reschedule') {
+                    return "Reschedule must be created from an existing schedule";
+                }
+
                 $scheduleExists = DB::table('tb_training_schedule')
                     ->where('id_training', $data->idtraining)
                     ->where('tanggal', $data->tanggal)
@@ -951,6 +1089,7 @@ class training_controller extends Controller
 
                 $idTrainingSchedule = DB::table('tb_training_schedule')->insertGetId([
                     'id_training' => $data->idtraining,
+                    'schedule_type' => $data->schedule_type,
                     'nara_sumber' => $data->narasumber,
                     'nara_sumber_backup' => $data->narasumber_backup ?? null,
                     'tanggal' => $data->tanggal,
@@ -976,6 +1115,7 @@ class training_controller extends Controller
 
             $updated = DB::table('tb_training_schedule')->where('id', $data->idcomponent)->update([
                 'id_training' => $data->idtraining,
+                'schedule_type' => $data->schedule_type,
                 'nara_sumber' => $data->narasumber,
                 'nara_sumber_backup' => $data->narasumber_backup ?? null,
                 'tanggal' => $data->tanggal,
@@ -1032,8 +1172,10 @@ class training_controller extends Controller
                     'jabatan' => $dt->position_name,
                     'admin' => $admin
                 ]);
-                if ($add)
+                if ($add) {
                     $hasil = "Sukses";
+                    $this->update_tb_schedule($data->idtraining);
+                }
             }
         }
         $tb_training_invitation = DB::table('tb_training_invitation')->where('id_training_schedule', $data->idtraining)->orderby('id', 'desc')->get();
@@ -1054,18 +1196,17 @@ class training_controller extends Controller
             $hasil .= "</tr>";
         }
         return $hasil;
-
     }
     function simpan_actual(request $data)
     {
         $admin = Auth::user()->name;
         $hasil = "There is no change";
         if ($data->idcomponent == '') {
-            $tb_training_schedule = DB::connection('training')->table('tb_training_actual')->where('id_training_schedule', $data->idtraining)->where('tanggal_aktual', $data->tanggal)->where('in_class', '1')->where('is_delete', '0')->count();
+            $tb_training_schedule = DB::table('tb_training_actual')->where('id_training_schedule', $data->idtraining)->where('tanggal_aktual', $data->tanggal)->where('in_class', '1')->where('is_delete', '0')->count();
             if ($tb_training_schedule > 0)
                 $hasil = "Failed, Training Schedule already Exixts";
             else {
-                $add = DB::connection('training')->table('tb_training_actual')->insert([
+                $add = DB::table('tb_training_actual')->insert([
                     'id_training_schedule' => $data->idtraining,
                     'nara_sumber' => $data->narasumber,
                     'tanggal_aktual' => $data->tanggal,
@@ -1073,11 +1214,13 @@ class training_controller extends Controller
                     'finish_aktual' => $data->finish,
                     'admin' => $admin
                 ]);
-                if ($add)
+                if ($add) {
                     $hasil = "Sukses";
+                    $this->update_tb_schedule($data->idtraining);
+                }
             }
         } else {
-            $edit = DB::connection('training')->table('tb_training_actual')->where('id', $data->idcomponent)->update([
+            $edit = DB::table('tb_training_actual')->where('id', $data->idcomponent)->update([
                 'id_training_schedule' => $data->idtraining,
                 'nara_sumber' => $data->narasumber,
                 'tanggal_aktual' => $data->tanggal,
@@ -1093,25 +1236,25 @@ class training_controller extends Controller
     }
     function simpan_actual_participant(request $data)
     {
-        $tb_training_actual = DB::connection('training')->table('tb_training_actual')->where('id', $data->idtraining)->get();
+        $tb_training_actual = DB::table('tb_training_actual')->where('id', $data->idtraining)->get();
         foreach ($tb_training_actual as $dt) {
             $id_training_schedule = $dt->id_training_schedule;
         }
         $hasil = "No Action";
         $admin = Auth::user()->name;
         $jam = date('Y-m-d H:i:s');
-        $tb_employee = DB::connection('training')->table('tb_training_invitation')
+        $tb_employee = DB::table('tb_training_invitation')
             ->where('tb_training_invitation.id_employee', $data->idemployee)
             ->where('id_training_schedule', $id_training_schedule)
             ->get();
         foreach ($tb_employee as $dt) {
             $id_training_invitation = $dt->id;
             //$hasil="Masuk";
-            $tb_training_participant = DB::connection('training')->table('tb_training_participant')->where('id_employee', $data->idemployee)->where('id_training_actual', $data->idtraining)->count();
+            $tb_training_participant = DB::table('tb_training_participant')->where('id_employee', $data->idemployee)->where('id_training_actual', $data->idtraining)->count();
             if ($tb_training_participant > 0)
                 $hasil = "Failed, Employee already Exixts";
             else {
-                $add = DB::connection('training')->table('tb_training_participant')->insert([
+                $add = DB::table('tb_training_participant')->insert([
                     'id_training_actual' => $data->idtraining,
                     'id_training_invitation' => $id_training_invitation,
                     'id_employee' => $data->idemployee,
@@ -1122,12 +1265,14 @@ class training_controller extends Controller
                     'admin' => $admin,
                     'created_at' => $jam,
                 ]);
-                if ($add)
+                if ($add) {
                     $hasil = "Sukses";
+                    $this->update_tb_schedule($data->idtraining);
+                }
             }
         }
 
-        $tb_related_test = DB::connection('training')->table('tb_training_participant')
+        $tb_related_test = DB::table('tb_training_participant')
             ->leftjoin('tb_training_actual', 'tb_training_actual.id', '=', 'tb_training_participant.id_training_actual')
             ->leftjoin('tb_related_test', 'tb_related_test.id_training_schedule', '=', 'tb_training_actual.id_training_schedule')
             ->leftjoin('tb_question', 'tb_question.id_training_test', '=', 'tb_related_test.id_test')
@@ -1136,13 +1281,13 @@ class training_controller extends Controller
             ->where('tb_training_participant.created_at', $jam)
             ->get(['tb_question.*', 'tb_training_participant.id as id_participant']);
         foreach ($tb_related_test as $dt2) {
-            $add3 = DB::connection('training')->table('tb_free_test')->insert([
+            $add3 = DB::table('tb_free_test')->insert([
                 'id_participant' => $dt2->id_participant,
                 'id_question' => $dt2->id,
                 'answer_code' => $dt2->answer_code,
                 'admin' => $admin
             ]);
-            $add4 = DB::connection('training')->table('tb_post_test')->insert([
+            $add4 = DB::table('tb_post_test')->insert([
                 'id_participant' => $dt2->id_participant,
                 'id_question' => $dt2->id,
                 'answer_code' => $dt2->answer_code,
@@ -1150,7 +1295,7 @@ class training_controller extends Controller
             ]);
         }
 
-        $tb_training_participant = DB::connection('training')->table('tb_training_participant')->where('id_training_actual', $data->idtraining)->orderby('id', 'desc')->get();
+        $tb_training_participant = DB::table('tb_training_participant')->where('id_training_actual', $data->idtraining)->orderby('id', 'desc')->get();
         $no = 0;
         foreach ($tb_training_participant as $dt) {
             $no++;
@@ -1225,7 +1370,7 @@ class training_controller extends Controller
             $file = $data->file('training_doc');
             if ($file == '')
                 return redirect()->back()->with(['success' => 'File can not be null']);
-            $tb_training_document = DB::connection('training')->table('tb_training_document')->where('file_name', $file)->where('doc_level', '1')->count();
+            $tb_training_document = DB::table('tb_training_document')->where('file_name', $file)->where('doc_level', '1')->count();
             if ($tb_training_document > 0)
                 return redirect()->back()->with(['success' => 'File already exists']);
 
@@ -1235,7 +1380,7 @@ class training_controller extends Controller
 
             $terupload = move_uploaded_file($namaSementara, $dirUpload . $namaFile);
             if ($terupload) {
-                $add = DB::connection('training')->table('tb_training_document')->insert([
+                $add = DB::table('tb_training_document')->insert([
                     'document_name' => $data->document_name,
                     'file_name' => $namaFile,
                     'doc_level' => '1',
@@ -1245,7 +1390,7 @@ class training_controller extends Controller
                     return redirect()->back()->with(['success' => 'Upload Sukses']);
             }
         } else {
-            $update = DB::connection('training')->table('tb_training_document')->where('id', $data->id_document)->update([
+            $update = DB::table('tb_training_document')->where('id', $data->id_document)->update([
                 'document_name' => $data->document_name,
                 'admin' => $admin,
             ]);
@@ -1256,7 +1401,7 @@ class training_controller extends Controller
     }
     function document_download($id)
     {
-        $tb_training_document = DB::connection('training')->table('tb_training_document')->where('id', $id)->get();
+        $tb_training_document = DB::table('tb_training_document')->where('id', $id)->get();
         foreach ($tb_training_document as $dt) {
             $dirUpload = "laravel/storage/app/public/";
             $file_path = $dirUpload . $dt->file_name;
@@ -1292,7 +1437,12 @@ class training_controller extends Controller
             $no++;
             $hasil .= "<tr>";
             $hasil .= "<td>" . $no . "</td>";
-            $hasil .= "<td>" . $dt->file_name;
+            $hasil .= "<td>";
+            if($dt->file_name==''){
+                $hasil .= $dt->document_name;
+            }else{
+                $hasil .= $dt->file_name;
+            }
             $hasil .= "<div class='pull-right'>";
             $hasil .= "<button title='Delete' type='button' class='deletesupport-modal btn btn-danger btn-xs' data-idsupport='" . $dt->id . "' data-supportnamefilename='" . $dt->file_name . "'><i class='fa fa-trash'></i></button>";
             $hasil .= "</div>";
@@ -1462,16 +1612,16 @@ class training_controller extends Controller
     {
         $hasil = "There is no change";
         $admin = Auth::user()->name;
-        $tb_related_test = DB::connection('training')->table('tb_training_participant')
+        $tb_related_test = DB::table('tb_training_participant')
             ->leftjoin('tb_training_actual', 'tb_training_actual.id', '=', 'tb_training_participant.id_training_actual')
             ->leftjoin('tb_related_test', 'tb_related_test.id_training_schedule', '=', 'tb_training_actual.id_training_schedule')
             ->leftjoin('tb_question', 'tb_question.id_training_test', '=', 'tb_related_test.id_test')
             ->where('tb_training_participant.id_training_actual', $data->idtraining)->get(['tb_question.*', 'tb_training_participant.id as id_participant']);
         foreach ($tb_related_test as $dt) {
-            $cek = DB::connection('training')->table('tb_post_test')->where('id_participant', $dt->id_participant)->where('id_question', $dt->id)->count();
+            $cek = DB::table('tb_post_test')->where('id_participant', $dt->id_participant)->where('id_question', $dt->id)->count();
             $no = 0;
             if ($cek == 0) {
-                $add = DB::connection('training')->table('tb_post_test')->insert([
+                $add = DB::table('tb_post_test')->insert([
                     'id_participant' => $dt->id_participant,
                     'id_question' => $dt->id,
                     'answer_code' => $dt->answer_code,
@@ -1480,7 +1630,7 @@ class training_controller extends Controller
                 if ($add)
                     $hasil = "Sukses";
             } else {
-                $reset = DB::connection('training')->table('tb_post_test')->where('id_participant', $dt->id_participant)->where('id_question', $dt->id)->update([
+                $reset = DB::table('tb_post_test')->where('id_participant', $dt->id_participant)->where('id_question', $dt->id)->update([
                     'answer_actual' => NULL,
                     'answer_status' => 0,
                     'admin' => $admin
@@ -1488,7 +1638,7 @@ class training_controller extends Controller
                 if ($reset)
                     $hasil = "Sukses";
             }
-            $update = DB::connection('training')->table('tb_training_participant')->where('id', $dt->id_participant)->update([
+            $update = DB::table('tb_training_participant')->where('id', $dt->id_participant)->update([
                 'post_test' => NULL,
                 'progress' => NULL,
                 'grade_status' => NULL
@@ -1502,13 +1652,13 @@ class training_controller extends Controller
             $periode = date('Y-m');
         $tahun = date('Y', strtotime($periode . '-01'));
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            $tb_training_schedule = DB::connection('training')->table('tb_training_schedule')
+            $tb_training_schedule = DB::table('tb_training_schedule')
                 ->where('tb_training_schedule.is_delete', '0')
                 ->where('tb_training_schedule.periode', $periode)
                 //->where('id','904')
                 ->get();
             foreach ($tb_training_schedule as $dt) {
-                $tb_inv = DB::connection('training')->table('tb_training_invitation')
+                $tb_inv = DB::table('tb_training_invitation')
                     ->select('id_employee', 'id_training_schedule')
                     ->groupby('id_employee', 'id_training_schedule')
                     ->where('id_training_schedule', $dt->id)
@@ -1516,7 +1666,7 @@ class training_controller extends Controller
                 $plan = 0;
                 foreach ($tb_inv as $dt2) {
                     $plan++;
-                    $tb_act = DB::connection('training')->table('tb_training_participant')
+                    $tb_act = DB::table('tb_training_participant')
                         ->leftjoin('tb_training_invitation', 'tb_training_invitation.id', '=', 'tb_training_participant.id_training_invitation')
                         ->select('tb_training_participant.id_employee', 'id_training_invitation')
                         ->groupby('tb_training_participant.id_employee', 'id_training_invitation')
@@ -1526,7 +1676,7 @@ class training_controller extends Controller
                     foreach ($tb_act as $dt3) {
                         $actual++;
                     }
-                    $update = DB::connection('training')->table('tb_training_schedule')->where('id', $dt->id)->update(['plan_qty' => $plan, 'actual_qty' => $actual]);
+                    $update = DB::table('tb_training_schedule')->where('id', $dt->id)->update(['plan_qty' => $plan, 'actual_qty' => $actual]);
                 }
             }
         }
@@ -1542,7 +1692,7 @@ class training_controller extends Controller
     }
     function delete_plan($id)
     {
-        $delete = DB::connection('training')->table('tb_training_schedule')->where('id', $id)->update(['is_delete' => '1']);
+        $delete = DB::table('tb_training_schedule')->where('id', $id)->update(['is_delete' => '1']);
         if ($delete)
             return redirect()->back()->with(['success' => 'Deleted']);
     }
@@ -1566,18 +1716,27 @@ class training_controller extends Controller
             $hasil .= "</td>";
             $hasil .= "</tr>";
         }
-        return $hasil;
+        if ($delete) {
+            $this->update_tb_schedule($data->idtraining);
+            return $hasil;
+        }
     }
     function delete_actual($id)
     {
-        $delete = DB::connection('training')->table('tb_training_actual')->where('id', $id)->update(['is_delete' => '1']);
-        if ($delete)
+        $delete = DB::table('tb_training_actual')->where('id', $id)->update(['is_delete' => '1']);
+        $idtraining = DB::table('tb_training_actual')->where('id', $id)->get();
+        foreach ($idtraining as $dt) {
+            $idtraining = $dt->id_training_schedule;
+        }
+        if ($delete) {
+            $this->update_tb_schedule($idtraining);
             return redirect()->back()->with(['success' => 'Deleted']);
+        }
     }
     function delete_actual_participant(request $data)
     {
-        $delete = DB::connection('training')->table('tb_training_participant')->where('id', $data->id)->delete();
-        $tb_training_participant = DB::connection('training')->table('tb_training_participant')->where('id_training_actual', $data->idtraining)->orderby('id', 'desc')->get();
+        $delete = DB::table('tb_training_participant')->where('id', $data->id)->delete();
+        $tb_training_participant = DB::table('tb_training_participant')->where('id_training_actual', $data->idtraining)->orderby('id', 'desc')->get();
         $no = 0;
         $hasil = "";
         foreach ($tb_training_participant as $dt) {
@@ -1663,12 +1822,12 @@ class training_controller extends Controller
 
     function update_participant(request $data)
     {
-        $tb_training_participant = DB::connection('training')->table('tb_training_participant')->where('id_training_actual', $data->idtraining)->get();
-        $tb_training_actual = DB::connection('training')->table('tb_training_actual')->where('id', $data->idtraining)->get();
+        $tb_training_participant = DB::table('tb_training_participant')->where('id_training_actual', $data->idtraining)->get();
+        $tb_training_actual = DB::table('tb_training_actual')->where('id', $data->idtraining)->get();
         foreach ($tb_training_actual as $dt) {
             $id_training_schedule = $dt->id_training_schedule;
         }
-        $tb_training_invitation = DB::connection('training')->table('tb_training_invitation')
+        $tb_training_invitation = DB::table('tb_training_invitation')
             ->where('id_training_schedule', $id_training_schedule);
         foreach ($tb_training_participant as $dt) {
             $tb_training_invitation = $tb_training_invitation->where('id_employee', '<>', $dt->id_employee);
@@ -1682,17 +1841,14 @@ class training_controller extends Controller
     }
     function setup_participant($id_training_invitation)
     {
-        $tb_training_schedule = DB::connection('training')->table('tb_training_invitation')->where('id', $id_training_invitation)->get();
+        $tb_training_schedule = DB::table('tb_training_invitation')->where('id', $id_training_invitation)->get();
         foreach ($tb_training_schedule as $dt) {
             $id_training_schedule = $dt->id_training_schedule;
         }
         $email = Auth::user()->email;
-        $tb_employee = DB::connection('mysql')->table('tb_emails')
-            ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
-            ->where('email_address', $email)->get();
-        foreach ($tb_employee as $dt) {
-            $id_employee = $dt->id_employee;
-        }
+        $id_employee = DB::table('tb_emails')
+            ->where('email_address', $email)
+            ->value('id_employee');
         $admin = Auth::user()->name;
         date_default_timezone_set("Asia/Jakarta");
         $tanggal = date('Y-m-d');
@@ -1700,12 +1856,12 @@ class training_controller extends Controller
         $finish = date('H:i:s', strtotime('+1 hours', strtotime($tanggal . ' ' . $start)));
         $time = date('Y-m-d H:i:s');
 
-        $cek = DB::connection('training')->table('tb_training_actual')->where('id_training_schedule', $id_training_schedule)->where('in_class', 0)->where('admin', $admin)->where('is_delete', '0')->count();
+        $cek = DB::table('tb_training_actual')->where('id_training_schedule', $id_training_schedule)->where('in_class', 0)->where('admin', $admin)->where('is_delete', '0')->count();
         //return $cek;
         if ($cek == 0) {
-            $tb_training_schedule = DB::connection('training')->table('tb_training_schedule')->where('id', $id_training_schedule)->where('is_delete', '0')->get();
+            $tb_training_schedule = DB::table('tb_training_schedule')->where('id', $id_training_schedule)->where('is_delete', '0')->get();
             foreach ($tb_training_schedule as $dt) {
-                $add = DB::connection('training')->table('tb_training_actual')->insert([
+                $add = DB::table('tb_training_actual')->insert([
                     'id_training_schedule' => $dt->id,
                     'nara_sumber' => $dt->nara_sumber,
                     'tanggal_aktual' => $tanggal,
@@ -1716,15 +1872,15 @@ class training_controller extends Controller
                     'created_at' => $time,
                 ]);
                 if ($add) {
-                    $tb_training_invitation = DB::connection('training')->table('tb_training_invitation')
+                    $tb_training_invitation = DB::table('tb_training_invitation')
                         ->where('tb_training_invitation.id', $id_training_invitation)
                         ->get();
-                    $tb_training_actual = DB::connection('training')->table('tb_training_actual')->where('admin', $admin)->where('created_at', $time)->get();
+                    $tb_training_actual = DB::table('tb_training_actual')->where('admin', $admin)->where('created_at', $time)->get();
                     foreach ($tb_training_actual as $dt) {
                         $id_training_actual = $dt->id;
                     }
                     foreach ($tb_training_invitation as $dt) {
-                        $add2 = DB::connection('training')->table('tb_training_participant')->insert([
+                        $add2 = DB::table('tb_training_participant')->insert([
                             'id_training_actual' => $id_training_actual,
                             'id_employee' => $dt->id_employee,
                             'NIK' => $dt->NIK,
@@ -1736,20 +1892,20 @@ class training_controller extends Controller
                         ]);
                         if ($add2) {
 
-                            $tb_related_test = DB::connection('training')->table('tb_training_participant')
+                            $tb_related_test = DB::table('tb_training_participant')
                                 ->leftjoin('tb_training_actual', 'tb_training_actual.id', '=', 'tb_training_participant.id_training_actual')
                                 ->leftjoin('tb_related_test', 'tb_related_test.id_training_schedule', '=', 'tb_training_actual.id_training_schedule')
                                 ->leftjoin('tb_question', 'tb_question.id_training_test', '=', 'tb_related_test.id_test')
                                 ->where('tb_training_participant.id_training_actual', $id_training_actual)->get(['tb_question.*', 'tb_training_participant.id as id_participant']);
                             $no = 0;
                             foreach ($tb_related_test as $dt2) {
-                                $add3 = DB::connection('training')->table('tb_free_test')->insert([
+                                $add3 = DB::table('tb_free_test')->insert([
                                     'id_participant' => $dt2->id_participant,
                                     'id_question' => $dt2->id,
                                     'answer_code' => $dt2->answer_code,
                                     'admin' => $admin
                                 ]);
-                                $add4 = DB::connection('training')->table('tb_post_test')->insert([
+                                $add4 = DB::table('tb_post_test')->insert([
                                     'id_participant' => $dt2->id_participant,
                                     'id_question' => $dt2->id,
                                     'answer_code' => $dt2->answer_code,
@@ -1760,7 +1916,7 @@ class training_controller extends Controller
                                 $id_participant = $dt2->id_participant;
                             }
                             if ($no > 0) {
-                                $update = DB::connection('training')->table('tb_training_participant')->where('id', $id_participant)->update([
+                                $update = DB::table('tb_training_participant')->where('id', $id_participant)->update([
                                     'free_test' => 0
                                 ]);
                                 return redirect('/FreeTest/' . $id_participant);
@@ -1773,10 +1929,10 @@ class training_controller extends Controller
                     return "Failed Add Actual & Participant";
             }
         } else {
-            $tb_training_actual = DB::connection('training')->table('tb_training_actual')->where('id_training_schedule', $id_training_schedule)->where('admin', $admin)->where('is_delete', '0')->get();
+            $tb_training_actual = DB::table('tb_training_actual')->where('id_training_schedule', $id_training_schedule)->where('admin', $admin)->where('is_delete', '0')->get();
             foreach ($tb_training_actual as $dt) {
                 return redirect('/Training/Actual/' . $dt->id . '/0');
-                $tb_training_participant = DB::connection('training')->table('tb_training_participant')->where('id_training_actual', $dt->id)->where('id_employee', $id_employee)->get();
+                $tb_training_participant = DB::table('tb_training_participant')->where('id_training_actual', $dt->id)->where('id_employee', $id_employee)->get();
                 foreach ($tb_training_participant as $dt2) {
                     $id_participant = $dt2->id;
                     return redirect('/FreeTest/' . $id_participant);
@@ -1787,7 +1943,7 @@ class training_controller extends Controller
     }
     function training_print($periode)
     {
-        $tb_training_list = DB::connection('training')->table('tb_training_schedule')
+        $tb_training_list = DB::table('tb_training_schedule')
             ->leftjoin('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
             ->select('id_training', 'training_name', 'category', 'nara_sumber', 'department', 'level_participant', 'home_line', DB::raw('SUM(draft_qty) as draft_qty'))
             ->groupby('id_training', 'training_name', 'category', 'nara_sumber', 'department', 'level_participant', 'home_line')
@@ -1814,8 +1970,8 @@ class training_controller extends Controller
 
         );
         if (request()->user()->hasRole('root') || request()->user()->hasRole('training')) {
-            $tb_training_test = DB::connection('training')->table('tb_training_test')->where('id', $id)->orderby('id', 'desc')->get();
-            $tb_question = DB::connection('training')->table('tb_question')->where('id_training_test', $id)->orderby('index_question', 'asc');
+            $tb_training_test = DB::table('tb_training_test')->where('id', $id)->orderby('id', 'desc')->get();
+            $tb_question = DB::table('tb_question')->where('id_training_test', $id)->orderby('index_question', 'asc');
             $totalData = $tb_question->count();
             $totalFiltered = $totalData;
             $totalData = $tb_question->count();
@@ -1876,11 +2032,11 @@ class training_controller extends Controller
     {
         $id = $request->id;
         $id_training_test = $request->id_training_test;
-        $tb_question = DB::connection('training')->table('tb_question')->where('id_training_test', $id_training_test)->orderby('index_question', 'desc');
+        $tb_question = DB::table('tb_question')->where('id_training_test', $id_training_test)->orderby('index_question', 'desc');
         $no = 1;
         $count = $tb_question->count();
         if ($id > 0) {
-            $tb_question = DB::connection('training')->table('tb_question')
+            $tb_question = DB::table('tb_question')
                 ->where('id', $id)
                 ->where('id_training_test', $id_training_test)
                 ->orderby('index_question', 'desc');
@@ -2050,7 +2206,7 @@ class training_controller extends Controller
                 $datas['admin'] = $admin;
                 $datas['created_at'] = Carbon::now();
 
-                DB::connection('training')->table('tb_question')->insert($datas);
+                DB::table('tb_question')->insert($datas);
                 $dt['process_status'] = 1;
                 $dt['msg_process'] = 'Success';
             } else {
@@ -2063,7 +2219,7 @@ class training_controller extends Controller
                 $datas['option_c'] = $option_c;
                 $datas['option_d'] = $option_d;
                 $datas['admin'] = $admin;
-                DB::connection('training')->table('tb_question')->where('id', $id)->update($datas);
+                DB::table('tb_question')->where('id', $id)->update($datas);
                 $dt['process_status'] = 1;
                 $dt['msg_process'] = 'Updated';
             }
@@ -2071,7 +2227,17 @@ class training_controller extends Controller
         return json_encode($dt);
 
     }
-
+    function update_tb_schedule($id)
+    {
+        $tb1 = DB::table('tb_training_invitation')->where('id_training_schedule', $id)->count();
+        $tb2 = DB::table('tb_training_participant')->where('id_training_actual', function ($query) use ($id) {
+            $query->select('id')->from('tb_training_actual')->where('id_training_schedule', $id);
+        })->count();
+        $update = DB::table('tb_training_schedule')->where('id', $id)->update([
+            'plan_qty' => $tb1,
+            'actual_qty' => $tb2
+        ]);
+    }
     #endregion
 
 }

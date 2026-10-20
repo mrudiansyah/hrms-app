@@ -75,6 +75,51 @@
         .box.box-info {
             overflow: visible;
         }
+		.box.box-info > .box-header.training-record-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			width: 100%;
+			box-sizing: border-box;
+		}
+		.box.box-info > .box-header.training-record-header::before,
+		.box.box-info > .box-header.training-record-header::after {
+			display: none;
+		}
+		.training-record-filter {
+			flex: 1 1 360px;
+			min-width: 0;
+			max-width: 420px;
+		}
+		.training-record-filter .form-group {
+			margin: 0;
+		}
+		.training-record-filter .bootstrap-select,
+		.training-record-filter .bootstrap-select .dropdown-toggle {
+			width: 100% !important;
+		}
+		.training-record-actions {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 6px;
+			flex: 0 0 auto;
+			white-space: nowrap;
+		}
+		@media (max-width: 767px) {
+			.box.box-info > .box-header.training-record-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+			.training-record-filter {
+				max-width: none;
+				width: 100%;
+			}
+			.training-record-actions {
+				justify-content: flex-end;
+			}
+		}
     </style>
 	<div class="content-wrapper">
 		<!-- Content Header (Page header) -->
@@ -89,19 +134,23 @@
 		<div class="row">
 			<div class="col-lg-12 col-md-10 col-xs-12">
 				<div class="box box-info" style="background:#FFF;">
-					<div class="box-header">
-						<div class="box-tools">
-                            <div class="form-group">
-                                <select id="id_employee" class="selectpicker form-control pilihan" data-live-search="true">
-                                    <option value="0" <?php echo e(old('id_employee', $selected_employee ?? 0) == 0 ? 'selected' : ''); ?>>All Employee</option>
-                                    <?php $__currentLoopData = $tb_list; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($dt->id_employee); ?>" <?php echo e(old('id_employee', $selected_employee ?? 0) == $dt->id_employee ? 'selected' : ''); ?>>
-                                            <?php echo e($dt->nama_karyawan); ?> (<?php echo e($dt->NIK); ?>)
-                                        </option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                            </div>
- 						</div>
+					<div class="box-header training-record-header">
+						<div class="training-record-filter">
+							<div class="form-group" style="padding-left: 10px;width:300px;">
+								<select id="id_employee" class="selectpicker form-control pilihan" data-live-search="true">
+									<option value="0" <?php echo e(old('id_employee', $selected_employee ?? 0) == 0 ? 'selected' : ''); ?>>All Employee</option>
+									<?php $__currentLoopData = $tb_list; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($dt->id_employee); ?>" <?php echo e(old('id_employee', $selected_employee ?? 0) == $dt->id_employee ? 'selected' : ''); ?>>
+											<?php echo e($dt->nama_karyawan); ?> (<?php echo e($dt->NIK); ?>)
+										</option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+								</select>
+							</div>
+						</div>
+						<div class="training-record-actions">
+							<a href="/Training/Actuals/0/0" class="btn btn-default btn-xs"><i class="fa fa-list"></i> &nbsp;Training List</a>
+							<a href="/Training/Personal" class="btn btn-info btn-xs"><i class="fa fa-user"></i> &nbsp;Employee Training</a>
+						</div>
 					</div>
 					<div class="box-body">
 						<div class="pull-right">

@@ -81,10 +81,14 @@
 											$panjang=strlen($dt->file_name);
 											$mulai=$panjang-4;
 											$extensi=substr($dt->file_name,$mulai,4);
-											if($extensi=='.mp4'||$extensi=='.pdf'||$extensi=='.jpg'||$extensi=='.png'){?>
+											if($dt->related_link){?>
+											<a href="{{$dt->related_link}}" target="_blank" rel="noopener noreferrer" title="Open Link" class="btn btn-primary btn-xs"><i class="fa fa-external-link"></i></a>
+										<?php }elseif($extensi=='.mp4'||$extensi=='.pdf'||$extensi=='.jpg'||$extensi=='.png'){?>
 											<a href="/Documents/{{$dt->id}}" title="Preview" type="button" class="btn btn-primary btn-xs"><i class="fa fa-tv"></i></a>
 										<?php }?>
-										<a href="/Document/Download/{{$dt->id}}" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
+										@if($dt->file_name)
+											<a href="/Document/Download/{{$dt->id}}" title="Download" type="button" class="btn btn-info btn-xs"><i class="fa fa-download"></i></a>
+										@endif
 										<button title="Edit" type="button" class="form btn btn-primary btn-xs" data-iddocument="{{$dt->id}}" data-documentname="{{$dt->document_name}}"><i class="fa fa-edit"></i></button>
 										<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="{{$dt->id}}" data-delname="{{$dt->document_name}}"><i class="fa fa-trash"></i></button>
 									</div>
@@ -113,7 +117,14 @@
 						$encodedName = rawurlencode($file_name);
 						$document = url('/Show/' . $encodedName);
 					@endphp
-					@if(in_array($type, ['mp4', 'webm', 'ogg']))
+					@if(!empty($related_link))
+						<div class="text-center" style="padding:30px;">
+							<p>Dokumen ini tersedia melalui tautan eksternal.</p>
+							<a href="{{$related_link}}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+								<i class="fa fa-external-link"></i> Buka Link Dokumen
+							</a>
+						</div>
+					@elseif(in_array($type, ['mp4', 'webm', 'ogg']))
 						<div class="embed-responsive embed-responsive-16by9">
 							<video class="embed-responsive-item" controls style="max-height:800px; width:100%;">
 								<source src="{{ $document }}" type="video/{{ $type }}">

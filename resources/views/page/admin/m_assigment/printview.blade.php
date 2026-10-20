@@ -102,18 +102,11 @@
 						<td>Legalized by</td>
 					</tr>
 					<tr>
-						<td style="height:60px;">
+						<td style="height:100px;">
 							<?php 
 								if($dt->assigned_status=='1'){
-									$ttd_app=base_path().'/public/approval/'.$dt->assigned.'.png';
-									$confirm=base_path().'/public/approval/confirm.png';
-									$reject=base_path().'/public/approval/rejected.png';
-									$filename = 'c:/xampp/htdocs/public/approval/'.$dt->assigned.'.png';
-									if (file_exists($filename)){?>
-										<img src='{{ $ttd_app }}' style='width:100px;height:40px;'>
-									<?php }else{?>
-										<img src='{{ $confirm }}' style='width:100px;height:40px;'>
-									<?php }
+									$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->margin(1)->generate(url('/DigitalApproval/4/'.$dt->id.'/1'));
+									echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="80" height="80">';
 								}elseif($dt->assigned_status=='3'){?>
 									<img src='{{ $reject }}' style='width:100px;height:40px;'>
 								<?php }
@@ -122,15 +115,8 @@
 						<td>
 							<?php 
 								if($dt->approved1_status=='1'){
-									$ttd_app=base_path().'/public/approval/'.$dt->approved1.'.png';
-									$confirm=base_path().'/public/approval/confirm.png';
-									$reject=base_path().'/public/approval/rejected.png';
-									$filename = 'c:/xampp/htdocs/public/approval/'.$dt->approved1.'.png';
-									if (file_exists($filename)){?>
-										<img src='{{ $ttd_app }}' style='width:100px;height:40px;'>
-									<?php }else{?>
-										<img src='{{ $confirm }}' style='width:100px;height:40px;'>
-									<?php }
+									$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->margin(1)->generate(url('/DigitalApproval/4/'.$dt->id.'/2'));
+									echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="80" height="80">';
 								}elseif($dt->approved1_status=='3'){?>
 									<img src='{{ $reject }}' style='width:100px;height:40px;'>
 								<?php }
@@ -139,15 +125,8 @@
 						<td>
 							<?php 
 								if($dt->approved2_status=='1'){
-									$ttd_app=base_path().'/public/approval/'.$dt->approved2.'.png';
-									$confirm=base_path().'/public/approval/confirm.png';
-									$reject=base_path().'/public/approval/rejected.png';
-									$filename = 'c:/xampp/htdocs/public/approval/'.$dt->approved2.'.png';
-									if (file_exists($filename)){?>
-										<img src='{{ $ttd_app }}' style='width:100px;height:40px;'>
-									<?php }else{?>
-										<img src='{{ $confirm }}' style='width:100px;height:40px;'>
-									<?php }
+									$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->margin(1)->generate(url('/DigitalApproval/4/'.$dt->id.'/3'));
+									echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="80" height="80">';
 								}elseif($dt->approved2_status=='3'){?>
 									<img src='{{ $reject }}' style='width:100px;height:40px;'>
 								<?php }
@@ -156,15 +135,8 @@
 						<td>
 							<?php 
 								if($dt->conducted_status=='1'){
-									$ttd_app=base_path().'/public/approval/'.$dt->conducted.'.png';
-									$confirm=base_path().'/public/approval/confirm.png';
-									$reject=base_path().'/public/approval/rejected.png';
-									$filename = 'c:/xampp/htdocs/public/approval/'.$dt->conducted.'.png';
-									if (file_exists($filename)){?>
-										<img src='{{ $ttd_app }}' style='width:100px;height:40px;'>
-									<?php }else{?>
-										<img src='{{ $confirm }}' style='width:100px;height:40px;'>
-									<?php }
+									$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->margin(1)->generate(url('/DigitalApproval/4/'.$dt->id.'/4'));
+									echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="80" height="80">';
 								}elseif($dt->conducted_status=='3'){?>
 									<img src='{{ $reject }}' style='width:100px;height:40px;'>
 								<?php }
@@ -173,15 +145,8 @@
 						<td>
 							<?php 
 								if($dt->legalized_status=='1'){
-									$ttd_app=base_path().'/public/approval/'.$dt->legalized.'.png';
-									$confirm=base_path().'/public/approval/confirm.png';
-									$reject=base_path().'/public/approval/rejected.png';
-									$filename = 'c:/xampp/htdocs/public/approval/'.$dt->legalized.'.png';
-									if (file_exists($filename)){?>
-										<img src='{{ $ttd_app }}' style='width:100px;height:40px;'>
-									<?php }else{?>
-										<img src='{{ $confirm }}' style='width:100px;height:40px;'>
-									<?php }
+									$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->margin(1)->generate(url('/DigitalApproval/4/'.$dt->id.'/5'));
+									echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="80" height="80">';
 								}elseif($dt->legalized_status=='3'){?>
 									<img src='{{ $reject }}' style='width:100px;height:40px;'>
 								<?php }
@@ -189,11 +154,11 @@
 						</td>
 					</tr>
 					<tr>
-						<th>{{$dt->assigned_name}}</th>
-						<th>{{$dt->approved1_name}}</th>
-						<th>{{$dt->approved2_name}}</th>
-						<th>{{$dt->employee_name}}</th>
-						<th>{{$dt->legalized_name}}</th>
+						<td>{{$dt->assigned_name}}</td>
+						<td>{{$dt->approved1_name}}</td>
+						<td>{{$dt->approved2_name}}</td>
+						<td>{{$dt->employee_name}}</td>
+						<td>{{$dt->legalized_name}}</td>
 					</tr>
 					<tr>
 						<th>@if($dt->assigned_status_date!=''){{date('d-m-Y H:i',strtotime($dt->assigned_status_date))}}@endif</th>

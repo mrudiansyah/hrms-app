@@ -249,6 +249,11 @@ Route::post('/Training/Simpan/Plan/Participant', [App\Http\Controllers\training_
 Route::post('/Training/Delete/Plan/Participant', [App\Http\Controllers\training_controller::class, 'delete_plan_participant']);
 Route::post('/Training/Simpan/Assignment', [App\Http\Controllers\training_controller::class, 'simpan_assignment']);
 Route::post('/Training/Delete/Assignment', [App\Http\Controllers\training_controller::class, 'delete_assignment']);
+Route::get('/Training/Assignment/File/{id}', [App\Http\Controllers\training_controller::class, 'preview_assignment_file']);
+Route::post('/Training/Assignment/Submit', [App\Http\Controllers\ess_controller::class, 'submit_training_assignment']);
+Route::get('/Training/Assignment/Submission/{id}', [App\Http\Controllers\ess_controller::class, 'download_training_assignment_submission']);
+Route::post('/Training/Actual/Participant/Certify', [App\Http\Controllers\training_controller::class, 'update_actual_participant_certify']);
+Route::get('/Training/Actual/Participant/Certificate/{id}', [App\Http\Controllers\training_controller::class, 'preview_training_certificate']);
 Route::get('/Training/Actual/{id}', [App\Http\Controllers\training_controller::class, 'training_actual_participant']);
 Route::get('/Training/Actuals/{type}/{category}', [App\Http\Controllers\training_controller::class, 'training_actual_group']);
 Route::get('/Training/Personal/{id_employee?}', [App\Http\Controllers\training_controller::class, 'training_personal']);

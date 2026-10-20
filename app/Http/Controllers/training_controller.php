@@ -580,6 +580,10 @@ class training_controller extends Controller
                 ->where('tb_training_actual.id', $id)
                 ->orderby('tb_training_actual.id', 'desc')->get(['tb_training_actual.*', 'tb_training_list.training_name', 'tb_skill_type.skill_type']);
             $tb_training_participant = DB::table('tb_training_participant')->where('id_training_actual', $id)->orderby('id', 'desc')->get();
+            $all_certified = $tb_training_participant->isNotEmpty()
+                && $tb_training_participant->every(function ($participant) {
+                    return (int) ($participant->is_certify ?? 0) === 1;
+                });
 
             $tb_related_document = DB::table('tb_related_document')
                 ->leftjoin('tb_training_document', 'tb_training_document.id', '=', 'tb_related_document.id_document')
@@ -594,11 +598,74 @@ class training_controller extends Controller
             $tb_training_assignment = DB::table('tb_training_assignment')
                 ->where('id_training_actual', $id)
                 ->orderby('id', 'desc')
-                ->get(['id', 'id_training_actual', 'assignment', 'duedate']);
-            return view('page/training/training_actual_participant', ['tb_training_participant' => $tb_training_participant, 'tb_training_actual' => $tb_training_actual, 'tb_training_assignment' => $tb_training_assignment, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'in_class' => $in_class, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
+                ->get(['id', 'id_training_actual', 'assignment', 'duedate', 'assignment_file']);
+            return view('page/training/training_actual_participant', ['tb_training_participant' => $tb_training_participant, 'all_certified' => $all_certified, 'tb_training_actual' => $tb_training_actual, 'tb_training_assignment' => $tb_training_assignment, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'in_class' => $in_class, 'site' => $this->site, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
+    }
+    function preview_training_certificate($id)
+    {
+        $user = request()->user();
+        $isTrainingStaff = $user->hasRole('root') || $user->hasRole('training');
+        $isEss = $user->hasRole('ess');
+
+        $certificate = DB::table('tb_training_participant')
+            ->join('tb_training_actual', 'tb_training_actual.id', '=', 'tb_training_participant.id_training_actual')
+            ->join('tb_training_schedule', 'tb_training_schedule.id', '=', 'tb_training_actual.id_training_schedule')
+            ->join('tb_training_list', 'tb_training_list.id', '=', 'tb_training_schedule.id_training')
+            ->where('tb_training_participant.id', $id)
+            ->select([
+                'tb_training_participant.nama_karyawan',
+                'tb_training_participant.id_employee',
+                'tb_training_participant.is_certify',
+                'tb_training_participant.grade_status',
+                'tb_training_actual.tanggal_aktual',
+                'tb_training_actual.nara_sumber',
+                'tb_training_list.training_name',
+            ])
+            ->first();
+
+        abort_if(!$certificate, 404, 'Participant tidak ditemukan.');
+
+        if ($isTrainingStaff) {
+            abort_if((int) $certificate->is_certify !== 1, 403, 'Participant belum disertifikasi.');
+        } elseif ($isEss) {
+            $employeeId = DB::table('tb_emails')
+                ->where('email_address', $user->email)
+                ->value('id_employee');
+
+            abort_if(
+                !$employeeId
+                || (int) $certificate->id_employee !== (int) $employeeId
+                || (int) $certificate->grade_status !== 1,
+                403,
+                'Sertifikat hanya tersedia untuk peserta yang lulus.'
+            );
+        } else {
+            abort(403, 'Anda tidak punya akses');
+        }
+
+        $logoPath = public_path('images/logosai2.png');
+        if (!is_file($logoPath)) {
+            throw new \RuntimeException('Logo sertifikat tidak ditemukan.');
+        }
+
+        $logoContents = file_get_contents($logoPath);
+        if ($logoContents === false) {
+            throw new \RuntimeException('Logo sertifikat tidak dapat dibaca.');
+        }
+
+        $logo = 'data:image/png;base64,' . base64_encode($logoContents);
+        $pdf = PDF::loadView('page/training/training_certificate', [
+            'certificate' => $certificate,
+            'logo' => $logo,
+            'certificateDate' => $certificate->tanggal_aktual
+                ? Carbon::parse($certificate->tanggal_aktual)->locale('id')->translatedFormat('d F Y')
+                : '-',
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('certificate-' . $id . '.pdf');
     }
     function training_document($id_doc)
     {
@@ -1264,6 +1331,7 @@ class training_controller extends Controller
                     'jabatan' => $dt->jabatan,
                     'admin' => $admin,
                     'created_at' => $jam,
+                    'is_certify' => 0,
                 ]);
                 if ($add) {
                     $hasil = "Sukses";
@@ -1320,29 +1388,92 @@ class training_controller extends Controller
             return response()->json(['message' => 'Anda tidak punya akses'], 403);
         }
 
-        $this->validate($data, [
+        $validated = $data->validate([
             'id_training_actual' => 'required|integer',
+            'id_assignment' => 'nullable|integer|min:1',
             'assignment' => 'required|string|max:255',
             'duedate' => 'required|date',
+            'assignment_file' => 'nullable|file|mimes:pdf|max:10240',
         ]);
 
-        $dueDate = Carbon::parse($data->duedate)->format('Y-m-d');
+        $dueDate = Carbon::parse($validated['duedate'])->format('Y-m-d');
+        $assignmentId = $validated['id_assignment'] ?? null;
+        $existingAssignment = null;
+
+        if ($assignmentId) {
+            $existingAssignment = DB::table('tb_training_assignment')
+                ->where('id', $assignmentId)
+                ->where('id_training_actual', $validated['id_training_actual'])
+                ->first();
+
+            if (!$existingAssignment) {
+                return response()->json(['message' => 'Assignment tidak ditemukan.'], 404);
+            }
+        }
+
+        $uploadedFile = $data->file('assignment_file');
+        $originalFileName = $uploadedFile
+            ? basename(str_replace('\\', '/', $uploadedFile->getClientOriginalName()))
+            : null;
+        if ($uploadedFile && $originalFileName === '') {
+            throw new \RuntimeException('Nama file assignment tidak valid.');
+        }
 
         $assignmentData = [
-            'assignment' => trim($data->assignment),
+            'assignment' => trim($validated['assignment']),
             'duedate' => $dueDate,
             'created_at' => now(),
             'created_by' => Auth::user()->name,
         ];
 
-        if ($data->filled('id_assignment')) {
-            DB::table('tb_training_assignment')
-                ->where('id', $data->id_assignment)
-                ->where('id_training_actual', $data->id_training_actual)
-                ->update($assignmentData);
-        } else {
-            $assignmentData['id_training_actual'] = $data->id_training_actual;
-            DB::table('tb_training_assignment')->insert($assignmentData);
+        $newFilePath = null;
+        try {
+            DB::transaction(function () use ($assignmentId, $validated, $assignmentData, $uploadedFile, $originalFileName, &$newFilePath) {
+                if ($assignmentId) {
+                    DB::table('tb_training_assignment')
+                        ->where('id', $assignmentId)
+                        ->where('id_training_actual', $validated['id_training_actual'])
+                        ->update($assignmentData);
+                } else {
+                    $assignmentData['id_training_actual'] = $validated['id_training_actual'];
+                    $assignmentId = DB::table('tb_training_assignment')->insertGetId($assignmentData);
+                }
+
+                if ($uploadedFile) {
+                    $newFilePath = Storage::disk('local')->putFileAs(
+                        'training/assignments/' . $assignmentId,
+                        $uploadedFile,
+                        $originalFileName
+                    );
+                    if ($newFilePath === false) {
+                        throw new \RuntimeException('File assignment gagal disimpan.');
+                    }
+
+                    DB::table('tb_training_assignment')
+                        ->where('id', $assignmentId)
+                        ->update(['assignment_file' => $originalFileName]);
+                }
+            });
+        } catch (\Throwable $exception) {
+            $existingFilePath = $existingAssignment && $existingAssignment->assignment_file
+                ? $this->assignmentFileStoragePath($assignmentId, $existingAssignment->assignment_file)
+                : null;
+            if ($newFilePath !== null && $newFilePath !== $existingFilePath && !Storage::disk('local')->delete($newFilePath)) {
+                Log::warning('Failed to remove an uploaded training assignment after a database error.', [
+                    'file' => $newFilePath,
+                ]);
+            }
+
+            throw $exception;
+        }
+
+        if ($newFilePath !== null && $existingAssignment && $existingAssignment->assignment_file) {
+            $oldFilePath = $this->assignmentFileStoragePath($assignmentId, $existingAssignment->assignment_file);
+            if ($oldFilePath !== $newFilePath && !Storage::disk('local')->delete($oldFilePath)) {
+                Log::warning('Failed to remove the replaced training assignment file.', [
+                    'file' => $oldFilePath,
+                ]);
+            }
         }
 
         return response()->json(['message' => 'Assignment berhasil disimpan']);
@@ -1353,12 +1484,76 @@ class training_controller extends Controller
             return response()->json(['message' => 'Anda tidak punya akses'], 403);
         }
 
-        DB::table('tb_training_assignment')
+        $assignment = DB::table('tb_training_assignment')
             ->where('id', $data->id_assignment)
             ->where('id_training_actual', $data->id_training_actual)
+            ->first();
+
+        if (!$assignment) {
+            return response()->json(['message' => 'Assignment tidak ditemukan.'], 404);
+        }
+
+        DB::table('tb_training_assignment')
+            ->where('id', $assignment->id)
             ->delete();
 
+        if ($assignment->assignment_file) {
+            $filePath = $this->assignmentFileStoragePath($assignment->id, $assignment->assignment_file);
+            if (!Storage::disk('local')->delete($filePath)) {
+                Log::warning('Failed to remove a deleted training assignment file.', [
+                    'file' => $filePath,
+                ]);
+            }
+        }
+
         return response()->json(['message' => 'Assignment berhasil dihapus']);
+    }
+    function preview_assignment_file($id)
+    {
+        $user = request()->user();
+        $isTrainingStaff = $user->hasRole('root') || $user->hasRole('training');
+
+        $assignment = DB::table('tb_training_assignment')
+            ->join('tb_training_actual', 'tb_training_actual.id', '=', 'tb_training_assignment.id_training_actual')
+            ->where('tb_training_assignment.id', $id)
+            ->select('tb_training_assignment.id', 'tb_training_assignment.assignment_file', 'tb_training_actual.id as id_training_actual')
+            ->first();
+
+        abort_if(!$assignment || !$assignment->assignment_file, 404, 'File assignment tidak ditemukan.');
+
+        if (!$isTrainingStaff) {
+            $employeeId = DB::table('tb_emails')
+                ->where('email_address', $user->email)
+                ->value('id_employee');
+
+            abort_if(
+                !$user->hasRole('ess')
+                || !$employeeId
+                || !DB::table('tb_training_participant')
+                    ->where('id_training_actual', $assignment->id_training_actual)
+                    ->where('id_employee', $employeeId)
+                    ->exists(),
+                403,
+                'Anda tidak punya akses'
+            );
+        }
+
+        $disk = Storage::disk('local');
+        $filePath = $this->assignmentFileStoragePath($assignment->id, $assignment->assignment_file);
+        abort_unless($disk->exists($filePath), 404, 'File assignment tidak ditemukan.');
+
+        return response()->file($disk->path($filePath), [
+            'Content-Type' => 'application/pdf',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+    private function assignmentFileStoragePath($assignmentId, $fileName)
+    {
+        if (str_contains($fileName, '/') || str_contains($fileName, '\\')) {
+            return $fileName;
+        }
+
+        return 'training/assignments/' . $assignmentId . '/' . $fileName;
     }
     function document_upload(request $data)
     {
@@ -1754,6 +1949,38 @@ class training_controller extends Controller
             $hasil .= "</tr>";
         }
         return $hasil;
+    }
+    function update_actual_participant_certify(Request $data)
+    {
+        if (!request()->user()->hasRole('root') && !request()->user()->hasRole('training')) {
+            return abort(403, 'Anda tidak punya akses');
+        }
+
+        $validated = $data->validate([
+            'idtraining' => 'required|integer|min:1',
+            'is_certify' => 'required|in:0,1',
+            'idparticipant' => 'nullable|integer|min:1',
+        ]);
+
+        $actualExists = DB::table('tb_training_actual')->where('id', $validated['idtraining'])->exists();
+        if (!$actualExists) {
+            return response()->json(['message' => 'Training actual tidak ditemukan.'], 404);
+        }
+
+        $participants = DB::table('tb_training_participant')
+            ->where('id_training_actual', $validated['idtraining']);
+
+        $participantId = $validated['idparticipant'] ?? null;
+        if ($participantId !== null) {
+            $participants->where('id', $participantId);
+        }
+
+        $updated = $participants->update(['is_certify' => $validated['is_certify']]);
+        if ($updated === 0 && $participantId !== null) {
+            return response()->json(['message' => 'Participant tidak ditemukan.'], 404);
+        }
+
+        return response()->json(['message' => 'Status sertifikat participant berhasil diperbarui.']);
     }
     function delete_document(request $data)
     {

@@ -83,19 +83,16 @@
 								<tbody>
 									<?php $no = 0;?>
 									<?php $__currentLoopData = $tb_training_actual; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-																	<tr>
-																		<td><?php $no++;
-										echo $no;?></td>
-																		<td><?php echo e($dt->training_name); ?></td>
-																		<td><?php echo e($dt->skill_type); ?>
+										<tr>
+											<td><?php $no++; echo $no;?></td>
+											<td><?php echo e($dt->training_name); ?></td>
+											<td><?php echo e($dt->skill_type); ?>
 
-																			<?php 
-																				echo date('H:i', strtotime($dt->start_aktual));
-										echo "~";
-										echo date('H:i', strtotime($dt->finish_aktual));
-																			?>
-																		</td>
-																	</tr>
+												<?php
+													echo date('H:i', strtotime($dt->start_aktual)); echo "~"; echo date('H:i', strtotime($dt->finish_aktual));
+												?>
+											</td>
+										</tr>
 									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</tbody>
 							</table>
@@ -121,19 +118,18 @@
 								<tbody id="supporting">
 									<?php $no = 0;?>
 									<?php $__currentLoopData = $tb_related_document; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-																	<tr>
-																		<td><?php $no++;
-										echo $no;?></td>
-																		<td>
-																			<?php echo e($dt->file_name); ?>
+										<tr>
+											<td><?php $no++; echo $no;?></td>
+											<td>
+												<?php echo e($dt->file_name); ?>
 
-																			<div class="pull-right">
-																				<a href="/ESS/Document/Download/<?php echo e($dt->id_doc); ?>" title="Download"
-																					type="button" class="btn btn-info btn-xs"><i
-																						class="fa fa-download"></i></a>
-																			</div>
-																		</td>
-																	</tr>
+												<div class="pull-right">
+													<a href="/ESS/Document/Download/<?php echo e($dt->id_doc); ?>" title="Download"
+														type="button" class="btn btn-info btn-xs"><i
+															class="fa fa-download"></i></a>
+												</div>
+											</td>
+										</tr>
 									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</tbody>
 							</table>
@@ -160,15 +156,14 @@
 								<tbody id="supporting">
 									<?php $no = 0;?>
 									<?php $__currentLoopData = $tb_related_test; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-																	<tr>
-																		<td><?php $no++;
-										echo $no;?></td>
-																		<td><?php echo e($dt->test_name); ?></td>
-																		<td>
-																			<?php echo e($dt->passing_grade); ?>
+										<tr>
+											<td><?php $no++; echo $no;?></td>
+											<td><?php echo e($dt->test_name); ?></td>
+											<td>
+												<?php echo e($dt->passing_grade); ?>
 
-																		</td>
-																	</tr>
+											</td>
+										</tr>
 									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</tbody>
 							</table>
@@ -210,25 +205,24 @@
 								<tbody id="konten">
 									<?php $no = 0;?>
 									<?php $__currentLoopData = $tb_training_participant; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-																	<tr>
-																		<td><?php $no++;
-										echo $no;?></td>
-																		<td><?php echo e($dt->NIK); ?></td>
-																		<td><?php echo e($dt->nama_karyawan); ?></td>
-																		<td><?php echo e($dt->department); ?></td>
-																		<td>
-																			<?php echo e($dt->jabatan); ?>
+										<tr>
+											<td><?php $no++; echo $no;?></td>
+											<td><?php echo e($dt->NIK); ?></td>
+											<td><?php echo e($dt->nama_karyawan); ?></td>
+											<td><?php echo e($dt->department); ?></td>
+											<td>
+												<?php echo e($dt->jabatan); ?>
 
-																			<div class="pull-right">
-																				<?php if($dt->free_test == '' && $in_class == 1): ?>
-																					<button title="Delete" type="button"
-																						class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>"
-																						data-delname="<?php echo e($dt->nama_karyawan); ?>"><i
-																							class="fa fa-trash"></i></button>
-																				<?php endif; ?>
-																			</div>
-																		</td>
-																	</tr>
+												<div class="pull-right">
+													<?php if($dt->free_test == '' && $in_class == 1): ?>
+														<button title="Delete" type="button"
+															class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>"
+															data-delname="<?php echo e($dt->nama_karyawan); ?>"><i
+																class="fa fa-trash"></i></button>
+													<?php endif; ?>
+												</div>
+											</td>
+										</tr>
 									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</tbody>
 							</table>
@@ -240,7 +234,14 @@
 							<i class="fa fa-graduation-cap"></i>
 							<h3 class="box-title">Evaluation</h3>
 							<div class="box-tools pull-right">
-								&nbsp;
+								<?php if($tb_training_participant->isNotEmpty()): ?>
+									<button type="button" class="btn btn-primary btn-xs js-certify-all"
+										data-status="<?php echo e($all_certified ? 0 : 1); ?>">
+										<i class="fa fa-certificate"></i>
+										<?php echo e($all_certified ? 'Uncertify All' : 'Certify All'); ?>
+
+									</button>
+								<?php endif; ?>
 							</div>
 						</div>
 						<div class="box-body">
@@ -271,25 +272,41 @@
 														class="fa fa-tv"></i></a>
 											</div>
 										</th>
+										<th>Certify</th>
 									</tr>
 								</thead>
 								<tbody id="konten">
 									<?php $no = 0;?>
 									<?php $__currentLoopData = $tb_training_participant; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-																	<tr>
-																		<td><?php $no++;
-										echo $no;?></td>
-																		<td><?php echo e($dt->NIK); ?></td>
-																		<td><?php echo e($dt->nama_karyawan); ?></td>
-																		<td><?php echo e($dt->free_test); ?></td>
-																		<td>
-																			<?php echo e($dt->post_test); ?>
+										<tr>
+											<td><?php $no++; echo $no;?></td>
+											<td><?php echo e($dt->NIK); ?></td>
+											<td><?php echo e($dt->nama_karyawan); ?></td>
+											<td><?php echo e($dt->free_test); ?></td>
+											<td>
+												<?php echo e($dt->post_test); ?>
 
-																			<div class="pull-right">
-																				&nbsp;
-																			</div>
-																		</td>
-																	</tr>
+												<div class="pull-right">
+													&nbsp;
+												</div>
+											</td>
+											<td>
+												<label>
+													<input type="checkbox" class="js-certify-participant"
+														data-id="<?php echo e($dt->id); ?>"
+														<?php echo e((int) ($dt->is_certify ?? 0) === 1 ? 'checked' : ''); ?>>
+
+												</label>
+												<div class="pull-right">
+													<?php if((int) ($dt->is_certify ?? 0) === 1): ?>
+														<a href="/Training/Actual/Participant/Certificate/<?php echo e($dt->id); ?>"
+															class="btn btn-info btn-xs" target="_blank" rel="noopener">
+															<i class="fa fa-file-pdf-o"></i> Preview
+														</a>
+													<?php endif; ?>
+												</div>
+											</td>
+										</tr>
 									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 								</tbody>
 							</table>
@@ -301,7 +318,9 @@
 							<i class="fa fa-tasks"></i>
 							<h3 class="box-title">Training Assignment</h3>
 							<div class="box-tools pull-right">
-								<button type="button" class="btn btn-warning btn-xs assignment"><i class="fa fa-plus"></i> &nbsp;Add New</button>
+								<?php if($tb_training_assignment->isEmpty()): ?>
+									<button type="button" class="btn btn-warning btn-xs assignment"><i class="fa fa-plus"></i> &nbsp;Add New</button>
+								<?php endif; ?>
 							</div>
 						</div>
 						<div class="box-body" style="overflow-x: scroll;">
@@ -311,6 +330,7 @@
 										<th style="width:30px;">No</th>
 										<th>Assignment</th>
 										<th>Due Date</th>
+										<th>File</th>
 									</tr>
 								</thead>
 								<tbody id="supporting">
@@ -319,11 +339,18 @@
 									<tr>
 										<td><?php $assign++;echo $assign;?></td>
 										<td><?php echo e($dt->assignment); ?></td>
-										<td>
+										<td style="width: 120px;">
 											<?php echo e($dt->duedate); ?>
 
+										</td>
+										<td>
 											<div class="pull-right">
-												<button title="Edit" type="button" class="assignment-edit btn btn-primary btn-xs" data-id="<?php echo e($dt->id); ?>" data-assignment="<?php echo e($dt->assignment); ?>" data-duedate="<?php echo e($dt->duedate); ?>"><i class="fa fa-edit"></i></button>
+												<?php if($dt->assignment_file): ?>
+													<a href="/Training/Assignment/File/<?php echo e($dt->id); ?>" class="btn btn-info btn-xs" target="_blank" rel="noopener">
+														<i class="fa fa-download"></i> 
+													</a>
+												<?php endif; ?>
+												<button title="Edit" type="button" class="assignment-edit btn btn-primary btn-xs" data-id="<?php echo e($dt->id); ?>" data-assignment="<?php echo e($dt->assignment); ?>" data-duedate="<?php echo e($dt->duedate); ?>" data-has-file="<?php echo e($dt->assignment_file ? 1 : 0); ?>"><i class="fa fa-edit"></i></button>
 												<button title="Delete" type="button" class="assignment-delete btn btn-danger btn-xs" data-id="<?php echo e($dt->id); ?>" data-assignment="<?php echo e($dt->assignment); ?>"><i class="fa fa-trash"></i></button>
 											</div>
 										</td>
@@ -376,7 +403,7 @@
 	<div class="modal fade" id="modal-assignment">
 		<div class="modal-dialog box box-warning" style="width:400px;">
 			<div class="modal-content">
-				<form id="assignment-form">
+				<form id="assignment-form" enctype="multipart/form-data">
 					<?php echo e(csrf_field()); ?>
 
 					<div class="modal-header">
@@ -395,6 +422,11 @@
 						<div class="form-group">
 							<label>Due Date</label>
 							<input type="date" class="form-control" id="assignment-due-date" name="duedate" required>
+						</div>
+						<div class="form-group">
+							<label>Attachment (PDF, max 10 MB)</label>
+							<input type="file" class="form-control" id="assignment-file" name="assignment_file" accept="application/pdf,.pdf">
+							<p id="assignment-current-file" class="help-block"></p>
 						</div>
 					</div>
 					<div class="modal-footer">
@@ -525,6 +557,50 @@
 	</script>
 	<script type="text/javascript">
 		// Form
+		$(document).on('change', '.js-certify-participant', function () {
+			updateCertification($(this), this.checked ? 1 : 0, $(this).data('id'));
+		});
+
+		$(document).on('click', '.js-certify-all', function () {
+			var button = $(this);
+			updateCertification(button, button.data('status'));
+		});
+
+		function updateCertification(control, status, participantId) {
+			var payload = {
+				idtraining: "<?php echo e($id_training); ?>",
+				is_certify: status
+			};
+
+			if (participantId) {
+				payload.idparticipant = participantId;
+			}
+
+			control.prop('disabled', true);
+			$.ajax({
+				type: 'POST',
+				url: '/Training/Actual/Participant/Certify',
+				cache: false,
+				headers: {
+					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+				},
+				data: payload,
+				success: function () {
+					location.reload();
+				},
+				error: function (xhr) {
+					control.prop('disabled', false);
+					if (control.hasClass('js-certify-participant')) {
+						control.prop('checked', !control.prop('checked'));
+					}
+					var message = xhr.responseJSON && xhr.responseJSON.message
+						? xhr.responseJSON.message
+						: 'Gagal memperbarui status sertifikat participant.';
+					alert(message);
+				}
+			});
+		}
+
 		$(document).on('click', '.form', function () {
 			var idtraining = "<?php echo e($id_training); ?>";
 
@@ -567,7 +643,7 @@
 			$.ajax({
 				data: { idtraining: idtraining, id: x },
 				success: function (respond) {
-					$("#konten").html(respond);
+					location.reload();
 				}
 			})
 		});
@@ -592,8 +668,7 @@
 					if (respond == 'Failed, Employee already Exixts' || respond == 'No Action' || respond == 'Masuk') {
 						alert(respond)
 					} else {
-						$("#konten").html(respond);
-						document.getElementById('savechange').style.display = "inline";
+						location.reload();
 					}
 				}
 			})
@@ -624,6 +699,7 @@
 		$(document).on('click', '.assignment', function () {
 			$('#assignment-form')[0].reset();
 			$('#assignment-id').val('');
+			$('#assignment-current-file').text('');
 			$('#assignment-modal-title').text('ADD TRAINING ASSIGNMENT');
 			$('#modal-assignment').modal('show');
 		});
@@ -633,16 +709,21 @@
 			$('#assignment-id').val(button.data('id'));
 			$('#assignment-name').val(button.data('assignment'));
 			$('#assignment-due-date').val(String(button.data('duedate')).substring(0, 10));
+			$('#assignment-file').val('');
+			$('#assignment-current-file').text(button.data('has-file') ? 'Current PDF will be kept unless you select a replacement.' : 'No PDF attached.');
 			$('#assignment-modal-title').text('EDIT TRAINING ASSIGNMENT');
 			$('#modal-assignment').modal('show');
 		});
 
 		$('#assignment-form').on('submit', function (event) {
 			event.preventDefault();
+			var formData = new FormData(this);
 			$.ajax({
 				url: '/Training/Simpan/Assignment',
 				type: 'POST',
-				data: $(this).serialize(),
+				data: formData,
+				processData: false,
+				contentType: false,
 				headers: {
 					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
 				},

@@ -140,13 +140,15 @@
 									</td>
 									<td style="width:100px;">
 										<div class="pull-right">
-											<a href="/Training/Plan/<?php echo e($dt->id); ?>" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i></a>
-											<?php if($dt->plan_qty == 0): ?>
-												<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="<?php echo e($dt->id); ?>" data-idtraining="<?php echo e($dt->id_training); ?>" data-scheduletype="<?php echo e($dt->schedule_type); ?>" data-levels="<?php echo e(implode(',', $training_levels_by_schedule->get($dt->id, []))); ?>" data-narasumber="<?php echo e($dt->nara_sumber); ?>" data-narasumberbackup="<?php echo e($dt->nara_sumber_backup); ?>" data-tanggal="<?php echo e($dt->tanggal); ?>" data-start="<?php echo e($dt->start); ?>" data-finish="<?php echo e($dt->finish); ?>" data-draftqty="<?php echo e($dt->draft_qty); ?>" data-weeknumber="<?php echo e($dt->week_number); ?>" data-homeline="<?php echo e($dt->home_line); ?>" data-department="<?php echo e($dt->department); ?>"><i class="fa fa-edit"></i></button>
-												<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->training_name); ?>"><i class="fa fa-trash"></i></button>
-											<?php else: ?>
-												<button title="Edit" type="button" class="form btn btn-success btn-xs" disabled><i class="fa fa-edit"></i></button>
-												<button title="Delete" type="button" class="btn btn-danger btn-xs" disabled><i class="fa fa-trash"></i></button>
+											<?php if(\Carbon\Carbon::parse($dt->tanggal)->gt(today())): ?>
+												<a href="/Training/Plan/<?php echo e($dt->id); ?>" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i></a>
+												<?php if($dt->plan_qty == 0): ?>
+													<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="<?php echo e($dt->id); ?>" data-idtraining="<?php echo e($dt->id_training); ?>" data-scheduletype="<?php echo e($dt->schedule_type); ?>" data-levels="<?php echo e(implode(',', $training_levels_by_schedule->get($dt->id, []))); ?>" data-narasumber="<?php echo e($dt->nara_sumber); ?>" data-narasumberbackup="<?php echo e($dt->nara_sumber_backup); ?>" data-tanggal="<?php echo e($dt->tanggal); ?>" data-start="<?php echo e($dt->start); ?>" data-finish="<?php echo e($dt->finish); ?>" data-draftqty="<?php echo e($dt->draft_qty); ?>" data-weeknumber="<?php echo e($dt->week_number); ?>" data-homeline="<?php echo e($dt->home_line); ?>" data-department="<?php echo e($dt->department); ?>"><i class="fa fa-edit"></i></button>
+													<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="<?php echo e($dt->id); ?>" data-delname="<?php echo e($dt->training_name); ?>"><i class="fa fa-trash"></i></button>
+												<?php else: ?>
+													<button title="Edit" type="button" class="form btn btn-success btn-xs" disabled><i class="fa fa-edit"></i></button>
+													<button title="Delete" type="button" class="btn btn-danger btn-xs" disabled><i class="fa fa-trash"></i></button>
+												<?php endif; ?>
 											<?php endif; ?>
 										</div>
 									</td>

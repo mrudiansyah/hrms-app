@@ -137,13 +137,15 @@
 									</td>
 									<td style="width:100px;">
 										<div class="pull-right">
-											<a href="/Training/Plan/{{$dt->id}}" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i></a>
-											@if($dt->plan_qty == 0)
-												<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="{{$dt->id}}" data-idtraining="{{$dt->id_training}}" data-scheduletype="{{$dt->schedule_type}}" data-levels="{{implode(',', $training_levels_by_schedule->get($dt->id, []))}}" data-narasumber="{{$dt->nara_sumber}}" data-narasumberbackup="{{$dt->nara_sumber_backup}}" data-tanggal="{{$dt->tanggal}}" data-start="{{$dt->start}}" data-finish="{{$dt->finish}}" data-draftqty="{{$dt->draft_qty}}" data-weeknumber="{{$dt->week_number}}" data-homeline="{{$dt->home_line}}" data-department="{{$dt->department}}"><i class="fa fa-edit"></i></button>
-												<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="{{$dt->id}}" data-delname="{{$dt->training_name}}"><i class="fa fa-trash"></i></button>
-											@else
-												<button title="Edit" type="button" class="form btn btn-success btn-xs" disabled><i class="fa fa-edit"></i></button>
-												<button title="Delete" type="button" class="btn btn-danger btn-xs" disabled><i class="fa fa-trash"></i></button>
+											@if(\Carbon\Carbon::parse($dt->tanggal)->gt(today()))
+												<a href="/Training/Plan/{{$dt->id}}" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i></a>
+												@if($dt->plan_qty == 0)
+													<button title="Edit" type="button" class="form btn btn-success btn-xs" data-idtrainingplan="{{$dt->id}}" data-idtraining="{{$dt->id_training}}" data-scheduletype="{{$dt->schedule_type}}" data-levels="{{implode(',', $training_levels_by_schedule->get($dt->id, []))}}" data-narasumber="{{$dt->nara_sumber}}" data-narasumberbackup="{{$dt->nara_sumber_backup}}" data-tanggal="{{$dt->tanggal}}" data-start="{{$dt->start}}" data-finish="{{$dt->finish}}" data-draftqty="{{$dt->draft_qty}}" data-weeknumber="{{$dt->week_number}}" data-homeline="{{$dt->home_line}}" data-department="{{$dt->department}}"><i class="fa fa-edit"></i></button>
+													<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-delid="{{$dt->id}}" data-delname="{{$dt->training_name}}"><i class="fa fa-trash"></i></button>
+												@else
+													<button title="Edit" type="button" class="form btn btn-success btn-xs" disabled><i class="fa fa-edit"></i></button>
+													<button title="Delete" type="button" class="btn btn-danger btn-xs" disabled><i class="fa fa-trash"></i></button>
+												@endif
 											@endif
 										</div>
 									</td>

@@ -174,7 +174,7 @@
                 </div>
                 <div class="approval-status-panel">
                     <div>
-                        <strong>Approval Status for Column {{ $pos }}</strong>
+                        <strong>Approval Status {{ $data['pos_mame'] ?? '-' }}</strong>
 
                     </div>
                     <span class="approval-state-pill {{ $currentStateClass }}">{{ $currentState }}</span>

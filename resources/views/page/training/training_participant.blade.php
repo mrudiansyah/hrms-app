@@ -11,7 +11,7 @@
 	<section class="content">
 		<div class="row">
 			<div class="col-md-12" id="prev-doc"></div>
-			<div class="col-lg-4 col-md-6 col-xs-12">
+			<div class="col-lg-6 col-md-8 col-xs-12">
 				<div class="box box-primary" style="background:#FFF;">
 					<div class="box-header">
 						<i class="fa fa-list"></i>
@@ -184,8 +184,9 @@
 								<tr>
 									<th>No</th>
 									<th>Assignment Description</th>
-									<th>Due Date</th>
-									<th>Status</th>
+									<th style="width: 90px;">Due Date</th>
+									<th>Attachment</th>
+									<th>Status Submition</th>
 								</tr>
 							</thead>
 							<tbody id="konten">
@@ -200,11 +201,26 @@
 										</td>
 										<td>{{$dt->duedate}}</td>
 										<td>
+											@if($dt->assignment_file)
+												<a href="/Training/Assignment/File/{{$dt->id}}" class="btn btn-info btn-xs" target="_blank" rel="noopener">
+													<i class="fa fa-file-pdf-o"></i> {{ basename($dt->assignment_file) }}
+												</a>
+											@else
+												<span class="text-muted">-</span>
+											@endif
+										</td>
+										<td style="width: 140px;">
 											@if($dt->assignment_status == 1)
-												<label class='label label-success'>Completed</label>
+												<button type="button" class="btn btn-success btn-xs"><i class="fa fa-check" title="{{ date('d-M-Y H:i', strtotime($dt->collected_date)) }}"></i></button>
 											@else
 												<label class='label label-warning'>Not Submitted</label>
 											@endif
+											<button type="button" class="btn btn-primary btn-xs assignment-submit"
+												data-id="{{ $dt->id }}"
+												data-assignment="{{ $dt->assignment }}"
+												data-posted-file="{{ $dt->posted_file }}">
+												<i class="fa fa-upload"></i> {{ $dt->posted_file ? 'Update' : 'Submit' }}
+											</button>
 										</td>
 									</tr>
 								@endforeach
@@ -219,6 +235,37 @@
 	</section>
 	<!-- /.content -->
 
+	<div class="modal fade" id="modal-assignment-submit">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<form id="assignment-submit-form" enctype="multipart/form-data">
+					{{ csrf_field() }}
+					<input type="hidden" name="id_assignment" id="submission-assignment-id">
+					<input type="hidden" name="id_training_actual" value="{{ $id_training }}">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Submit Training Assignment</h4>
+					</div>
+					<div class="modal-body">
+						<div class="form-group">
+							<label>Assignment</label>
+							<p id="submission-assignment-name" class="form-control-static"></p>
+						</div>
+						<p id="submission-current-file" class="help-block"></p>
+						<div class="form-group">
+							<label>File (max 10 MB)</label>
+							<input type="file" class="form-control" name="posted_file" id="posted-file" required>
+						</div>
+						<div id="assignment-submit-error" class="alert alert-danger" style="display:none;"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+						<button type="submit" class="btn btn-primary">Submit</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 
 @endsection
 @section('Scripts')
@@ -318,6 +365,56 @@
 			});
 		}, 5000);
 
+	</script>
+	<script>
+		$(document).on('click', '.assignment-submit', function () {
+			var assignmentId = $(this).data('id');
+			var postedFile = $(this).data('posted-file');
+			$('#assignment-submit-form')[0].reset();
+			$('#submission-assignment-id').val(assignmentId);
+			$('#submission-assignment-name').text($(this).data('assignment'));
+			$('#assignment-submit-error').hide().text('');
+
+			if (postedFile) {
+				$('#submission-current-file')
+					.html('<a target="_blank" rel="noopener"></a>')
+					.find('a')
+					.attr('href', '/Training/Assignment/Submission/' + assignmentId)
+					.text('Current file: ' + postedFile);
+			} else {
+				$('#submission-current-file').empty();
+			}
+
+			$('#modal-assignment-submit').modal('show');
+		});
+
+		$('#assignment-submit-form').on('submit', function (event) {
+			event.preventDefault();
+			var form = this;
+			var submitButton = $(form).find('button[type="submit"]');
+			submitButton.prop('disabled', true);
+
+			$.ajax({
+				url: "{{ url('/Training/Assignment/Submit') }}",
+				type: 'POST',
+				data: new FormData(form),
+				processData: false,
+				contentType: false,
+				success: function (response) {
+					$('#modal-assignment-submit').modal('hide');
+					window.location.reload();
+				},
+				error: function (xhr) {
+					var message = xhr.responseJSON && xhr.responseJSON.message
+						? xhr.responseJSON.message
+						: 'File assignment gagal dikirim. Periksa file lalu coba kembali.';
+					$('#assignment-submit-error').text(message).show();
+				},
+				complete: function () {
+					submitButton.prop('disabled', false);
+				}
+			});
+		});
 	</script>
 	<script>
 		document.addEventListener("contextmenu", function (e) {

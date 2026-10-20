@@ -175,7 +175,7 @@
                 </div>
                 <div class="approval-status-panel">
                     <div>
-                        <strong>Approval Status for Column <?php echo e($pos); ?></strong>
+                        <strong>Approval Status <?php echo e($data['pos_mame'] ?? '-'); ?></strong>
 
                     </div>
                     <span class="approval-state-pill <?php echo e($currentStateClass); ?>"><?php echo e($currentState); ?></span>

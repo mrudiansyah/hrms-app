@@ -5,7 +5,7 @@
 		<!-- Main content -->
 		<section class="content">
 		<div class="row">
-			<div class="col-lg-5 col-md-6 col-xs-12">
+			<div class="col-lg-6 col-md-12 col-xs-12">
 				<div class="box box-primary" style="background:#FFF;">
 					<div class="box-header">
 						<i class="fa fa-list"></i>
@@ -23,7 +23,6 @@
 									<th>Date</th>
 									<th>Time</th>
 									<th>Status Training</th>
-									<th>&nbsp;</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -42,13 +41,23 @@
 											}
 										?>
 									</td>
-									<td>
-										<?php 
-											if($dt->grade_status==1)echo "<label class='label label-success'>Lulus</label>";
-											elseif($dt->grade_status==0&&$dt->post_test!='')echo "<label class='label label-danger'>Gagal</label>";
-										?>
-									</td>
-									<td>
+									<td style="width:220px;">
+										@if(!empty($dt->idparticipant))
+											<span class="label label-success">Hadir</span>
+											@if($dt->grade_status == 1)
+												<span class="label label-success">Lulus</span>
+												<a href="/Training/Actual/Participant/Certificate/{{ $dt->idparticipant }}"
+													class="btn btn-info btn-xs" target="_blank" rel="noopener">
+													<i class="fa fa-certificate"></i> Certified
+												</a>
+											@elseif($dt->post_test !== null && $dt->post_test !== '')
+												<span class="label label-danger">Tidak Lulus</span>
+											@else
+												<span class="label label-default">Belum dinilai</span>
+											@endif
+										@else
+											<span class="label label-default">Tidak Hadir</span>
+										@endif
 										@if($dt->id_test>0)
 											<div class="pull-right">
 												<a href="/Training/Schedule/{{$dt->id}}" title="Participant" type="button" class="participant btn btn-primary btn-xs"><i class="fa fa-folder-o"></i> Detail</a>

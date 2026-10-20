@@ -341,6 +341,9 @@
 												<td><?php echo e($dt2->reason); ?>, <?php echo e($dt2->remark); ?></td>
 												<td class="relative">
 													<?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1'));?>
+													<?php if(!empty($dt2->created_at)): ?>
+														<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->created_at))); ?></small>
+													<?php endif; ?>
 												</td>
 												<td class="relative" style="width:75px;">
 													<?php 
@@ -348,6 +351,9 @@
 															echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/2'));
 														}elseif($dt2->status_approved=='2'){echo "Not Approve";}
 													?>
+													<?php if(!empty($dt2->date_approved)): ?>
+														<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->date_approved))); ?></small>
+													<?php endif; ?>
 												</td>
 												<td class="relative" style="width:75px;">
 													<?php 
@@ -355,8 +361,16 @@
 															echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/3'));
 														}elseif($dt2->status_approved2=='2'){echo "Not Approve";}
 													?>
+													<?php if(!empty($dt2->date_approved2)): ?>
+														<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->date_approved2))); ?></small>
+													<?php endif; ?>
 												</td>
-												<td><?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));else if($dt2->status_legalized==2)echo "Not Approve";?></td>
+												<td>
+													<?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));else if($dt2->status_legalized==2)echo "Not Approve";?>
+													<?php if(!empty($dt2->date_legalized)): ?>
+														<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->date_legalized))); ?></small>
+													<?php endif; ?>
+												</td>
 												<td><?php if($dt2->status_reported==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/5'));?></td>
 											</tr>
 										<?php }?>
@@ -435,9 +449,24 @@
 											<td><?php echo e($dt2->start_working); ?></td>
 											<td><?php echo e($dt2->leave_count); ?></td>
 											<td><?php echo e($dt2->remark); ?></td>
-											<td><?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1')); ?></td>
-											<td><?php if($dt2->status_approved==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/2'));else if($dt2->status_approved==2)echo "Not Approved";?></td>
-											<td><?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));else if($dt2->status_legalized==2)echo "Not Approved";?></td>
+											<td>
+												<?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1')); ?>
+												<?php if(!empty($dt2->created_at)): ?>
+													<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->created_at))); ?></small>
+												<?php endif; ?>
+											</td>
+											<td>
+												<?php if($dt2->status_approved==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/2'));else if($dt2->status_approved==2)echo "Not Approved";?>
+												<?php if(!empty($dt2->date_approved)): ?>
+													<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->date_approved))); ?></small>
+												<?php endif; ?>
+											</td>
+											<td>
+												<?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));else if($dt2->status_legalized==2)echo "Not Approved";?>
+												<?php if(!empty($dt2->date_legalized)): ?>
+													<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->date_legalized))); ?></small>
+												<?php endif; ?>
+											</td>
 											<td><?php if($dt2->status_reported==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/5'));?></td>
 										</tr>
 										<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -510,15 +539,29 @@
 											<td><?php echo e($dt2->leave_count); ?></td>
 											<td><?php echo e($dt2->reason); ?></td>
 											<td><?php echo e($dt2->remark); ?></td>
-											<td><?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1'));?></td>
-											<td><?php
+											<td>
+												<?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/1'));?>
+												<?php if(!empty($dt2->created_at)): ?>
+													<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->created_at))); ?></small>
+												<?php endif; ?>
+											</td>
+											<td>
+												<?php
 													$qr1=url('/DigitalApproval/tb_leaves/'.$dt2->id.'/2');
 
 												?>
-												<?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(80)->margin(1)->generate($qr1); ?>
+												<?php echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate($qr1); ?>
 
+												<?php if(!empty($dt2->date_approved)): ?>
+													<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->date_approved))); ?></small>
+												<?php endif; ?>
 											</td>
-											<td><?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));if($dt2->status_legalized==2)echo "Cancel";?></td>
+											<td>
+												<?php if($dt2->status_legalized==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/4'));if($dt2->status_legalized==2)echo "Cancel";?>
+												<?php if(!empty($dt2->date_legalized)): ?>
+													<small style="display:block; margin-top:0px;font-size:9px;"><?php echo e(date('d-m-y H:i', strtotime($dt2->date_legalized))); ?></small>
+												<?php endif; ?>
+											</td>
 											<td><?php if($dt2->status_reported==1)echo \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_leaves/'.$dt2->id.'/5'));if($dt2->status_reported==2)echo "Cancel";?></td>
 										</tr>
 										<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

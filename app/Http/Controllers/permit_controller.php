@@ -177,7 +177,7 @@ class permit_controller extends Controller
  		->get(['tb_izins.*','tb_employees.NIK','tb_employees.employee_name','tb_departments.dept_name','tb_employees1.employee_name as nama_atasan','tb_employees2.employee_name as nama_personalia','tb_employees3.employee_name as nama_scurity']);
 
         $FileName='FORMIZIN '.$id.'.PDF';
-        $pdf = PDF::loadview('page/admin/m_permit/previewizin',['tb_izin'=>$tb_izin])->setPaper('a6');
+        $pdf = PDF::loadview('page/admin/m_permit/previewizin',['tb_izin'=>$tb_izin])->setPaper([0, 0, 297.638, 450]);
 		
         return $pdf->stream($FileName);
 

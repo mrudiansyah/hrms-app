@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use DateTime;
 use Auth;
 use PDF;
@@ -766,12 +767,106 @@ class ess_controller extends Controller
 
             $tb_assignment=DB::table('tb_training_assignment as a')
                 ->leftjoin('tb_training_participant as b','b.id_training_actual','=','a.id_training_actual')
-                ->where('a.id_training_actual',$id)->where('b.id_employee',$id_employee)->get(['a.*','b.assignment_status','b.collected_date']);
+                ->where('a.id_training_actual',$id)->where('b.id_employee',$id_employee)
+                ->get(['a.*','b.id as participant_id','b.assignment_status','b.collected_date','b.posted_file']);
 
             return view('page/training/training_participant', ['tb_training_participant' => $tb_training_participant, 'data' => $data, 'tb_training_actual' => $tb_training_actual, 'tb_employee' => $tb_employee, 'tb_training_test' => $tb_training_test, 'tb_related_document' => $tb_related_document, 'tb_related_test' => $tb_related_test, 'id_training' => $id, 'id_participant' => $id_participant, 'id_doc' => $id_doc, 'file_name' => $file_name, 'type_training' => $type_training,'tb_assignment'=>$tb_assignment, 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
+    }
+    function submit_training_assignment(Request $data)
+    {
+        abort_unless(Auth::user()->hasRole('ess'), 403, 'Anda tidak punya akses');
+
+        $validated = $data->validate([
+            'id_training_actual' => 'required|integer',
+            'id_assignment' => 'required|integer|min:1',
+            'posted_file' => 'required|file|max:10240',
+        ]);
+
+        $employeeId = DB::table('tb_emails')
+            ->where('email_address', Auth::user()->email)
+            ->value('id_employee');
+        abort_if(!$employeeId, 403, 'Data karyawan tidak ditemukan.');
+
+        $assignment = DB::table('tb_training_assignment')
+            ->where('id', $validated['id_assignment'])
+            ->where('id_training_actual', $validated['id_training_actual'])
+            ->first(['id', 'id_training_actual']);
+        abort_if(!$assignment, 404, 'Assignment tidak ditemukan.');
+
+        $participant = DB::table('tb_training_participant')
+            ->where('id_training_actual', $assignment->id_training_actual)
+            ->where('id_employee', $employeeId)
+            ->first(['id', 'posted_file']);
+        abort_if(!$participant, 403, 'Anda tidak terdaftar sebagai peserta training ini.');
+
+        $uploadedFile = $data->file('posted_file');
+        $fileName = basename(str_replace('\\', '/', $uploadedFile->getClientOriginalName()));
+        if ($fileName === '' || \Illuminate\Support\Str::length($fileName) > 255) {
+            return response()->json(['message' => 'Nama file tidak valid atau melebihi 255 karakter.'], 422);
+        }
+
+        $disk = Storage::disk('local');
+        $directory = 'training/assignment_submissions/' . $assignment->id . '/' . $participant->id;
+        $newFilePath = $disk->putFileAs($directory, $uploadedFile, $fileName);
+        if ($newFilePath === false) {
+            throw new \RuntimeException('File assignment gagal disimpan.');
+        }
+
+        $oldFilePath = $participant->posted_file
+            ? $directory . '/' . basename(str_replace('\\', '/', $participant->posted_file))
+            : null;
+
+        try {
+            DB::table('tb_training_participant')
+                ->where('id', $participant->id)
+                ->update([
+                    'posted_file' => $fileName,
+                    'assignment_status' => 1,
+                    'collected_date' => now(),
+                ]);
+        } catch (\Throwable $exception) {
+            if ($newFilePath !== $oldFilePath && !$disk->delete($newFilePath)) {
+                Log::warning('Failed to remove a training assignment submission after a database error.', [
+                    'file' => $newFilePath,
+                ]);
+            }
+
+            throw $exception;
+        }
+
+        if ($oldFilePath && $oldFilePath !== $newFilePath && !$disk->delete($oldFilePath)) {
+            Log::warning('Failed to remove the replaced training assignment submission.', [
+                'file' => $oldFilePath,
+            ]);
+        }
+
+        return response()->json(['message' => 'File assignment berhasil dikirim.']);
+    }
+    function download_training_assignment_submission($id)
+    {
+        abort_unless(Auth::user()->hasRole('ess'), 403, 'Anda tidak punya akses');
+
+        $employeeId = DB::table('tb_emails')
+            ->where('email_address', Auth::user()->email)
+            ->value('id_employee');
+        abort_if(!$employeeId, 403, 'Data karyawan tidak ditemukan.');
+
+        $submission = DB::table('tb_training_assignment as a')
+            ->join('tb_training_participant as p', 'p.id_training_actual', '=', 'a.id_training_actual')
+            ->where('a.id', $id)
+            ->where('p.id_employee', $employeeId)
+            ->first(['a.id as assignment_id', 'p.id as participant_id', 'p.posted_file']);
+        abort_if(!$submission || !$submission->posted_file, 404, 'File assignment tidak ditemukan.');
+
+        $fileName = basename(str_replace('\\', '/', $submission->posted_file));
+        $filePath = 'training/assignment_submissions/' . $submission->assignment_id . '/' . $submission->participant_id . '/' . $fileName;
+        $disk = Storage::disk('local');
+        abort_unless($disk->exists($filePath), 404, 'File assignment tidak ditemukan.');
+
+        return response()->download($disk->path($filePath), $fileName);
     }
     function free_test($id_participant)
     {

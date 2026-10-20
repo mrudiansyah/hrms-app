@@ -152,15 +152,8 @@
 		<tr>
 			<td class="tengah">
 				<?php if($dt->status_disetujui==1){
-					$ttd_app=base_path().'/public/approval/'.$dt->disetujui.'.png';
-					$confirm=base_path().'/public/approval/confirm.png';
-					$reject=base_path().'/public/approval/rejected.png';
-					$filename = 'c:/xampp/htdocs/EMS/public/approval/'.$dt->disetujui.'.png';
-					if (file_exists($filename)){?>
-						<img src='{{ $ttd_app }}' style='height:30px'>
-					<?php }else{?>
-						<img src='{{ $confirm }}' style='width:50px;'>
-					<?php }
+					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/2'));
+					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 				}elseif($dt->status_disetujui=='3'){?>
 					<img src='{{ $reject }}' style='width:70px;'>
 				<?php }?>
@@ -168,15 +161,8 @@
 			<td style="height: 25px;">&nbsp;</td>
 			<td colspan="2" class="tengah">
 				<?php 
-					$ttd_app=base_path().'/public/approval/'.$dt->id_employee.'.png';
-					$confirm=base_path().'/public/approval/confirm.png';
-					$reject=base_path().'/public/approval/rejected.png';
-					$filename = 'c:/xampp/htdocs/EMS/public/approval/'.$dt->id_employee.'.png';
-					if (file_exists($filename)){?>
-						<img src='{{ $ttd_app }}' style='height:30px'>
-					<?php }else{?>
-						<img src='{{ $confirm }}' style='width:50px;'>
-					<?php }
+					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/1'));
+					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 				?>
 			</td>
 		</tr>
@@ -198,15 +184,8 @@
 		<tr>
 			<td class="tengah">
 				<?php if($dt->status_personalia==1){
-					$ttd_app=base_path().'/public/approval/'.$dt->personalia.'.png';
-					$confirm=base_path().'/public/approval/confirm.png';
-					$reject=base_path().'/public/approval/rejected.png';
-					$filename = 'c:/xampp/htdocs/EMS/public/approval/'.$dt->personalia.'.png';
-					if (file_exists($filename)){?>
-						<img src='{{ $ttd_app }}' style='height:30px;'>
-					<?php }else{?>
-						<img src='{{ $confirm }}' style='width:50px;'>
-					<?php }
+					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/3'));
+					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 				}elseif($dt->status_personalia=='3'){?>
 					<img src='{{ $reject }}' style='width:50px;'>
 				<?php }?>
@@ -214,15 +193,8 @@
 			<td style="height: 25px;">&nbsp;</td>
 			<td colspan="2" class="tengah">
 				<?php if($dt->status_scurity==1){
-					$ttd_app=base_path().'/public/approval/'.$dt->scurity.'.png';
-					$confirm=base_path().'/public/approval/confirm.png';
-					$reject=base_path().'/public/approval/rejected.png';
-					$filename = 'c:/xampp/htdocs/EMS/public/approval/'.$dt->scurity.'.png';
-					if (file_exists($filename)){?>
-						<img src='{{ $ttd_app }}' style='height:30px;'>
-					<?php }else{?>
-						<img src='{{ $confirm }}' style='width:50px;'>
-					<?php }
+					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/4'));
+					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 				}elseif($dt->status_personalia=='3'){?>
 					<img src='{{ $reject }}' style='width:50px;'>
 				<?php }?>

@@ -22,6 +22,7 @@
 									<th>Training</th>
 									<th>Date</th>
 									<th>Time</th>
+									<th>QR</th>
 									<th>Status Training</th>
 								</tr>
 							</thead>
@@ -40,6 +41,13 @@
 												echo date('H:i',strtotime($dt->finish));
 											}
 										?>
+									</td>
+									<td>
+										<a href="/Event/QRCode/{{ $dt->id_event_attendance }}"
+											class="btn btn-info btn-xs" title="Tampilkan QR Code PDF" target="_blank">
+											<i class="fa fa-qrcode"></i>
+										</a>
+
 									</td>
 									<td style="width:220px;">
 										@if(!empty($dt->idparticipant))

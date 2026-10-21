@@ -613,6 +613,15 @@ Route::post('/MealsVendorAdd', [App\Http\Controllers\meal_controller::class, 'ad
 Route::get('/MealsVendorStayDelete/{id}', [App\Http\Controllers\meal_controller::class, 'deleteVendorStay']);
 
 Route::get('/DigitalApproval/{tb_name}/{id}/{pos}', [App\Http\Controllers\DigitalApprovalController::class, 'index']);
+Route::get('/Event/ScanQR', [App\Http\Controllers\EventController::class, 'scanQrPage']);
+Route::post('/Event/ScanQR', [App\Http\Controllers\EventController::class, 'registerQrScan']);
+Route::get('/Event/{id}', [App\Http\Controllers\EventController::class, 'index']);
+Route::get('/Event/QRCode/{id}', [App\Http\Controllers\EventController::class, 'attendanceQr']);
+Route::post('/Event/Save', [App\Http\Controllers\EventController::class, 'save']);
+Route::post('/Event/{id}/attendance', [App\Http\Controllers\EventController::class, 'addAttendance']);
+Route::post('/Event/{id}/attendance/{attendanceId}', [App\Http\Controllers\EventController::class, 'updateAttendance']);
+Route::post('/Event/{id}/attendance/{attendanceId}/Delete', [App\Http\Controllers\EventController::class, 'deleteAttendance']);
+Route::post('/Event/{id}/Delete', [App\Http\Controllers\EventController::class, 'delete']);
 
 
 //End Payroll

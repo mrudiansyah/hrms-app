@@ -588,10 +588,38 @@ class ess_controller extends Controller
                 ->leftjoin('tb_skill_type', 'tb_skill_type.id', '=', 'tb_training_list.id_type')
                 ->leftjoin('tb_training_participant', 'tb_training_participant.id_training_invitation', '=', 'tb_training_invitation.id')
                 ->leftjoin('tb_related_test', 'tb_related_test.id_training_schedule', '=', 'tb_training_schedule.id')
+                ->leftjoin('tb_events', 'tb_events.id_training_schedule', '=', 'tb_training_schedule.id')
+                ->leftjoin('tb_event_attendances', function ($join) {
+                    $join->on('tb_event_attendances.id_event', '=', 'tb_events.id')
+                        ->on('tb_event_attendances.id_entrant', '=', 'tb_training_invitation.id_employee');
+                })
                 ->where('tb_training_invitation.id_employee', $id_employee)
                 //->orderby('tb_training_schedule.id','desc')->get(['tb_training_schedule.*','tb_training_list.training_name','tb_skill_type.skill_type']);
                 ->orderby('tb_training_schedule.id', 'desc')
-                ->get(['tb_training_invitation.*', 'tb_training_schedule.id as id_training_schedule', 'tb_training_schedule.id_training', 'tb_training_schedule.nara_sumber', 'tb_training_schedule.tanggal', 'tb_training_schedule.start', 'tb_training_schedule.finish', 'tb_training_list.training_name', 'tb_skill_type.skill_type', 'tb_training_participant.free_test', 'tb_training_participant.post_test', 'tb_training_participant.passing_grade', 'tb_training_participant.progress', 'tb_training_participant.grade_status', 'tb_related_test.id_test', 'tb_training_participant.id as idparticipant']);
+                ->get([
+                    'tb_training_invitation.*',
+                    'tb_training_schedule.id as id_training_schedule',
+                    'tb_training_schedule.id_training',
+                    'tb_training_schedule.nara_sumber',
+                    'tb_training_schedule.tanggal',
+                    'tb_training_schedule.start',
+                    'tb_training_schedule.finish',
+                    'tb_training_list.training_name',
+                    'tb_skill_type.skill_type',
+                    'tb_training_participant.free_test',
+                    'tb_training_participant.post_test',
+                    'tb_training_participant.passing_grade',
+                    'tb_training_participant.progress',
+                    'tb_training_participant.grade_status',
+                    'tb_related_test.id_test',
+                    'tb_training_participant.id as idparticipant',
+                    'tb_events.id as id_event',
+                    'tb_event_attendances.id as id_event_attendance',
+                    'tb_event_attendances.entrant_code',
+                    'tb_event_attendances.checkin as event_checkin',
+                    'tb_event_attendances.checkout as event_checkout',
+                    'tb_event_attendances.status as event_attendance_status',
+                ]);
             return view('page/training/training_invitation', ['tb_training_invitation' => $tb_training_invitation, 'page_status' => '', 'menu' => 'training_activity', 'juduls' => 'Training Schedule']);
         } else {
             return abort(403, 'Anda tidak punya akses');

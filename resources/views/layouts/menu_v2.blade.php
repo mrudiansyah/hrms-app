@@ -283,187 +283,189 @@
 
             <!-- TIME MANAGEMENT SHEET (TMS) -->
             @if(request()->user()->hasRole('tms') || request()->user()->hasRole('admin_department') || request()->user()->hasRole('admin_calendar') || request()->user()->hasRole('permit') || request()->user()->hasRole('permit_approve') || request()->user()->hasRole('permit_personalia') || request()->user()->hasRole('permit_scurity'))
-                    <li class="treeview<?php    if (isset($menu) && ($menu == 'tms' || $menu == 'calendar' || $menu == 'tms_check'))
-                echo ' active';?>">
-                        <a href="#">
-                            <i class="fa fa-clock-o text-purple"></i> <span>Attendance</span>
-                            <span class="pull-right-container">
-                                <i class="fa fa-angle-left pull-right"></i>
-                            </span>
-                        </a>
-                        <ul class="treeview-menu">
-                            @if (request()->user()->hasRole('admin_calendar') || request()->user()->hasRole('tms'))
-                                        <li class="treeview<?php        if (isset($menu) && ($menu == 'calendar'))
-                                echo ' active';?>">
+                <li class="treeview<?php if (isset($menu) && ($menu == 'tms' || $menu == 'calendar' || $menu == 'tms_check') || $menu == 'event') echo ' active';?>">
+                    <a href="#">
+                        <i class="fa fa-clock-o text-purple"></i> <span>Attendance</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        @if (request()->user()->hasRole('admin_calendar') || request()->user()->hasRole('tms'))
+                            <li class="treeview<?php if (isset($menu) && ($menu == 'calendar')) echo ' active';?>">
+                                <a href="#">
+                                    <i class="fa fa-calendar"></i> <span>Calendar & Shift</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    @if (request()->user()->hasRole('admin_calendar'))
+                                                    <li class="<?php            if (isset($menu) && $menu == 'calendar')
+                                        echo ' active';?>">
+                                                        <a href="/Admin/Freeday"><i class="fa fa-calendar-o text-purple"></i> Calendars</a>
+                                                    </li>
+                                    @endif
+                                    @if (request()->user()->hasRole('tms'))
+                                        <li><a href="/TMS/Group"><i class="fa fa-clock-o text-purple"></i> Shift List</a></li>
+                                    @endif
+                                </ul>
+                            </li>
+                        @endif
+                        @if (request()->user()->hasRole('tms') || request()->user()->hasRole('admin_department'))
+                            <li class="treeview<?php        if (isset($menu) && ($menu == 'tms' || $menu == 'tms_check'))  echo ' active';?>">
+                                <a href="#">
+                                    <i class="fa fa-sliders"></i> <span>Shift Management</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li><a href="/TMS/Draft/0/0"><i class="fa fa-file-text-o text-purple"></i> Draft Group</a>
+                                    </li>
+                                    <li><a href="/TMS/Plan/0/0/100/0"><i class="fa fa-calendar-check-o text-purple"></i> Working Schedule</a></li>
+                                    <li><a href="/DailyPresence/0/0/100"><i class="fa fa-edit text-purple"></i> Daily
+                                            Presence</a></li>
+                                    @if (request()->user()->hasRole('hr_access'))
+                                        <li class="treeview<?php if (isset($menu) && ($menu == 'tms_check')) echo ' active';?>">
                                             <a href="#">
-                                                <i class="fa fa-calendar"></i> <span>Calendar & Shift</span>
+                                                <i class="fa fa-check-circle-o text-purple"></i> <span>Check Absen</span>
                                                 <span class="pull-right-container">
                                                     <i class="fa fa-angle-left pull-right"></i>
                                                 </span>
                                             </a>
                                             <ul class="treeview-menu">
-                                                @if (request()->user()->hasRole('admin_calendar'))
-                                                                <li class="<?php            if (isset($menu) && $menu == 'calendar')
-                                                    echo ' active';?>">
-                                                                    <a href="/Admin/Freeday"><i class="fa fa-calendar-o text-purple"></i> Calendars</a>
-                                                                </li>
-                                                @endif
-                                                @if (request()->user()->hasRole('tms'))
-                                                    <li><a href="/TMS/Group"><i class="fa fa-clock-o text-purple"></i> Shift List</a></li>
-                                                @endif
-                                            </ul>
-                                        </li>
-                            @endif
-                            @if (request()->user()->hasRole('tms') || request()->user()->hasRole('admin_department'))
-                                        <li class="treeview<?php        if (isset($menu) && ($menu == 'tms' || $menu == 'tms_check'))
-                                echo ' active';?>">
-                                            <a href="#">
-                                                <i class="fa fa-sliders"></i> <span>Shift Management</span>
-                                                <span class="pull-right-container">
-                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                </span>
-                                            </a>
-                                            <ul class="treeview-menu">
-                                                <li><a href="/TMS/Draft/0/0"><i class="fa fa-file-text-o text-purple"></i> Draft Group</a>
+                                                <li><a href="/MonthlyCheck/0"><i class="fa fa-circle-o"></i> Work Schedule</a></li>
+                                                <li><a href="/AbsensiRateDetail/0"><i class="fa fa-circle-o"></i> Absency Rate</a>
                                                 </li>
-                                                <li><a href="/TMS/Plan/0/0/100/0"><i class="fa fa-calendar-check-o text-purple"></i> Working
-                                                        Schedule</a></li>
-                                                <li><a href="/DailyPresence/0/0/100"><i class="fa fa-edit text-purple"></i> Daily
-                                                        Presence</a></li>
-                                                @if (request()->user()->hasRole('hr_access'))
-                                                                <li class="treeview<?php            if (isset($menu) && ($menu == 'tms_check'))
-                                                    echo ' active';?>">
-                                                                    <a href="#">
-                                                                        <i class="fa fa-check-circle-o text-purple"></i> <span>Check Absen</span>
-                                                                        <span class="pull-right-container">
-                                                                            <i class="fa fa-angle-left pull-right"></i>
-                                                                        </span>
-                                                                    </a>
-                                                                    <ul class="treeview-menu">
-                                                                        <li><a href="/MonthlyCheck/0"><i class="fa fa-circle-o"></i> Work Schedule</a></li>
-                                                                        <li><a href="/AbsensiRateDetail/0"><i class="fa fa-circle-o"></i> Absency Rate</a>
-                                                                        </li>
-                                                                        <li><a href="/FailedFinger/0/0"><i class="fa fa-circle-o"></i> Failed Finger</a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                @endif
-                                                <li><a href="/AbsensiRate/0/0"><i class="fa fa-line-chart text-purple"></i> Absensi Rate</a>
+                                                <li><a href="/FailedFinger/0/0"><i class="fa fa-circle-o"></i> Failed Finger</a>
                                                 </li>
                                             </ul>
                                         </li>
-                            @endif
-                            <!-- E-WORKFLOWS & APPROVALS -->
-                            @if (request()->user()->hasRole('permit') || request()->user()->hasRole('permit_approve') || request()->user()->hasRole('permit_personalia') || request()->user()->hasRole('permit_scurity'))
-                                        <li class="treeview<?php        if (isset($menu) && $menu == 'permit')
-                                echo ' active';?>">
-                                            <a href="#">
-                                                <i class="fa fa-ticket"></i> <span>e-Permit</span>
-                                                <span class="pull-right-container">
-                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                </span>
-                                            </a>
-                                            <ul class="treeview-menu">
-                                                <?php        if (request()->user()->hasRole('permit')) {?>
-                                                <li><a href="/Permit"><i class="fa fa-pencil text-purple"></i> Apply Permit</a></li>
-                                                <li><a href="/Permit/Approves/0/0"><i class="fa fa-check-square-o text-green"></i>
-                                                        Approval</a></li>
-                                                <?php        }?>
-                                                <?php        if (request()->user()->hasRole('permit_personalia')) {?>
-                                                <li><a href="/Permit/Personalia/0/0"><i class="fa fa-gavel text-yellow"></i> Legalize HR</a>
-                                                </li>
-                                                <?php        }?>
-                                                <?php        if (request()->user()->hasRole('permit_scurity')) {?>
-                                                <li><a href="/Permit/Scurities/0/0"><i class="fa fa-shield text-red"></i> Security
-                                                        Verification</a>
-                                                </li>
-                                                <?php        }?>
-                                                <?php        if (request()->user()->hasRole('permit')) {?>
-                                                <li><a href="/Permit/Report/0/0"><i class="fa fa-file-text-o text-aqua"></i> Report
-                                                        Permit</a></li>
-                                                <?php        }?>
-                                            </ul>
-                                        </li>
-                            @endif
+                                    @endif
+                                    <li><a href="/AbsensiRate/0/0"><i class="fa fa-line-chart text-purple"></i> Absensi Rate</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endif
+                        <!-- E-WORKFLOWS & APPROVALS -->
+                        @if (request()->user()->hasRole('permit') || request()->user()->hasRole('permit_approve') || request()->user()->hasRole('permit_personalia') || request()->user()->hasRole('permit_scurity'))
+                            <li class="treeview<?php if (isset($menu) && $menu == 'permit') echo ' active';?>">
+                                <a href="#">
+                                    <i class="fa fa-ticket"></i> <span>e-Permit</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <?php        if (request()->user()->hasRole('permit')) {?>
+                                    <li><a href="/Permit"><i class="fa fa-pencil text-purple"></i> Apply Permit</a></li>
+                                    <li><a href="/Permit/Approves/0/0"><i class="fa fa-check-square-o text-green"></i>
+                                            Approval</a></li>
+                                    <?php        }?>
+                                    <?php        if (request()->user()->hasRole('permit_personalia')) {?>
+                                    <li><a href="/Permit/Personalia/0/0"><i class="fa fa-gavel text-yellow"></i> Legalize HR</a>
+                                    </li>
+                                    <?php        }?>
+                                    <?php        if (request()->user()->hasRole('permit_scurity')) {?>
+                                    <li><a href="/Permit/Scurities/0/0"><i class="fa fa-shield text-red"></i> Security
+                                            Verification</a>
+                                    </li>
+                                    <?php        }?>
+                                    <?php        if (request()->user()->hasRole('permit')) {?>
+                                    <li><a href="/Permit/Report/0/0"><i class="fa fa-file-text-o text-aqua"></i> Report
+                                            Permit</a></li>
+                                    <?php        }?>
+                                </ul>
+                            </li>
+                        @endif
 
-                            @if (request()->user()->hasRole('leave') || request()->user()->hasRole('leave_approve') || request()->user()->hasRole('leave_legalize') || request()->user()->hasRole('legal'))
-                                        <li class="treeview<?php        if (isset($menu) && $menu == 'leave')
-                                echo ' active';?>">
-                                            <a href="#">
-                                                <i class="fa fa-calendar-minus-o"></i> <span>e-Leave</span>
-                                                <span class="pull-right-container">
-                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                </span>
-                                            </a>
-                                            <ul class="treeview-menu">
-                                                <li class="treeview<?php        if (isset($submenu) && $submenu == 'apply')
-                                echo ' active';?>">
-                                                    <a href="#">
-                                                        <i class="fa fa-pencil"></i> <span>Apply Leave</span>
-                                                        <span class="pull-right-container">
-                                                            <i class="fa fa-angle-left pull-right"></i>
-                                                        </span>
-                                                    </a>
-                                                    <ul class="treeview-menu">
-                                                        <li><a href="/Leave"><i class="fa fa-calendar text-aqua"></i> Annual Leave</a></li>
-                                                        <li><a href="/Leave/Special"><i class="fa fa-star text-yellow"></i> Special
-                                                                Leave</a></li>
-                                                        <li><a href="/Leave/SKD/0/0"><i class="fa fa-user-md text-red"></i> Doctor / SKD</a>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <?php        if (request()->user()->hasRole('leave_approve')) {?>
-                                                <li><a href="/Leave/Approves/0/0"><i class="fa fa-check-square-o text-green"></i> Approve
-                                                        Leave</a>
-                                                </li>
-                                                <?php        }?>
-                                                <?php        if (request()->user()->hasRole('leave_legalize')) {?>
-                                                <li class="treeview<?php            if (isset($submenu) && $submenu == 'legalized')
-                                    echo ' active';?>">
-                                                    <a href="#">
-                                                        <i class="fa fa-gavel"></i> <span>Legalize</span>
-                                                        <span class="pull-right-container">
-                                                            <i class="fa fa-angle-left pull-right"></i>
-                                                        </span>
-                                                    </a>
-                                                    <ul class="treeview-menu">
-                                                        <li><a href="/Leave/Legalizes/0/0/Annual"><i class="fa fa-circle-o"></i> Annual</a>
-                                                        </li>
-                                                        <li><a href="/Leave/Legalizes/0/0/Special"><i class="fa fa-circle-o"></i>
-                                                                Special</a></li>
-                                                        <li><a href="/Leave/Legalizes/0/0/Docter"><i class="fa fa-circle-o"></i> Doctor /
-                                                                SKD</a>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <?php        }?>
-                                                <li class="treeview<?php        if (isset($submenu) && $submenu == 'report')
-                                echo ' active';?>">
-                                                    <a href="#">
-                                                        <i class="fa fa-bar-chart"></i> <span>Report Leave</span>
-                                                        <span class="pull-right-container">
-                                                            <i class="fa fa-angle-left pull-right"></i>
-                                                        </span>
-                                                    </a>
-                                                    <ul class="treeview-menu">
-                                                        <li><a href="/Leave/Reports/0/0/Annual"><i class="fa fa-circle-o"></i> Annual
-                                                                Report</a>
-                                                        </li>
-                                                        <li><a href="/Leave/Reports/0/0/Special"><i class="fa fa-circle-o"></i> Special
-                                                                Report</a>
-                                                        </li>
-                                                        <li><a href="/Leave/Reports/0/0/Docter"><i class="fa fa-circle-o"></i> Doctor
-                                                                Report</a>
-                                                        </li>
-                                                        <li><a href="/Leave/Reports/0/0/SKD"><i class="fa fa-circle-o"></i> SKD Report</a>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                            </ul>
-                                        </li>
-                            @endif
-                        </ul>
-                    </li>
+                        @if (request()->user()->hasRole('leave') || request()->user()->hasRole('leave_approve') || request()->user()->hasRole('leave_legalize') || request()->user()->hasRole('legal'))
+                            <li class="treeview<?php if (isset($menu) && $menu == 'leave') echo ' active';?>">
+                                <a href="#">
+                                    <i class="fa fa-calendar-minus-o"></i> <span>e-Leave</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li class="treeview<?php        if (isset($submenu) && $submenu == 'apply') echo ' active';?>">
+                                        <a href="#">
+                                            <i class="fa fa-pencil"></i> <span>Apply Leave</span>
+                                            <span class="pull-right-container">
+                                                <i class="fa fa-angle-left pull-right"></i>
+                                            </span>
+                                        </a>
+                                        <ul class="treeview-menu">
+                                            <li><a href="/Leave"><i class="fa fa-calendar text-aqua"></i> Annual Leave</a></li>
+                                            <li><a href="/Leave/Special"><i class="fa fa-star text-yellow"></i> Special
+                                                    Leave</a></li>
+                                            <li><a href="/Leave/SKD/0/0"><i class="fa fa-user-md text-red"></i> Doctor / SKD</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <?php        if (request()->user()->hasRole('leave_approve')) {?>
+                                    <li><a href="/Leave/Approves/0/0"><i class="fa fa-check-square-o text-green"></i> Approve
+                                            Leave</a>
+                                    </li>
+                                    <?php        }?>
+                                    <?php        if (request()->user()->hasRole('leave_legalize')) {?>
+                                    <li class="treeview<?php if (isset($submenu) && $submenu == 'legalized') echo ' active';?>">
+                                        <a href="#">
+                                            <i class="fa fa-gavel"></i> <span>Legalize</span>
+                                            <span class="pull-right-container">
+                                                <i class="fa fa-angle-left pull-right"></i>
+                                            </span>
+                                        </a>
+                                        <ul class="treeview-menu">
+                                            <li><a href="/Leave/Legalizes/0/0/Annual"><i class="fa fa-circle-o"></i> Annual</a>
+                                            </li>
+                                            <li><a href="/Leave/Legalizes/0/0/Special"><i class="fa fa-circle-o"></i>
+                                                    Special</a></li>
+                                            <li><a href="/Leave/Legalizes/0/0/Docter"><i class="fa fa-circle-o"></i> Doctor /
+                                                    SKD</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <?php        }?>
+                                    <li class="treeview<?php        if (isset($submenu) && $submenu == 'report') echo ' active';?>">
+                                        <a href="#">
+                                            <i class="fa fa-bar-chart"></i> <span>Report Leave</span>
+                                            <span class="pull-right-container">
+                                                <i class="fa fa-angle-left pull-right"></i>
+                                            </span>
+                                        </a>
+                                        <ul class="treeview-menu">
+                                            <li><a href="/Leave/Reports/0/0/Annual"><i class="fa fa-circle-o"></i> Annual
+                                                    Report</a>
+                                            </li>
+                                            <li><a href="/Leave/Reports/0/0/Special"><i class="fa fa-circle-o"></i> Special
+                                                    Report</a>
+                                            </li>
+                                            <li><a href="/Leave/Reports/0/0/Docter"><i class="fa fa-circle-o"></i> Doctor
+                                                    Report</a>
+                                            </li>
+                                            <li><a href="/Leave/Reports/0/0/SKD"><i class="fa fa-circle-o"></i> SKD Report</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endif
+                        <li class="treeview<?php if (isset($menu) && ($menu == 'event')) echo ' active';?>">
+                            <a href="#">
+                                <i class="fa fa-calendar-check-o"></i> <span>Event Management</span>
+                                <span class="pull-right-container">
+                                    <i class="fa fa-angle-left pull-right"></i>
+                                </span>
+                            </a>
+                            <ul class="treeview-menu">
+                                <li><a href="/Event/0"><i class="fa fa-circle-o"></i> Invite Participant</a></li>
+                                <li><a href="/Event/ScanQR"><i class="fa fa-circle-o"></i> Register Participant</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
             @endif
 
             @if(request()->user()->hasRole('spl_create') || request()->user()->hasRole('admin_department') || request()->user()->hasRole('spl_approval') || request()->user()->hasRole('spl_verification'))

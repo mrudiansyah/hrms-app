@@ -97,6 +97,7 @@ class LoginController extends Controller
      */
     public function authenticated(Request $request, $user)
     {
+        return;
         try {
             $email = $request->input('email') ?? $user->email;
             $password = $request->input('password') ?? config('hcmis.password');

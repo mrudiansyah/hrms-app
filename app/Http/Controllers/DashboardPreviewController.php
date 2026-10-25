@@ -17,7 +17,8 @@ class DashboardPreviewController extends Controller
 
     public function index()
     {
-        return "Masuk";
+        $tb1=DB::table('users')->where('id',Auth::user()->id)->first();
+        return $tb1;
         $today = Carbon::today();
         $periodEnd = $today->copy()->addDays(30);
         $retirementPeriodEnd = $today->copy()->addYearsNoOverflow(5);

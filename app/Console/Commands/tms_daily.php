@@ -53,7 +53,7 @@ class tms_daily extends Command
     {
 
         //Copy from iClock to EMS
-            $tb1=DB::connection('tms')->table('tb_iclock')->max('checktime');
+            $tb1=DB::table('tb_iclock')->max('checktime');
             \Log::info("Last Update ".$tb1);
             $now=date('Y-m-d H:i:s');
 
@@ -70,7 +70,7 @@ class tms_daily extends Command
                 $dataToInsert = $tb_absen->map(function ($item) {
                     return (array) $item;
                 })->toArray();
-                DB::connection('tms')->table('tb_iclock')->insert($dataToInsert);
+                DB::table('tb_iclock')->insert($dataToInsert);
             }
         //End Copy
 
@@ -98,7 +98,7 @@ class tms_daily extends Command
             $column='D'.$d;
             $Tgl=$periode."-".$d;
             \Log::info($Tgl);
-            $tb_focus=DB::connection('tms')->table('tb_work_entries')
+            $tb_focus=DB::table('tb_work_entries')
             ->leftjoin('tb_work_contract','tb_work_contract.id_employee','=','tb_work_entries.id_employee')
             ->where('tb_work_contract.isactive','1')
             ->where('periode',$periode)
@@ -125,7 +125,7 @@ class tms_daily extends Command
             foreach($tb_focus as $dtf){
                 $no++;
                 \Log::info($Tgl." No.".$no);
-                $tb_work_entries=DB::connection('tms')->table('tb_work_entries')
+                $tb_work_entries=DB::table('tb_work_entries')
                 ->leftjoin('tb_work_contract','tb_work_contract.id_employee','=','tb_work_entries.id_employee')
                 ->where('periode',$periode)
                 ->where('plan_actual','plan')
@@ -134,7 +134,7 @@ class tms_daily extends Command
                 ->get(['tb_work_entries.*','tb_work_contract.PIN','tb_work_contract.NIK','tb_work_contract.department','tb_work_contract.nama_karyawan']);
                 foreach($tb_work_entries as $dt){
                     $plan_work=$dt->$column;
-                    $tb_work_time=DB::connection('tms')->table('tb_work_time')->where('id',$plan_work)->get();
+                    $tb_work_time=DB::table('tb_work_time')->where('id',$plan_work)->get();
                     $work_status=99;
                     foreach($tb_work_time as $dt2){
                         $is_shift=$dt2->is_shift;
@@ -180,7 +180,7 @@ class tms_daily extends Command
                                 $work_status=98;
                             }
                             //Check Actual Finger
-                                $tb1=DB::connection('tms')->table('tb_iclock')->where('badgenumber',$badge)->where('checktime','>=',$ncdateindown)->where('checktime','<=',$ncdateinup)->orderby('checktime','asc')->limit(1)->get();
+                                $tb1=DB::table('tb_iclock')->where('badgenumber',$badge)->where('checktime','>=',$ncdateindown)->where('checktime','<=',$ncdateinup)->orderby('checktime','asc')->limit(1)->get();
                                 $qty_finger=0;
                                 foreach($tb1 as $row){
                                     $actual=$row->checktime;
@@ -196,7 +196,7 @@ class tms_daily extends Command
 
                                 $qty_finger2=0;
                                 if($qty_finger==0){
-                                    $tb1=DB::connection('tms')->table('tb_iclock')->where('badgenumber',$badge)->where('checktime','>=',$ncdateoutdown)->where('checktime','<=',$ncdateoutup)->orderby('checktime','desc')->limit(1)->get();
+                                    $tb1=DB::table('tb_iclock')->where('badgenumber',$badge)->where('checktime','>=',$ncdateoutdown)->where('checktime','<=',$ncdateoutup)->orderby('checktime','desc')->limit(1)->get();
                                     foreach($tb1 as $row){
                                         $actual=$row->checktime;
                                         if($dt2->is_shift==1){
@@ -237,7 +237,7 @@ class tms_daily extends Command
                     if($limit_date!=''&&$Tgl<=$limit_date)$lock_status=1;
                     else $lock_status=0;
                     if($lock_status==0){
-                        $tb_work_entries=DB::connection('tms')->table('tb_work_entries')->where('id_employee',$dt->id_employee)->where('periode',$periode)->where('plan_actual','actual')->update([
+                        $tb_work_entries=DB::table('tb_work_entries')->where('id_employee',$dt->id_employee)->where('periode',$periode)->where('plan_actual','actual')->update([
                             $column=>$work_status
                         ]);
                         if($tb_work_entries){
@@ -254,7 +254,7 @@ class tms_daily extends Command
 
         //Record Capture
         $Today=date('Y-m-d');
-        $add=DB::connection('tms')->table('tb_log_capture')->insert([
+        $add=DB::table('tb_log_capture')->insert([
             'capture_date'=>$Today
         ]);
     }

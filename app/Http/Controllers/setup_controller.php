@@ -38,6 +38,22 @@ class setup_controller extends Controller
     function setup_update(Request $data){
         if (request()->user()->hasRole('hr_access')){
             $update=DB::table('tb_utilities')->where('id',$data->id)->update(['status'=>$data->status]);
+            if(($data->id=='24')){
+                $today=date('Y-m-d');
+                $periode=date('Y-m');
+                $day=date('d');
+                if($day>=25){
+                    $limit=$periode.'-24';
+                }else{
+                    $first_date=date('Y-m-01');
+                    $last_periode=date('Y-m',strtotime('-1 days',strtotime($first_date)));
+                    $limit=$last_periode.'-24';
+                }
+                $update=DB::table('tb_utilities')->where('id',$data->id)->update(['limit_date'=>$limit]);
+            }
+            if(($data->id=='26')){
+                $update=DB::connection('tms')->table('tb_work_code')->where('id','11')->update(['manual_adjust'=>$data->status]);
+            }
         }else{
             return abort(403,'Anda tidak punya akses');
         }

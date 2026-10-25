@@ -54,7 +54,9 @@ Route::post('/scurity/bulk-update-assignment', [SecurityController::class, 'bulk
 Route::get('/scurity/permit', [SecurityController::class, 'permit']);
 Route::post('/scurity/update-permit', [SecurityController::class, 'updatePermit']);
 
-Route::get('/Dashboard', [App\Http\Controllers\DashboardController::class, 'index']);
+Route::get('/Dashboard', [App\Http\Controllers\DashboardPreviewController::class, 'index']);
+Route::get('/Dashboard/Preview', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.preview');
+Route::get('/Dashboard/Preview/ChartDetails', [App\Http\Controllers\DashboardPreviewController::class, 'chartDetails'])->name('dashboard.preview.chart-details');
 Route::post('/Dashboard/Notifikasi', [App\Http\Controllers\DashboardController::class, 'notifikasi'])->name('Dashboard.Notifikasi');
 Route::get('/ChangePassword', [App\Http\Controllers\DashboardController::class, 'change_password']);
 Route::post('/ConfirmPassword', [App\Http\Controllers\DashboardController::class, 'confirm_password']);

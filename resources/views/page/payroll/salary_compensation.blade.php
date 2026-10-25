@@ -52,10 +52,10 @@
 										<div class="pull-right">
 											<?php if($dt->send_mail==0){?><a href="{{$site}}/SendMailCompensation/{{$dt->id}}"><button type="button" class="btn btn-info btn-xs"><i class="fa fa-envelope-o"></i></button></a><?php }?>
 											<a href="{{$site}}/Compensation/Slip/{{$dt->id}}" target="_blank"><button type="button" class="btn btn-primary btn-xs"><i class="fa fa-print"></i></button></a>
-											<form action="{{$site}}/CompensationDelete/{{$dt->id}}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
+											<!-- <form action="{{$site}}/CompensationDelete/{{$dt->id}}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
 												@csrf
 												<button type="submit" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></button>
-											</form>
+											</form> -->
 										</div>
 									</td>
 								</tr>

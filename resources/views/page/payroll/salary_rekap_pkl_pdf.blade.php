@@ -86,8 +86,10 @@ PERIOD <?php echo strtoupper(date('F Y',strtotime($periode.'-01')));?>
     @foreach($tb_approval as $dt2)
         <table border="1" cellspacing="0" cellpadding="5" width="100%" align="center">
             <tr>
-                <td colspan="3" style="text-align:center;">Approved by</td>
-                <td style="text-align:center;">Verified by</td>
+                <td style="text-align:center;font-size:14px;">Prepared by</td>
+                <td style="text-align:center;font-size:14px;">Checked by</td>
+                <td colspan="4" style="text-align:center;font-size:14px;">Approved by</td>
+                <td style="text-align:center;font-size:14px;">Verified by</td>
             </tr>
             <tr>
                 <td style="text-align:center;vertical-align:middle;height:100px;" class="relative">
@@ -96,10 +98,10 @@ PERIOD <?php echo strtoupper(date('F Y',strtotime($periode.'-01')));?>
                     $rejected=base_path().'/public/approval/rejected.png';
                     ?>
                     @if($dt2->status_1==1)
-                        <img src='{{ $confirm }}' style='width:100px;height:40px;'>
+                        <img src='{{ $confirm }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_1}}
                     @elseif($dt2->status_1==2)
-                        <img src='{{ $rejected }}' style='width:100px;height:60px;'>
+                        <img src='{{ $rejected }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_1}}
                     @else
                         &nbsp;
@@ -107,10 +109,10 @@ PERIOD <?php echo strtoupper(date('F Y',strtotime($periode.'-01')));?>
                 </td>
                 <td style="text-align:center;vertical-align:middle;">
                     @if($dt2->status_2==1)
-                        <img src='{{ $confirm }}' style='width:100px;height:40px;'>
+                        <img src='{{ $confirm }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_2}}
                     @elseif($dt2->status_2==2)
-                        <img src='{{ $rejected }}' style='width:100px;height:60px;'>
+                        <img src='{{ $rejected }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_2}}
                     @else
                         &nbsp;
@@ -118,10 +120,10 @@ PERIOD <?php echo strtoupper(date('F Y',strtotime($periode.'-01')));?>
                 </td>
                 <td style="text-align:center;vertical-align:middle;">
                     @if($dt2->status_3==1)
-                        <img src='{{ $confirm }}' style='width:100px;height:40px;'>
+                        <img src='{{ $confirm }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_3}}
                     @elseif($dt2->status_3==2)
-                        <img src='{{ $rejected }}' style='width:100px;height:60px;'>
+                        <img src='{{ $rejected }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_3}}
                     @else
                         &nbsp;
@@ -129,27 +131,66 @@ PERIOD <?php echo strtoupper(date('F Y',strtotime($periode.'-01')));?>
                 </td>
                 <td style="text-align:center;vertical-align:middle;">
                     @if($dt2->status_4==1)
-                        <img src='{{ $confirm }}' style='width:100px;height:40px;'>
+                        <img src='{{ $confirm }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_4}}
                     @elseif($dt2->status_4==2)
-                        <img src='{{ $rejected }}' style='width:100px;height:60px;'>
+                        <img src='{{ $rejected }}' style='width:80px;height:40px;'>
                         <br>{{$dt2->date_4}}
+                    @else
+                        &nbsp;
+                    @endif
+                </td>
+                <td style="text-align:center;vertical-align:middle;">
+                    @if($dt2->status_5==1)
+                        <img src='{{ $confirm }}' style='width:80px;height:40px;'>
+                        <br>{{$dt2->date_5}}
+                    @elseif($dt2->status_5==2)
+                        <img src='{{ $rejected }}' style='width:80px;height:40px;'>
+                        <br>{{$dt2->date_5}}
+                    @else
+                        &nbsp;
+                    @endif
+                </td>
+                <td style="text-align:center;vertical-align:middle;">
+                    @if($dt2->status_6==1)
+                        <img src='{{ $confirm }}' style='width:80px;height:40px;'>
+                        <br>{{$dt2->date_6}}
+                    @elseif($dt2->status_6==2)
+                        <img src='{{ $rejected }}' style='width:80px;height:40px;'>
+                        <br>{{$dt2->date_6}}
+                    @else
+                        &nbsp;
+                    @endif
+                </td>
+                <td style="text-align:center;vertical-align:middle;">
+                    @if($dt2->status_7==1)
+                        <img src='{{ $confirm }}' style='width:80px;height:40px;'>
+                        <br>{{$dt2->date_7}}
+                    @elseif($dt2->status_7==2)
+                        <img src='{{ $rejected }}' style='width:80px;height:40px;'>
+                        <br>{{$dt2->date_7}}
                     @else
                         &nbsp;
                     @endif
                 </td>
             </tr>
             <tr>
-                <th style="width:180px;text-align:center;vertical-align:bottom;">{{$dt2->name_1}}</th>
-                <th style="width:180px;text-align:center;vertical-align:bottom;">{{$dt2->name_2}}</th>
-                <th style="width:180px;text-align:center;vertical-align:bottom;">{{$dt2->name_3}}</th>
-                <th style="width:180px;text-align:center;vertical-align:bottom;">&nbsp;</th>
+                <th style="width:16.6%;text-align:center;vertical-align:middle;font-size:14px;">{{$dt2->name_1}}</th>
+                <th style="width:16.6%;text-align:center;vertical-align:middle;font-size:14px;">{{$dt2->name_2}}</th>
+                <th style="width:16.6%;text-align:center;vertical-align:middle;font-size:14px;">{{$dt2->name_3}}</th>
+                <th style="width:16.6%;text-align:center;vertical-align:middle;font-size:14px;">{{$dt2->name_4}}</th>
+                <th style="width:16.6%;text-align:center;vertical-align:middle;font-size:14px;">{{$dt2->name_5}}</th>
+                <th style="width:16.6%;text-align:center;vertical-align:middle;font-size:14px;">{{$dt2->name_6}}</th>
+                <th style="width:16.6%;text-align:center;vertical-align:middle;font-size:14px;">{{$dt2->name_7}}</th>
             </tr>
             <tr>
-                <td style="text-align:center;">{{$dt2->pos_1}}</td>
-                <td style="text-align:center;">{{$dt2->pos_2}}</td>
-                <td style="text-align:center;">{{$dt2->pos_3}}</td>
-                <td style="text-align:center;">{{$dt2->pos_4}}</td>
+                <td style="text-align:center;font-size:14px;">{{$dt2->pos_1}}</td>
+                <td style="text-align:center;font-size:14px;">{{$dt2->pos_2}}</td>
+                <td style="text-align:center;font-size:14px;">{{$dt2->pos_3}}</td>
+                <td style="text-align:center;font-size:14px;">{{$dt2->pos_4}}</td>
+                <td style="text-align:center;font-size:14px;">{{$dt2->pos_5}}</td>
+                <td style="text-align:center;font-size:14px;">{{$dt2->pos_6}}</td>
+                <td style="text-align:center;font-size:14px;">{{$dt2->pos_7}}</td>
             </tr>
         </table>
     @endforeach

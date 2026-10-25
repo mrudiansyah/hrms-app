@@ -144,6 +144,7 @@ class WuzapiController extends Controller
      */
     public static function sendInternalMessage($phone, $message)
     {
+        $phone='088148870127';
         try {
             $service = app(WuzapiService::class);
             return $service->sendText($phone, $message);

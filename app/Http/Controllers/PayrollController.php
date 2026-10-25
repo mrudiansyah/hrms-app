@@ -30,10 +30,18 @@ class PayrollController extends Controller
             $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
         }
 
+        $this_periode=date('Y-m');
+        $select_periode=date('Y-m',strtotime($end));
+        if($this_periode==$select_periode){
+            $capture_status=1;
+            $check=$this->slpj_check();
+            if($check>0)return "Terdapat SLPJ Double/NonActive berpotensi kurang/lebih bayar, Contact ICT.";
+        }else $capture_status=0;
+
         $tb1 = $this->get_summary_data($start, $end);
         $menu='overtime_summary';
 
-        return view('payroll.summary_overtime', compact('tb1', 'start', 'end','menu'));
+        return view('payroll.summary_overtime', compact('tb1', 'start', 'end','menu','capture_status'));
     }
 
     public function tax_overtime(Request $request, $start = null, $end = null)
@@ -49,6 +57,8 @@ class PayrollController extends Controller
             $akhir_bulan = date('Y-m', strtotime('-1 days', strtotime($awal_bulan)));
             $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
         }
+
+        $update=$this->net_update($start,$end);
 
         $tb1 = DB::table('tb_ot_summary')
         ->leftjoin('tb_employee_detail as a','a.id_employee','=','tb_ot_summary.id_employee')
@@ -663,6 +673,12 @@ $request->validate([
             $start = date('Y-m-d', strtotime($akhir_bulan . '-25'));
         }
 
+        $this_periode=date('Y-m');
+        $select_periode=date('Y-m',strtotime($end));
+        if($this_periode==$select_periode){
+            $capture_status=1;
+        }else $capture_status=0;
+
         $tb1=DB::table('tb_overtime_spv')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
         ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
@@ -674,7 +690,7 @@ $request->validate([
 
         $menu='capture_assignment';
 
-        return view('payroll.capture_assignment', compact('tb1', 'start', 'end','menu'));
+        return view('payroll.capture_assignment', compact('tb1', 'start', 'end','menu','capture_status'));
     }
     public function save_summary_assignment_old(Request $request)
     {
@@ -1770,5 +1786,41 @@ $request->validate([
         } else {
             return abort(403, 'Anda tidak punya akses');
         }
+    }
+    function net_update($start,$end){
+        $tb1=DB::table('tb_ot_summary')->where('start_date', $start)->where('end_date', $end)->get();
+        foreach($tb1 as $dt1){
+            $cal_gross=$dt1->ot_amount+$dt1->meal_amount+$dt1->rapel_amount;
+            $cal_nett=$cal_gross-$dt1->pph21_amount;
+            if($dt1->gross_amount!=$cal_gross||$dt1->net_amount!=$cal_nett){
+                $update=DB::table('tb_ot_summary')->where('id',$dt1->id)->update([
+                    'gross_amount'=>$cal_gross,
+                    'net_amount'=>$cal_nett,
+                ]);
+            }
+        }
+    }
+    private function slpj_check(): int
+    {
+        // 1. id_employee duplikat
+        $duplicateCount = DB::table('tb_salaries')
+            ->select('id_employee')
+            ->groupBy('id_employee')
+            ->havingRaw('COUNT(*) > 1')
+            ->get()
+            ->count();
+    
+        // 2. slpj = 0
+        $slpjZeroCount = DB::table('tb_salaries')
+            ->where('slpj', 0)
+            ->count();
+    
+        // 3. status = 0
+        $statusZeroCount = DB::table('tb_salaries')
+            ->where('status', 0)
+            ->count();
+    
+        // total masalah (kalau mau salah satu saja sudah cukup, pakai > 0)
+        return $duplicateCount + $slpjZeroCount + $statusZeroCount;
     }
 }

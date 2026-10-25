@@ -21,17 +21,15 @@ class permit_controller extends Controller
         foreach($cek1 as $dt){$id_user=$dt->id_employee;}
         $tb_admins=DB::table('tb_admins')->where('id_employee',$id_user)->get();
 
-        $tb_employee=DB::table('tb_employees')->where([['status','1'],['dept_id','0']]);
-        foreach($tb_admins as $dt2){
-            $tb_employee=$tb_employee->orwhere([['status','1'],['dept_id',$dt2->dept_id]]);
-        }
-        $tb_employee=$tb_employee->orderby('employee_name','asc')->get();
-
-        // Kumpulkan semua dept_id yang diizinkan
-        $deptIds = [0]; // selalu sertakan 0
+        $deptIds = [0];
         foreach($tb_admins as $dt2){
             $deptIds[] = $dt2->dept_id;
         }
+        $tb_employee = DB::table('tb_employees')
+            ->where('status', '1')
+            ->whereIn('dept_id', $deptIds)
+            ->orderBy('employee_name', 'asc')
+            ->get();
 
         $tb_izin = DB::table('tb_izins')
             ->leftJoin('tb_employees', 'tb_employees.id', '=', 'tb_izins.id_employee')
@@ -42,8 +40,8 @@ class permit_controller extends Controller
             ->orderBy('tb_izins.id', 'desc')
             ->get(['tb_izins.*', 'tb_employees.NIK', 'tb_employees.employee_name']);
     
-        $jam_masuk=DB::table('tb_cycles')->distinct()->get('check_in');
-		$jam_isoma=DB::table('tb_cycles')->distinct()->get('isoma');
+        // $jam_masuk=DB::table('tb_cycles')->distinct()->get('check_in');
+		// $jam_isoma=DB::table('tb_cycles')->distinct()->get('isoma');
 
 		$lock_backdate=DB::table('tb_utilities')->where('id','17')->where('status','1')->count();
 		$now=date('Y-m-d H:i:s');
@@ -52,7 +50,7 @@ class permit_controller extends Controller
 		$Tgl=date('Y-m-d');
 		$Jam=date('Y-m-d').'T00:00';
 
-        return view('page/admin/m_permit/permit',['jam_masuk'=>$jam_masuk,'jam_isoma'=>$jam_isoma,'tb_employee'=>$tb_employee,'tb_izin'=>$tb_izin,'nama'=>$nama,'menu'=>'permit','lock_backdate'=>$lock_backdate,'Tgl'=>$Tgl,'Jam'=>$Jam]);
+        return view('page/admin/m_permit/permit',['tb_employee'=>$tb_employee,'tb_izin'=>$tb_izin,'nama'=>$nama,'menu'=>'permit','lock_backdate'=>$lock_backdate,'Tgl'=>$Tgl,'Jam'=>$Jam]);
     }
     function selectApprove(Request $data){
     	$konten="";

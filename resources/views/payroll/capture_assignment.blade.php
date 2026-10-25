@@ -50,15 +50,17 @@
                                     <i class="fa fa-search"></i> Filter
                                 </button>
                             </form>
-
-                            <form action="{{ url('/payroll/save_summary_assignment') }}" method="POST" style="display: inline-block; margin-left: 10px;">
-                                @csrf
-                                <input type="hidden" name="start" value="{{ $start }}">
-                                <input type="hidden" name="end" value="{{ $end }}">
-                                <button type="submit" class="btn btn-success" onclick="return confirm('Apakah anda yakin ingin menyimpan data ke table summary?')">
-                                    <i class="fa fa-save"></i> Capture
-                                </button>
-                            </form>
+                            
+                            @if($capture_status==1)
+                                <form action="{{ url('/payroll/save_summary_assignment') }}" method="POST" style="display: inline-block; margin-left: 10px;">
+                                    @csrf
+                                    <input type="hidden" name="start" value="{{ $start }}">
+                                    <input type="hidden" name="end" value="{{ $end }}">
+                                    <button type="submit" class="btn btn-success" onclick="return confirm('Apakah anda yakin ingin menyimpan data ke table summary?')">
+                                        <i class="fa fa-save"></i> Capture
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
 

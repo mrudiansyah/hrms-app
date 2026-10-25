@@ -7,6 +7,7 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\Services\HcmisService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
@@ -39,9 +40,17 @@ class LoginController extends Controller
     public function username()
     {
         $login = request()->input('email');
-        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'nik';
-        request()->merge([$field => $login]);
-        return $field;
+
+        if (!filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            $email = DB::table('tb_emails')
+                ->join('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
+                ->where('tb_employees.NIK', $login)
+                ->value('tb_emails.email_address');
+
+            request()->merge(['email' => $email ?? $login]);
+        }
+
+        return 'email';
     }
 
     /**

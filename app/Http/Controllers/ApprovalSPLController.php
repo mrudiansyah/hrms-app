@@ -45,26 +45,48 @@ class ApprovalSPLController extends Controller
             $id_employee=$dt->id_employee;
         }
         $jmlot_plan=DB::table('tb_overtimes')
-        ->leftjoin('tb_employees as tb1','tb1.id','=','tb_overtimes.diperintah')
-        ->leftjoin('tb_employees as tb2','tb2.id','=','tb_overtimes.disetujui')
-        ->leftjoin('tb_employees as tb3','tb3.id','=','tb_overtimes.diketahui')
-        ->select('tb_overtimes.*','tb1.employee_name as nm1','tb2.employee_name as nm2','tb3.employee_name as nm3')
         ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
-        ->where([['tb_overtimes.diperintah',$id_employee],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.disetujui',$id_employee],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.diketahui',$id_employee],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.dicatat',$id_employee],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.approve',$id_employee],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.paid',$id_employee],['tb_overtimes.status','1'],['tb_overtimes.status_approve','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->get(['tb_overtimes.*','tb_departments.dept_name'])->count(); 
+        ->where(function($query) use ($id_employee) {
+            $query->where(function($query) use ($id_employee) {
+                $query->where('tb_overtimes.diperintah',$id_employee)
+                    ->orWhere('tb_overtimes.disetujui',$id_employee)
+                    ->orWhere('tb_overtimes.diketahui',$id_employee)
+                    ->orWhere('tb_overtimes.dicatat',$id_employee)
+                    ->orWhere('tb_overtimes.approve',$id_employee);
+            })->where('tb_overtimes.status','1')
+                ->where('tb_overtimes.status_diperintah','<=','3')
+                ->where('tb_overtimes.status_disetujui','<=','3')
+                ->where('tb_overtimes.status_diketahui','<=','3')
+                ->where('tb_overtimes.status_dicatat','0')
+                ->where('tb_overtimes.status_paid','0')
+                ->where('tb_departments.isTrial','1')
+                ->where('tb_overtimes.isDelete',0);
+        })
+        ->orWhere(function($query) use ($id_employee) {
+            $query->where('tb_overtimes.paid',$id_employee)
+                ->where('tb_overtimes.status','1')
+                ->where('tb_overtimes.status_approve','0')
+                ->where('tb_overtimes.status_paid','0')
+                ->where('tb_departments.isTrial','1')
+                ->where('tb_overtimes.isDelete',0);
+        })
+        ->count();
+
         $jmlot_actual=DB::table('tb_overtimes')
         ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
-        ->where([['tb_overtimes.diperintah',$id_employee],['status','1'],['tb_overtimes.status_diperintah','1'],['tb_overtimes.status_dicatat','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.disetujui',$id_employee],['status','1'],['tb_overtimes.status_diperintah','1'],['tb_overtimes.status_dicatat','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.diketahui',$id_employee],['status','1'],['tb_overtimes.status_diperintah','1'],['tb_overtimes.status_dicatat','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.dicatat',$id_employee],['status','1'],['tb_overtimes.status_diperintah','1'],['tb_overtimes.status_dicatat','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.approve',$id_employee],['status','1'],['tb_overtimes.status_diperintah','1'],['tb_overtimes.status_dicatat','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.paid',$id_employee],['status','1'],['tb_overtimes.status_diperintah','1'],['tb_overtimes.status_dicatat','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
+        ->where('tb_overtimes.status','1')
+        ->where('tb_overtimes.status_diperintah','1')
+        ->where('tb_overtimes.status_dicatat','0')
+        ->where('tb_departments.isTrial','1')
+        ->where('tb_overtimes.isDelete',0)
+        ->where(function($query) use ($id_employee) {
+            $query->where('tb_overtimes.diperintah',$id_employee)
+                ->orWhere('tb_overtimes.disetujui',$id_employee)
+                ->orWhere('tb_overtimes.diketahui',$id_employee)
+                ->orWhere('tb_overtimes.dicatat',$id_employee)
+                ->orWhere('tb_overtimes.approve',$id_employee)
+                ->orWhere('tb_overtimes.paid',$id_employee);
+        })
         ->count();
         date_default_timezone_set("Asia/Jakarta");
         $kalendar=CAL_GREGORIAN;
@@ -86,11 +108,11 @@ class ApprovalSPLController extends Controller
                 foreach($last as $dt_last){
                     $last_sales= $dt_last->amount_sales;
                     $last_target=$last_sales/100;
-                    $act_persentase=number_format($total_ammount/$last_sales*100,2);
+                    $act_persentase=$last_sales > 0 ? round($total_ammount / $last_sales * 100, 2) : 0;
                     DB::table('tb_overtime_sales')->where('periode',$periode)->update([
                         'amount_sales'=>$last_sales,
-                        'amount_overtime'=>$total_ammount,
-                        'target_persentase'=>'1',
+                        'amount_overtime'=>$total_ammount ?? 0,
+                        'target_persentase'=>1,
                         'aktual_persentase'=>$act_persentase,
                         'target_overtime'=>$last_target
                     ]);
@@ -729,6 +751,13 @@ class ApprovalSPLController extends Controller
         if($cek_lock==1){
             date_default_timezone_set("Asia/Jakarta");
             $tgl_sekarang=date('Y-m-d H:i:s');
+            $liburDates=DB::table('tb_freedays')
+                ->whereNotNull('date_off')
+                ->pluck('date_off')
+                ->map(function($date) {
+                    return date('Y-m-d', strtotime($date));
+                })
+                ->flip();
             //$tgl_sekarang='2022-04-05 15:00:00';
             $ot_diperintah=DB::table('tb_overtimes')
             ->where('autoCancel','0')
@@ -743,8 +772,7 @@ class ApprovalSPLController extends Controller
                     $batas=date('Y-m-d H:i:s',strtotime('+'.$i.' days',strtotime($tgl_ot)));
                     $batas_tgl=date('Y-m-d',strtotime($batas));
                     $wday=date('w',strtotime($batas));
-                    $libur=DB::table('tb_freedays')->where('date_off',$batas_tgl)->count();
-                    if($wday>0&&$wday<6&&$libur==0)break;
+                    if($wday>0&&$wday<6&&!$liburDates->has($batas_tgl))break;
                 }
                 if($batas<$tgl_sekarang){
                     $cancel=DB::table('tb_overtimes')->where('id',$row->id)->update(['status_diperintah'=>'3','date_diperintah'=>$batas,'autoCancel'=>'1']);
@@ -764,8 +792,7 @@ class ApprovalSPLController extends Controller
                     $batas=date('Y-m-d H:i:s',strtotime('+'.$i.' days',strtotime($tgl_ot)));
                     $batas_tgl=date('Y-m-d',strtotime($batas));
                     $wday=date('w',strtotime($batas));
-                    $libur=DB::table('tb_freedays')->where('date_off',$batas_tgl)->count();
-                    if($wday>0&&$wday<6&&$libur==0)break;
+                    if($wday>0&&$wday<6&&!$liburDates->has($batas_tgl))break;
                 }
                 if($batas<$tgl_sekarang){
                     $cancel=DB::table('tb_overtimes')->where('id',$row->id)->update(['status_disetujui'=>'3','date_disetujui'=>$batas,'autoCancel'=>'1']);
@@ -785,8 +812,7 @@ class ApprovalSPLController extends Controller
                     $batas=date('Y-m-d H:i:s',strtotime('+'.$i.' days',strtotime($tgl_ot)));
                     $batas_tgl=date('Y-m-d',strtotime($batas));
                     $wday=date('w',strtotime($batas));
-                    $libur=DB::table('tb_freedays')->where('date_off',$batas_tgl)->count();
-                    if($wday>0&&$wday<6&&$libur==0)break;
+                    if($wday>0&&$wday<6&&!$liburDates->has($batas_tgl))break;
                 }
                 if($batas<$tgl_sekarang){
                     $cancel=DB::table('tb_overtimes')->where('id',$row->id)->update(['status_diketahui'=>'3','date_diketahui'=>$batas,'autoCancel'=>'1']);

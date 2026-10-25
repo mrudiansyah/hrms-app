@@ -135,7 +135,6 @@ class permit_controller extends Controller
 				'keluhan'=>$data->keluhan,
 				'berobat_ke'=>$data->berobat_ke,
 				'disetujui'=>$data->disetujui,
-				'personalia'=>'0',
 				'scurity'=>'0',
 				'status_disetujui'=>'0',
 				'status_personalia'=>'0',
@@ -144,10 +143,13 @@ class permit_controller extends Controller
 				'admin'=>$nama
 			]);
 			if($simpan){
-				//$tb1=DB::table('tb_izins')->where('id_employee',$data->id_employee)->where('apply_date',$data->apply_date)->value('id');
-				//$send_notif=$this->notificationPermit($tb1);
+				$tb1=DB::table('tb_izins')->where('id_employee',$data->id_employee)->where('apply_date',$data->apply_date)->value('id');
+				$send_notif=$this->notificationPermit($tb1);
+				if($send_notif!='Success'){
+					return redirect()->back()->with('error','Pengajuan izin berhasil disimpan, tetapi notifikasi WhatsApp gagal dikirim.');
+				}
 			}
-			return redirect()->back();
+			return redirect()->back()->with('success','Pengajuan izin dan notifikasi WhatsApp berhasil diproses.');
 		}else{
 			return redirect()->back()->with(['error'=>'Anda masih memiliki izin yang belum disetujui']);
 		}
@@ -174,11 +176,54 @@ class permit_controller extends Controller
  		->where('tb_izins.id',$id)
  		->get(['tb_izins.*','tb_employees.NIK','tb_employees.employee_name','tb_departments.dept_name','tb_employees1.employee_name as nama_atasan','tb_employees2.employee_name as nama_personalia','tb_employees3.employee_name as nama_scurity']);
 
+        foreach ($tb_izin as $izin) {
+            $izin->qr_approved = $this->qrCodePngDataUri(url('/DigitalApproval/2/'.$izin->id.'/2'));
+            $izin->qr_applicant = $this->qrCodePngDataUri(url('/DigitalApproval/2/'.$izin->id.'/1'));
+            $izin->qr_personalia = $this->qrCodePngDataUri(url('/DigitalApproval/2/'.$izin->id.'/3'));
+            $izin->qr_security = $this->qrCodePngDataUri(url('/DigitalApproval/2/'.$izin->id.'/4'));
+        }
+
         $FileName='FORMIZIN '.$id.'.PDF';
         $pdf = PDF::loadview('page/admin/m_permit/previewizin',['tb_izin'=>$tb_izin])->setPaper([0, 0, 297.638, 450]);
 		
         return $pdf->stream($FileName);
 
+    }
+
+    private function qrCodePngDataUri($content)
+    {
+        $matrix = \BaconQrCode\Encoder\Encoder::encode(
+            $content,
+            \BaconQrCode\Common\ErrorCorrectionLevel::L()
+        )->getMatrix();
+        $scale = 4;
+        $quietZone = 1;
+        $size = ($matrix->getWidth() + ($quietZone * 2)) * $scale;
+        $imageData = '';
+
+        for ($y = 0; $y < $size; $y++) {
+            $imageData .= "\0";
+            $moduleY = intdiv($y, $scale) - $quietZone;
+            for ($x = 0; $x < $size; $x++) {
+                $moduleX = intdiv($x, $scale) - $quietZone;
+                $isDark = $moduleX >= 0
+                    && $moduleY >= 0
+                    && $moduleX < $matrix->getWidth()
+                    && $moduleY < $matrix->getHeight()
+                    && $matrix->get($moduleX, $moduleY) === 1;
+                $imageData .= $isDark ? "\0" : "\xff";
+            }
+        }
+
+        $pngChunk = function ($type, $data) {
+            return pack('N', strlen($data)).$type.$data.pack('N', crc32($type.$data));
+        };
+        $png = "\x89PNG\r\n\x1a\n"
+            .$pngChunk('IHDR', pack('NNCCCCC', $size, $size, 8, 0, 0, 0, 0))
+            .$pngChunk('IDAT', gzcompress($imageData))
+            .$pngChunk('IEND', '');
+
+        return 'data:image/png;base64,'.base64_encode($png);
     }
     function approvePermit($awal,$akhir){
         date_default_timezone_set("Asia/Jakarta");
@@ -256,7 +301,7 @@ class permit_controller extends Controller
     function approveSign($id,$status){
         $approve=DB::table('tb_izins')->where('id',$id)->update(['status_disetujui'=>$status]);
         if($approve){
-			//$this->notificationPermit($id);
+			$this->notificationPermit($id);
 			return redirect()->back()->with(['success'=>'Update Success']);
 		}
     }
@@ -556,8 +601,8 @@ class permit_controller extends Controller
         // $data['kontak']='08211212418';
         if($data['kontak']!=''){
             // \App\Http\Controllers\WhatsAppController::sendInternalMessage($data['kontak'], $data['pesan']);
-            \App\Http\Controllers\WuzapiController::sendInternalMessage($data['kontak'], $data['pesan']);
-            return 'Success';
+            $result = \App\Http\Controllers\WuzapiController::sendInternalMessage($data['kontak'], $data['pesan']);
+            return is_array($result) && ($result['success'] ?? false) === true ? 'Success' : 'Failed';
         }else{
             return 'Failed';
         }

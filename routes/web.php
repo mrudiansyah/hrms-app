@@ -625,6 +625,9 @@ Route::post('/Event/{id}/attendance/{attendanceId}', [App\Http\Controllers\Event
 Route::post('/Event/{id}/attendance/{attendanceId}/Delete', [App\Http\Controllers\EventController::class, 'deleteAttendance']);
 Route::post('/Event/{id}/Delete', [App\Http\Controllers\EventController::class, 'delete']);
 
+Route::get('/Leave/Legalizes_dirhr/{id}/{id1}/{id3}',[App\Http\Controllers\leave_controller::class,'legalizeLeave_DirHR']);
+Route::get('/Leave/Legalize/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'legalizeSign']);
+Route::get('/Leave/Delete/{id}',[App\Http\Controllers\leave_controller::class,'deleteLeave']);
 
 //End Payroll
 
@@ -641,9 +644,7 @@ Route::post('/Event/{id}/Delete', [App\Http\Controllers\EventController::class, 
 
 
 // Route::get('/Leave/EmployeeDelete1/{id}',[App\Http\Controllers\leave_controller::class,'deleteEmployeeLeave1']);
-// Route::get('/Leave/Legalize/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'legalizeSign']);
 // Route::get('/Leave/Report/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'reportSign']);
-// Route::get('/Leave/Delete/{id}',[App\Http\Controllers\leave_controller::class,'deleteLeave']);
 // Route::get('/Leave/SKDApprove/{id}',[App\Http\Controllers\leave_controller::class,'skdApprove']);
 // Route::get('/Leave/SKDRefuse/{id}',[App\Http\Controllers\leave_controller::class,'skdRefuse']);
 // Route::get('/Leave/SKDDelete/{id}',[App\Http\Controllers\leave_controller::class,'skdDelete']);
@@ -652,7 +653,6 @@ Route::post('/Event/{id}/Delete', [App\Http\Controllers\EventController::class, 
 // Route::post('/Leave/Lock',[App\Http\Controllers\leave_controller::class,'lock']);
 // Route::post('/Leave/unLock',[App\Http\Controllers\leave_controller::class,'unlock']);
 // Route::get('/Leave/CreateNow/{id}',[App\Http\Controllers\leave_controller::class,'createNow']);
-// Route::get('/Leave/Legalizes_dirhr/{id}/{id1}/{id3}',[App\Http\Controllers\leave_controller::class,'legalizeLeave_DirHR']);
 
 // Route::get('/Leave/Extend/{id}',[App\Http\Controllers\leave_controller::class,'extend']);
 // Route::get('/Leave/Update',[App\Http\Controllers\leave_controller::class,'updateBalance']);

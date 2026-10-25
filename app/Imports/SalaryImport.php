@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use Illuminate\Database\Eloquent\Model;
 use App\Models\tb_salary_excel;
 use Maatwebsite\Excel\Concerns\ToModel;
 
@@ -12,7 +13,7 @@ class SalaryImport implements ToModel
     *
     * @return \Illuminate\Database\Eloquent\Model|null
     */
-    public function model(array $row)
+    public function model(array $row): Model
     {
         return new tb_salary_excel([
             'id' => $row[0],

@@ -154,7 +154,7 @@
 										<?php 
 											$reject=base_path().'/public/approval/rejected.png';
 											if($dt->status_diperintah=='1'){
-												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_overtimes/'.$dt->id.'/1'));
+												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/3/'.$dt->id.'/1'));
 												echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 											}elseif($dt->status_diperintah=='3'){?>
 												<?php $lock=base_path().'/public/approval/lock.png';?>
@@ -170,7 +170,7 @@
 									<td class="relative">
 										<?php 
 											if($dt->status_disetujui=='1'){
-												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_overtimes/'.$dt->id.'/2'));
+												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/3/'.$dt->id.'/2'));
 												echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 											}elseif($dt->status_disetujui=='3'){?>
 												<img src='<?php echo e($reject); ?>' style='width:100px;height:40px;'>
@@ -180,7 +180,7 @@
 									<td class="relative">
 										<?php 
 											if($dt->status_diketahui=='1'){
-												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_overtimes/'.$dt->id.'/3'));
+												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/3/'.$dt->id.'/3'));
 												echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 											}elseif($dt->status_diketahui=='3'){?>
 												<img src='<?php echo e($reject); ?>' style='width:100px;height:40px;'>
@@ -191,7 +191,7 @@
 										<?php if($dt->dicatat!=''){?>
 											<?php $ttd_dik=base_path().'/public/approval/'.$dt->dicatat.'.png';?>
 											<?php if($dt->status_dicatat=='1'){
-												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_overtimes/'.$dt->id.'/4'));
+												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/3/'.$dt->id.'/4'));
 												echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 											}?>
 											<?php if($dt->status_dicatat=='3'){?><img src="<?php echo e(base_path()); ?>/public/approval/rejected.png" style="width:100px;height:40px;"><?php }?>
@@ -232,7 +232,7 @@
 									<td style="height:30px;" class="relative">
 										<?php 
 											if($dt->status_approve=='1'){
-												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_overtimes/'.$dt->id.'/5'));
+												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/3/'.$dt->id.'/5'));
 												echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 											}elseif($dt->status_approve=='3'){?>
 												<img src='<?php echo e($reject); ?>' style='width:100px;height:40px;'>
@@ -242,7 +242,7 @@
 									<td class="relative">
 										<?php 
 											if($dt->status_paid=='1'){
-												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/tb_overtimes/'.$dt->id.'/6'));
+												$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/3/'.$dt->id.'/6'));
 												echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
 											}elseif($dt->status_paid=='3'){?>
 												<img src='<?php echo e($reject); ?>' style='width:100px;height:40px;'>

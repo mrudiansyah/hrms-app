@@ -152,18 +152,14 @@
 		<tr>
 			<td class="tengah">
 				<?php if($dt->status_disetujui==1){
-					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/2'));
-					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
+					echo '<img src="'.$dt->qr_approved.'" width="60" height="60">';
 				}elseif($dt->status_disetujui=='3'){?>
 					<img src='{{ $reject }}' style='width:70px;'>
 				<?php }?>
 			</td>
 			<td style="height: 25px;">&nbsp;</td>
 			<td colspan="2" class="tengah">
-				<?php 
-					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/1'));
-					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
-				?>
+				<img src="{{ $dt->qr_applicant }}" width="60" height="60">
 			</td>
 		</tr>
 		<tr>
@@ -184,8 +180,7 @@
 		<tr>
 			<td class="tengah">
 				<?php if($dt->status_personalia==1){
-					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/3'));
-					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
+					echo '<img src="'.$dt->qr_personalia.'" width="60" height="60">';
 				}elseif($dt->status_personalia=='3'){?>
 					<img src='{{ $reject }}' style='width:50px;'>
 				<?php }?>
@@ -193,8 +188,7 @@
 			<td style="height: 25px;">&nbsp;</td>
 			<td colspan="2" class="tengah">
 				<?php if($dt->status_scurity==1){
-					$qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(60)->margin(1)->generate(url('/DigitalApproval/2/'.$dt->id.'/4'));
-					echo '<img src="data:image/svg+xml;base64,'.base64_encode($qrCode).'" width="60" height="60">';
+					echo '<img src="'.$dt->qr_security.'" width="60" height="60">';
 				}elseif($dt->status_personalia=='3'){?>
 					<img src='{{ $reject }}' style='width:50px;'>
 				<?php }?>

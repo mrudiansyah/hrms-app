@@ -399,7 +399,7 @@ class leave_controller extends Controller
                         DB::table('tb_digital_approval')->insert($digitalApprovals);
                     }
 
-                    //$notification=$this->notificationLeave($id);
+                    $notification=$this->notificationLeave($id);
                 }
             }
 
@@ -453,9 +453,9 @@ class leave_controller extends Controller
             $osbaru=$outstanding+$dt->leave_count;
             $terpakai=$dt->used-$dt->leave_count;
             //$used=$terpakai+$data->leave_count;
-            $update=tb_employee_leave::where('id',$dt->id)->update(['used'=>$terpakai,'outstanding'=>$osbaru]);
+            $update=DB::table('tb_employee_leaves')->where('id',$dt->id)->update(['used'=>$terpakai,'outstanding'=>$osbaru]);
         }
-        $delete=tb_leave::where('id',$id)->update(['status_legalized'=>'2']);
+        $delete=DB::table('tb_leaves')->where('id',$id)->update(['status_legalized'=>'2']);
         if($delete){
             session([
                 'table_name'=>'tb_leave',
@@ -666,7 +666,7 @@ class leave_controller extends Controller
             }
         }
         if($approve){
-            //$notification=$this->notificationLeave($id);
+            $notification=$this->notificationLeave($id);
             return redirect()->back()->with(['success'=>'Update Success']);
         }
     }
@@ -739,6 +739,7 @@ class leave_controller extends Controller
         $qty_leave_new = (clone $baseLeave)
             ->where('l.status_approved','0')
             ->count();
+        $qty_leave_new=0;
 
         $qty_leave_proccess = (clone $baseLeave)
             ->where('l.status_legalized','0')
@@ -770,10 +771,32 @@ class leave_controller extends Controller
         }
 
         $email=Auth::user()->email;
-        $tb_email=tb_email::where('email_address',$email)->get();
+        $tb_email=DB::table('tb_emails')->where('email_address',$email)->get();
         foreach($tb_email as $dt){
             $id_employee=$dt->id_employee;
         }
+        $leaveColumns=[
+            'tb_leaves.id',
+            'tb_leaves.doc_date',
+            'tb_leaves.category',
+            'tb_leaves.start_leave',
+            'tb_leaves.finish_leave',
+            'tb_leaves.start_working',
+            'tb_leaves.leave_count',
+            'tb_leaves.reason',
+            'tb_leaves.remark',
+            'tb_leaves.approved',
+            'tb_leaves.approved2',
+            'tb_leaves.legalized',
+            'tb_leaves.status_approved',
+            'tb_leaves.status_approved2',
+            'tb_leaves.status_legalized',
+            'tb_employees.NIK',
+            'tb_employees.employee_name',
+            'tb_employees2.employee_name as leader_name',
+            'tb_employees3.employee_name as leader_name2',
+            'tb_departments.dept_code',
+        ];
         $tb_leave_new=DB::table('tb_leaves')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
         ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','=','tb_leaves.approved')
@@ -782,7 +805,7 @@ class leave_controller extends Controller
         ->where([['status_approved','0'],['category',$category],['legalized','879']])
         //->orwhere([['status_approved2','0'],['approved2','>','0'],['category',$category]])
         //->where('legalized',$id_employee)
-        ->get(['tb_leaves.*','tb_employees.NIK','tb_employees.employee_name','tb_employees2.employee_name as leader_name','tb_employees3.employee_name as leader_name2','tb_departments.dept_code']);
+        ->get($leaveColumns);
         $tb_leave_proccess=DB::table('tb_leaves')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
         ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','=','tb_leaves.approved')
@@ -792,7 +815,7 @@ class leave_controller extends Controller
         //->where([['status_approved','1'],['approved2','0'],['status_legalized','0']])
         //->orwhere([['status_approved2','1'],['status_legalized','0']])
         //->where('legalized',$id_employee)
-        ->get(['tb_leaves.*','tb_employees.NIK','tb_employees.employee_name','tb_employees2.employee_name as leader_name','tb_employees3.employee_name as leader_name2','tb_departments.dept_code']);
+        ->get($leaveColumns);
         $tb_leave_approve=DB::table('tb_leaves')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
         ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','=','tb_leaves.approved')
@@ -804,14 +827,24 @@ class leave_controller extends Controller
         ->where('category',$category)
         ->where('legalized','879')
         //->where('legalized',$id_employee)
-        ->get(['tb_leaves.*','tb_employees.NIK','tb_employees.employee_name','tb_employees2.employee_name as leader_name','tb_employees3.employee_name as leader_name2','tb_departments.dept_code']);
+        ->get($leaveColumns);
         $tb_leave_refuse=DB::table('tb_leaves')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
         ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','=','tb_leaves.approved')
         ->leftjoin('tb_employees as tb_employees3','tb_employees3.id','=','tb_leaves.approved2')
-        ->where([['status_approved','2'],['category',$category]])->orWhere([['status_legalized','2'],['category',$category],['legalized','879']])
+        ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
+        ->where(function($query) use ($category) {
+            $query->where(function($query) use ($category) {
+                $query->where('tb_leaves.status_approved','2')
+                    ->where('tb_leaves.category',$category);
+            })->orWhere(function($query) use ($category) {
+                $query->where('tb_leaves.status_legalized','2')
+                    ->where('tb_leaves.category',$category)
+                    ->where('tb_leaves.legalized','879');
+            });
+        })
         //->where('legalized',$id_employee)
-        ->get(['tb_leaves.*','tb_employees.NIK','tb_employees.employee_name','tb_employees2.employee_name as leader_name','tb_employees3.employee_name as leader_name2']);
+        ->get($leaveColumns);
 
         // $qty_leave_new=DB::table('tb_leaves')
         // ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
@@ -820,11 +853,17 @@ class leave_controller extends Controller
         // ->orwhere([['status_approved2','0'],['approved2','>','0'],['category',$category],['legalized','879']])
         // ->count();
         $qty_leave_new=DB::table('tb_leaves')
-        ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
-        ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','=','tb_leaves.approved')
-        ->leftjoin('tb_employees as tb_employees3','tb_employees3.id','=','tb_leaves.approved2')
-        ->where([['status_approved','0'],['approved',$id_employee],['status_legalized','<>','2']])
-        ->orWhere([['status_approved','1'],['status_approved2','0'],['approved2',$id_employee],['status_legalized','<>','2']])
+        ->where('tb_leaves.status_legalized','<>','2')
+        ->where(function($query) use ($id_employee) {
+            $query->where(function($query) use ($id_employee) {
+                $query->where('tb_leaves.status_approved','0')
+                    ->where('tb_leaves.approved',$id_employee);
+            })->orWhere(function($query) use ($id_employee) {
+                $query->where('tb_leaves.status_approved','1')
+                    ->where('tb_leaves.status_approved2','0')
+                    ->where('tb_leaves.approved2',$id_employee);
+            });
+        })
         ->count();
 
         $qty_leave_proccess=DB::table('tb_leaves')
@@ -840,17 +879,17 @@ class leave_controller extends Controller
     }
     function legalizeSign($id,$status){
         $email=Auth::user()->email;
-        $tb_email=tb_email::where('email_address',$email)->get();
+        $tb_email=DB::table('tb_emails')->where('email_address',$email)->get();
         foreach($tb_email as $dt){
             $legalizer=$dt->id_employee;
         }
         date_default_timezone_set("Asia/Jakarta");
         $sekarang=date('Y-m-d');
-        $tb_cutoff=tb_cutoff::where('usage','payroll')->get();
+        $tb_cutoff=DB::table('tb_cutoffs')->where('usage','payroll')->get();
         foreach($tb_cutoff as $dt){
             $Batas_awal=$dt->start_implement;
         }
-        $approve=tb_leave::where('id',$id)->update(['status_legalized'=>$status,'legalized'=>$legalizer,'date_legalized'=>$sekarang]);
+        $approve=DB::table('tb_leaves')->where('id',$id)->update(['status_legalized'=>$status,'legalized'=>$legalizer,'date_legalized'=>$sekarang]);
         if($status=='1'){
             $tb_leave=DB::table('tb_leaves')->where('id',$id)->get();
             foreach($tb_leave as $dtsick){
@@ -858,7 +897,7 @@ class leave_controller extends Controller
                     $update=DB::table('tb_sick')->where('id',$dtsick->id_doc)->update(['status'=>'1']);
                 }
             }
-            $tb_leave=tb_leave::where('id',$id)->limit(1)->get();
+            $tb_leave=DB::table('tb_leaves')->where('id',$id)->limit(1)->get();
             foreach($tb_leave as $dt2){
                 $tgl1 = new DateTime($dt2->start_leave);
                 $tgl2 = new DateTime($dt2->finish_leave);
@@ -871,18 +910,20 @@ class leave_controller extends Controller
             $mulai=$dt2->start_leave;
             for($i=0;$i<=$diffdays;$i++){
                 $Tgl=date('Y-m-d',strtotime($i.' days',strtotime($mulai)));
-                $tb_shift=DB::table('tb_employee_shifts')->leftJoin('tb_group_shifts','tb_group_shifts.id','=','tb_employee_shifts.id_shift')->leftJoin('tb_groups','tb_groups.group','=','tb_group_shifts.group')->where('id_employee',$id_employee)->get();
-                foreach($tb_shift as $row){
-                    $group=$row->group;
-                    $tgl1 = new DateTime($row->start_implement);
-                    $tgl2 = new DateTime($Tgl);
-                    $diffdays2 = $tgl2->diff($tgl1)->days;
-                    $diffcycle=Floor($diffdays2/$row->cycle);
-                    $modcycle=$diffdays2%$row->cycle;
-                    $modcycle++;
-                }
-                $tb_cycle=tb_cycle::where('days',$modcycle)->where('group',$group)->where('shift','>','0')->count();
-                $tb_freeday=tb_freeday::where('date_off',$Tgl)->count();
+                $id_work_shift=DB::table('tb_work_contract')->where('id_employee',$id_employee)->value('id_work_shift');
+                $start_implement=DB::table('tb_work_shift')->where('id',$id_work_shift)->value('start_implement');
+                $id_work_group=DB::table('tb_work_shift')->where('id',$id_work_shift)->value('id_work_group');
+                $cycle=DB::table('tb_work_group')->where('id',$id_work_group)->value('cycle_day');
+
+                $tgl1 = new DateTime($start_implement);
+                $tgl2 = new DateTime($Tgl);
+                $diffdays2 = $tgl2->diff($tgl1)->days;
+                $diffcycle=Floor($diffdays2/$cycle);
+                $modcycle=$diffdays2%$cycle;
+                $modcycle++;
+                $tb_cycle=DB::table('tb_work_cycle')->where('id_work_group',$id_work_group)->where('days',$modcycle)->where('id_work_time','>','0')->count();
+                $tb_freeday=DB::table('tb_freedays')->where('date_off',$Tgl)->count();
+
                 if($tb_cycle>0&&$tb_freeday==0){
                     $periode_normal=date('Y-m',strtotime($Tgl));
                     $tgl_berjalan=date('d',strtotime($Tgl));
@@ -893,7 +934,7 @@ class leave_controller extends Controller
                     }
                     if($categori=='docter')$category="SAKIT";
                     else $category="LEAVE";
-                    $simpan=tb_absency::create([
+                    $simpan=DB::table('tb_absencies')->insert([
                         'id_employee'=>$id_employee,
                         'date_off'=>$Tgl,
                         'periode_normal'=>$periode_normal,
@@ -907,7 +948,7 @@ class leave_controller extends Controller
                     $kolom="D".$day;
                     if($category=='LEAVE')$code='53';
                     if($category=='SAKIT')$code='54'; 
-                    $update=DB::connection('tms')->table('tb_work_entries')->where('plan_actual','actual')->where('id_employee',$id_employee)->where('periode',$periode_normal)->update([
+                    $update=DB::table('tb_work_entries')->where('plan_actual','actual')->where('id_employee',$id_employee)->where('periode',$periode_normal)->update([
                         $kolom=>$code,
                     ]);
                     //End Upate TMS
@@ -916,7 +957,7 @@ class leave_controller extends Controller
             return redirect()->back()->with(['success'=>'Update Success']);
         }
         if($status=='2'){
-            $tb_leave=tb_leave::where('id',$id)->limit(1)->get();
+            $tb_leave=DB::table('tb_leaves')->where('id',$id)->limit(1)->get();
             foreach($tb_leave as $dt2){
                 $tgl1 = new DateTime($dt2->start_leave);
                 $tgl2 = new DateTime($dt2->finish_leave);
@@ -1090,7 +1131,9 @@ class leave_controller extends Controller
         $tb_sick = DB::table('tb_sick')
             ->leftJoin('tb_employees','tb_employees.id','=','tb_sick.id_employee')
             ->leftJoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
-            ->leftJoin('tb_leaves','tb_leaves.id_doc','=','tb_sick.id')
+            ->leftJoin('tb_leaves', function($join) {
+                $join->on(DB::raw('TRY_CONVERT(int, [tb_leaves].[id_doc])'), '=', 'tb_sick.id');
+            })
             ->whereIn('tb_employees.dept_id', $deptIds)
             ->whereBetween('upload_time', [$awal, $akhir])
             ->orderBy('upload_time','desc')

@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use Illuminate\Database\Eloquent\Model;
 use App\Models\import_tb_memo_ot_model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -18,7 +19,7 @@ class Import_tb_memo_ot implements ToModel,WithStartRow
         return 2;
     }
 
-    public function model(array $row)
+    public function model(array $row): Model
     {
         return new import_tb_memo_ot_model([
             'id_memo' => $row[1],

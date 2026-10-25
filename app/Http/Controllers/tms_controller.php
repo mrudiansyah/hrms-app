@@ -1176,7 +1176,7 @@ class tms_controller extends Controller
         if ($entry_ids->isNotEmpty()) {
             $daily_checktime_lookup = DB::table('tb_work_checktime')
                 ->whereIn('id_work_entry', $entry_ids)
-                ->where('id_column', $kolom)
+                ->where('id_column', (int) $day)
                 ->get()
                 ->keyBy('id_work_entry');
         }

@@ -24,10 +24,47 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('sg:overtimeSummaries');
-        //$schedule->command('sg:presenceUpdate_Daily');
-        //$schedule->command('sg:absencyUpdate_Payroll');
-        //$schedule->command('sg:approvalReminder');
+        $periode=date('Y-m');
+        $kalendar=CAL_GREGORIAN;
+        $hari_awal=$periode.'-01';
+        $thn=date('Y',strtotime($periode.'-01'));
+        $bln=date('m',strtotime($periode.'-01'));
+        $hariakhir=cal_days_in_month($kalendar,$bln,$thn);
+        $day=date('d');
+
+
+        $action=1;
+        if($action==1){
+
+            // Harian
+                $schedule->command('sg:tms_daily');// Update db_ems_tms.tb_work_entries actual
+                // $schedule->command('sg:tms_workingday');// Idem but for new employee/end contract
+                // $schedule->command('sg:tms_manifest');
+
+                // $schedule->command('sg:update_finger_asignment');
+                // $schedule->command('sg:send_mail_pareto_ot');
+                // $schedule->command('sg:send_mail_legal');
+                // $schedule->command('sg:employee_delete');
+
+            // Periode Payroll
+                if($day>=24&&$day<=25){
+                    // $schedule->command('sg:tms_daily_payroll');
+                    // $schedule->command('sg:payroll_generatemeals');
+                    // $schedule->command('sg:tms_payroll');
+                    // $schedule->command('sg:tms_payroll_psab');
+                }
+
+            // Periode End Month
+                if($day==$hariakhir){
+                    // $schedule->command('sg:capture_employee');
+                    // $schedule->command('sg:tms_GeneratePlan');
+                }
+
+            // Periode Awal Bulan
+                // $schedule->command('sg:tms_update_summary_workentries');// Update Tgl 1 s/d 3
+                // $schedule->command('sg:tms_AbsencyRate_optimize');// Update Tgl 1 s/d 3
+
+        }
     }
 
     /**

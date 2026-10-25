@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Client\Response;
+use RuntimeException;
 
 class WuzapiService
 {
@@ -30,7 +32,10 @@ class WuzapiService
         try {
             $response = Http::withHeaders([
                 'token' => $this->token,
-            ])->post($this->baseUrl . '/chat/send/text', [
+            ])
+                ->connectTimeout(5)
+                ->timeout(10)
+                ->post($this->baseUrl . '/chat/send/text', [
                 'Phone'   => $this->formatPhone($to),
                 'Body'    => $message,
                 'Session' => $this->session,
@@ -41,6 +46,24 @@ class WuzapiService
             Log::error('Wuzapi Error: ' . $e->getMessage());
             return null;
         }
+    }
+
+    public function sendApiText($phone, $message): Response
+    {
+        $apiKey = config('wuzapi.api_key');
+        if (!$apiKey) {
+            throw new RuntimeException('Wuzapi send API key is not configured.');
+        }
+
+        return Http::acceptJson()
+            ->asJson()
+            ->withHeaders(['X-API-Key' => $apiKey])
+            ->connectTimeout(5)
+            ->timeout(10)
+            ->post(config('wuzapi.send_api_url'), [
+                'phone' => $this->formatPhone($phone),
+                'message' => $message,
+            ]);
     }
 
     /**

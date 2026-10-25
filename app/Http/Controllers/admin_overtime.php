@@ -163,7 +163,7 @@ class admin_overtime extends Controller
         date_default_timezone_set("Asia/Jakarta");
         $admin = Auth::user()->name;
         $today = date('Y-m-d H:i:s');
-        $periksa = tb_overtime_note::where('id_ot', $data->id_ot)->where('penulis', $admin)->where('pesan', $data->pesan)->count();
+        $periksa = DB::table('tb_overtime_notes')->where('id_ot', $data->id_ot)->where('penulis', $admin)->where('pesan', $data->pesan)->count();
         if ($periksa == 0) {
             $simpan = DB::table('tb_overtime_notes')->insert([
                 'id_ot' => $data->id_ot,
@@ -915,24 +915,26 @@ class admin_overtime extends Controller
             }
             $badge = $j . $dt->badgenumber;
 
-            $qry5 = DB::table('tb_iclock')
-                ->where('badgenumber', $badge)
-                ->where('checktime', '>=', $ncdateindown)
-                ->where('checktime', '<=', $ncdateinup)
-                ->orderby('checktime', 'asc')
+            $qry5 = DB::connection('fingerPrint')->table('checkinout')
+                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
+                ->where('userinfo.badgenumber', $badge)
+                ->where('checkinout.checktime', '>=', $ncdateindown)
+                ->where('checkinout.checktime', '<=', $ncdateinup)
+                ->orderby('checkinout.checktime', 'asc')
                 ->limit(1)
-                ->get(['checktime']);
+                ->get(['checkinout.checktime']);
             foreach ($qry5 as $dt5) {
                 $checkin_act = $dt5->checktime;
                 $in_finger = 1;
             }
-            $qry6 = DB::table('tb_iclock')
-                ->where('badgenumber', $badge)
-                ->where('checktime', '>=', $ncdateoutdown)
-                ->where('checktime', '<=', $ncdateoutup)
-                ->orderby('checktime', 'asc')
+            $qry6 = DB::connection('fingerPrint')->table('checkinout')
+                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
+                ->where('userinfo.badgenumber', $badge)
+                ->where('checkinout.checktime', '>=', $ncdateoutdown)
+                ->where('checkinout.checktime', '<=', $ncdateoutup)
+                ->orderby('checkinout.checktime', 'asc')
                 ->limit(1)
-                ->get(['checktime']);
+                ->get(['checkinout.checktime']);
             foreach ($qry6 as $dt6) {
                 $checkout_act = $dt6->checktime;
                 $out_finger = 1;
@@ -1023,24 +1025,26 @@ class admin_overtime extends Controller
             }
             $badge = $j . $dt->badgenumber;
 
-            $qry5 = DB::table('tb_iclock')
-                ->where('badgenumber', $badge)
-                ->where('checktime', '>=', $ncdateindown)
-                ->where('checktime', '<=', $ncdateinup)
-                ->orderby('checktime', 'asc')
+            $qry5 = DB::connection('fingerPrint')->table('checkinout')
+                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
+                ->where('userinfo.badgenumber', $badge)
+                ->where('checkinout.checktime', '>=', $ncdateindown)
+                ->where('checkinout.checktime', '<=', $ncdateinup)
+                ->orderby('checkinout.checktime', 'asc')
                 ->limit(1)
-                ->get(['checktime']);
+                ->get(['checkinout.checktime']);
             foreach ($qry5 as $dt5) {
                 $checkin_act = $dt5->checktime;
                 $in_finger = 1;
             }
-            $qry6 = DB::table('tb_iclock')
-                ->where('badgenumber', $badge)
-                ->where('checktime', '>=', $ncdateoutdown)
-                ->where('checktime', '<=', $ncdateoutup)
-                ->orderby('checktime', 'asc')
+            $qry6 = DB::connection('fingerPrint')->table('checkinout')
+                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
+                ->where('userinfo.badgenumber', $badge)
+                ->where('checkinout.checktime', '>=', $ncdateoutdown)
+                ->where('checkinout.checktime', '<=', $ncdateoutup)
+                ->orderby('checkinout.checktime', 'asc')
                 ->limit(1)
-                ->get(['checktime']);
+                ->get(['checkinout.checktime']);
             foreach ($qry6 as $dt6) {
                 $checkout_act = $dt6->checktime;
                 $out_finger = 1;
@@ -1296,28 +1300,26 @@ class admin_overtime extends Controller
             $badge = $j . $dt->badgenumber;
 
 
-            // $qry5=DB::connection('fingerPrint')->table('checkinout')
-            $qry5 = DB::table('tb_iclock')
-                // ->leftjoin('userinfo','userinfo.userid','=','checkinout.userid')
-                ->where('badgenumber', $badge)
-                ->where('checktime', '>=', $ncdateindown)
-                ->where('checktime', '<=', $ncdateinup)
-                ->orderby('checktime', 'asc')
+            $qry5 = DB::connection('fingerPrint')->table('checkinout')
+                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
+                ->where('userinfo.badgenumber', $badge)
+                ->where('checkinout.checktime', '>=', $ncdateindown)
+                ->where('checkinout.checktime', '<=', $ncdateinup)
+                ->orderby('checkinout.checktime', 'asc')
                 ->limit(1)
-                ->get(['checktime']);
+                ->get(['checkinout.checktime']);
             foreach ($qry5 as $dt5) {
                 $checkin_act = $dt5->checktime;
                 $in_finger = 1;
             }
-            // $qry5=DB::connection('fingerPrint')->table('checkinout')
-            $qry5 = DB::table('tb_iclock')
-                // ->leftjoin('userinfo','userinfo.userid','=','checkinout.userid')
-                ->where('badgenumber', $badge)
-                ->where('checktime', '>=', $ncdateoutdown)
-                ->where('checktime', '<=', $ncdateoutup)
-                ->orderby('checktime', 'asc')
+            $qry5 = DB::connection('fingerPrint')->table('checkinout')
+                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
+                ->where('userinfo.badgenumber', $badge)
+                ->where('checkinout.checktime', '>=', $ncdateoutdown)
+                ->where('checkinout.checktime', '<=', $ncdateoutup)
+                ->orderby('checkinout.checktime', 'asc')
                 ->limit(1)
-                ->get(['checktime']);
+                ->get(['checkinout.checktime']);
             foreach ($qry5 as $dt5) {
                 $checkout_act = $dt5->checktime;
                 $out_finger = 1;
@@ -1518,7 +1520,7 @@ class admin_overtime extends Controller
 
         $tb_pesan = DB::table('tb_overtime_notes')->where('id_ot', $id)->orderby('waktu', 'asc')->get();
 
-        $FileName = 'FORMSPL ' . $id_ot . '.PDF';
+        $FileName = 'FORMSPL ' . str_replace(['/', '\\'], '-', $id_ot) . '.PDF';
         $pdf = PDF::loadview('page/admin/m_overtime/printviewspl', [
             'tb_pesan' => $tb_pesan,
             'tb_overtime' => $tb_overtime,

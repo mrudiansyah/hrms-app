@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\WuzapiService;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class WuzapiController extends Controller
 {
@@ -48,24 +48,8 @@ class WuzapiController extends Controller
             $phone = '62' . substr($phone, 1);
         }
 
-        $apiKey = config('wuzapi.api_key');
-        if (!$apiKey) {
-            Log::error('Wuzapi send API key is not configured.');
-
-            return redirect()->back()
-                ->with('error', 'API key Wuzapi belum dikonfigurasi.')
-                ->withInput();
-        }
-
         try {
-            $response = Http::acceptJson()
-                ->asJson()
-                ->withHeaders(['X-API-Key' => $apiKey])
-                ->timeout(20)
-                ->post(config('wuzapi.send_api_url'), [
-                    'phone' => $phone,
-                    'message' => $request->input('message'),
-                ]);
+            $response = $this->wuzapi->sendApiText($phone, $request->input('message'));
         } catch (ConnectionException $exception) {
             Log::error('Wuzapi send API connection failed', [
                 'message' => $exception->getMessage(),
@@ -73,6 +57,14 @@ class WuzapiController extends Controller
 
             return redirect()->back()
                 ->with('error', 'Tidak dapat terhubung ke API Wuzapi.')
+                ->withInput();
+        } catch (RuntimeException $exception) {
+            Log::error('Wuzapi send API is not configured.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'API key Wuzapi belum dikonfigurasi.')
                 ->withInput();
         }
 
@@ -144,13 +136,32 @@ class WuzapiController extends Controller
      */
     public static function sendInternalMessage($phone, $message)
     {
-        $phone='088148870127';
+        $phone='083148870127';
         try {
             $service = app(WuzapiService::class);
-            return $service->sendText($phone, $message);
-        } catch (\Exception $e) {
-            Log::error("Wuzapi Internal Error: " . $e->getMessage());
-            return ['success' => false, 'message' => $e->getMessage()];
+            $response = $service->sendApiText($phone, $message);
+            $result = $response->json();
+
+            if (!$response->successful() || (is_array($result) && ($result['success'] ?? true) === false)) {
+                Log::error('Wuzapi internal send API rejected the message.', [
+                    'status' => $response->status(),
+                ]);
+
+                if (!is_array($result)) {
+                    return ['success' => false, 'message' => 'Wuzapi send API request failed.'];
+                }
+
+                $result['success'] = false;
+                return $result;
+            }
+
+            return is_array($result) ? $result : ['success' => true];
+        } catch (ConnectionException | RuntimeException $exception) {
+            Log::error('Wuzapi internal send API request failed.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return ['success' => false, 'message' => 'Could not connect to Wuzapi send API.'];
         }
     }
     private function validateApiKey(Request $request)

@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use Illuminate\Database\Eloquent\Model;
 use App\Models\tb_work_entry;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -18,7 +19,7 @@ class WorkEntryImport implements ToModel, WithStartRow
         return 2;
     }
 
-    public function model(array $row)
+    public function model(array $row): Model
     {
         return new tb_work_entry([
             'id' => '',

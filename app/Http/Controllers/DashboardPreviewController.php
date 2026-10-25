@@ -12,11 +12,12 @@ class DashboardPreviewController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'verified']);
+        //$this->middleware(['auth', 'verified']);
     }
 
     public function index()
     {
+        return "Masuk";
         $today = Carbon::today();
         $periodEnd = $today->copy()->addDays(30);
         $retirementPeriodEnd = $today->copy()->addYearsNoOverflow(5);

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Services\HcmisService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -51,6 +53,29 @@ class LoginController extends Controller
         }
 
         return 'email';
+    }
+
+    /**
+     * Preserve the standard failed-login error and expose the auth data source in debug mode.
+     */
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        $request->session()->flash('login_failed', true);
+
+        if (config('app.debug')) {
+            $user = new User();
+            $connection = $user->getConnection();
+
+            $request->session()->flash('login_source', [
+                'table' => $user->getTable(),
+                'database' => $connection->getDatabaseName(),
+                'connection' => $connection->getName(),
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            $this->username() => [trans('auth.failed')],
+        ]);
     }
 
     /**

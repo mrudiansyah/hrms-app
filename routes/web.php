@@ -630,6 +630,8 @@ Route::get('/Leave/Legalizes_dirhr/{id}/{id1}/{id3}',[App\Http\Controllers\leave
 Route::get('/Leave/Legalize/{id}/{id2}',[App\Http\Controllers\leave_controller::class,'legalizeSign']);
 Route::get('/Leave/Delete/{id}',[App\Http\Controllers\leave_controller::class,'deleteLeave']);
 
+Route::get('/Admin/Overtime/Delete/{id}',[App\Http\Controllers\admin_overtime::class,'deleteOvertime']);
+
 //End Payroll
 
 

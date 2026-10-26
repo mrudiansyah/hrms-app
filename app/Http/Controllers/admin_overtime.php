@@ -111,9 +111,6 @@ class admin_overtime extends Controller
         $tb_ref = DB::table('tb_memo')->where('tb_memo.id_category', '1')->where('tb_memo.is_delete', '0')->where('tb_memo.description', 'LIKE', 'Planned Overtime%')->where('date_information', '>=', $today)->get();
         //$tb_ref='';
         //return $data['table1'];
-        $data['table2'] = DB::table('tb_group_reason_ot')->select('category')->groupby('category')->whereNotNull('category')->get();
-        $data['table3'] = DB::table('tb_group_reason_ot')->select('detail_category')->groupby('detail_category')->whereNotNull('detail_category')->get();
-
         //return view('page/admin/m_overtime/formspl_detail_memo',['tb_pesan'=>$tb_pesan,'tb_reason_ot'=>$tb_reason_ot,'tb_job_ot'=>$tb_job_ot,'tb_customer'=>$tb_customer,'tb_overtime'=>$tb_overtime,'tb_employee'=>$tb_employee,'dept_id'=>$dept_id,'tb_draft_overtime'=>$tb_draft_overtime,'menu'=>'overtime','data'=>$data]);
         return view('page/admin/m_overtime/formspl_detail', ['tb_pesan' => $tb_pesan, 'tb_reason_ot' => $tb_reason_ot, 'category_list' => $category, 'tb_ref' => $tb_ref, 'tb_job_ot' => $tb_job_ot, 'tb_customer' => $tb_customer, 'tb_overtime' => $tb_overtime, 'tb_employee' => $tb_employee, 'dept_id' => $dept_id, 'menu' => 'overtime']);
     }
@@ -1626,9 +1623,9 @@ class admin_overtime extends Controller
     }
     function deleteOvertime($id)
     {
-        $delete = tb_overtime::where('id', $id)->delete();
+        $delete =DB::table('tb_overtimes')->where('id', $id)->delete();
         if ($delete) {
-            tb_overtime_detail::where('id_ot', $id)->delete();
+            DB::table('tb_overtime_details')->where('id_ot', $id)->delete();
             return redirect('/Admin/Overtime')->with(['success' => 'Delete SPL Berhasil']);
         }
     }

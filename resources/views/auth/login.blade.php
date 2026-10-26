@@ -227,7 +227,7 @@
 
             @if (session('login_failed'))
                 <div class="alert alert-danger" role="alert">
-                    Login gagal. Periksa kembali NIK/email dan password Anda.
+                    {{ session('login_failed') }}
                     @if (session('login_source'))
                         <br>
                         Autentikasi membaca tabel
@@ -286,5 +286,4 @@
 
 </body>
 </html>
-
 

@@ -227,7 +227,8 @@
 
             <?php if(session('login_failed')): ?>
                 <div class="alert alert-danger" role="alert">
-                    Login gagal. Periksa kembali NIK/email dan password Anda.
+                    <?php echo e(session('login_failed')); ?>
+
                     <?php if(session('login_source')): ?>
                         <br>
                         Autentikasi membaca tabel
@@ -316,6 +317,5 @@ unset($__errorArgs, $__bag); ?>
 
 </body>
 </html>
-
 
 <?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/auth/login.blade.php ENDPATH**/ ?>

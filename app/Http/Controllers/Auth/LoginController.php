@@ -60,7 +60,15 @@ class LoginController extends Controller
      */
     protected function sendFailedLoginResponse(Request $request)
     {
-        $request->session()->flash('login_failed', true);
+        $usernameField = $this->username();
+        $email = $request->input($usernameField);
+        $userExists = User::query()->where($usernameField, $email)->exists();
+        $errorField = $userExists ? 'password' : $usernameField;
+        $errorMessage = $userExists
+            ? 'Password salah.'
+            : 'Email/NIK tidak terdaftar.';
+
+        $request->session()->flash('login_failed', $errorMessage);
 
         if (config('app.debug')) {
             $user = new User();
@@ -74,7 +82,7 @@ class LoginController extends Controller
         }
 
         throw ValidationException::withMessages([
-            $this->username() => [trans('auth.failed')],
+            $errorField => [$errorMessage],
         ]);
     }
 

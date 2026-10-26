@@ -591,6 +591,18 @@ class leave_controller extends Controller
             })
             ->get();
 
+        $lockedEmployeeIds = DB::table('tb_leave_code')
+            ->whereIn('id_employee', $tb_leave_approve->pluck('id_employee')->unique()->all())
+            ->pluck('id_employee')
+            ->map(function ($employeeId) {
+                return (string) $employeeId;
+            })
+            ->all();
+
+        foreach ($tb_leave_approve as $leave) {
+            $leave->has_leave_code = in_array((string) $leave->id_employee, $lockedEmployeeIds, true);
+        }
+
         $tb_leave_refuse = (clone $baseLeave)
             ->where(function($query) use ($id_employee) {
                 $query->where(function($sub) use ($id_employee) {

@@ -236,15 +236,13 @@
 											<td>
 												&nbsp;
 												<a href="/Leave/Employee/{{$dt->id_leave}}" target="_blank"><button title="Preview" type="button" class="btn btn-primary btn-xs pull-right"><i class="fa fa-print"></i></button></a>
-												<?php
-												if($nama==$dt->leader_name){
-													$host = mysqli_connect("192.168.1.4","ems","123456","db_ems");
-													$qry=mysqli_query($host,"select * from tb_leave_code where id_employee='$dt->id_employee'")or die(mysqli_error($host));
-													$qty=mysqli_num_rows($qry);
-													if($qty==0)echo "<button id='lock' title='Lock' type='button' class='btn btn-success btn-xs pull-left' data-idemployee='".$dt->id_employee."'><i class='fa fa-unlock'></i></button>";
-													else echo "<button id='unlock' title='Un Lock' type='button' class='btn btn-danger btn-xs pull-left' data-idemployee='".$dt->id_employee."'><i class='fa fa-lock'></i></button>";													
-												}
-												?>
+												@if($nama == $dt->leader_name)
+													@if($dt->has_leave_code)
+														<button id="unlock" title="Un Lock" type="button" class="btn btn-danger btn-xs pull-left" data-idemployee="{{ $dt->id_employee }}"><i class="fa fa-lock"></i></button>
+													@else
+														<button id="lock" title="Lock" type="button" class="btn btn-success btn-xs pull-left" data-idemployee="{{ $dt->id_employee }}"><i class="fa fa-unlock"></i></button>
+													@endif
+												@endif
 											</td>
 										</tr>
 										@endforeach

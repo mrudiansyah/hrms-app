@@ -149,10 +149,13 @@ metadata:
   name: hrms-app-ingress
   namespace: hrms-app
   annotations:
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+    traefik.ingress.kubernetes.io/router.middlewares: production-default-security-headers@kubernetescrd
+    traefik.ingress.kubernetes.io/service.serversservice.forwardingTimeouts.dialTimeout: 600s
+    traefik.ingress.kubernetes.io/service.serversservice.forwardingTimeouts.idleTimeout: 600s
+    traefik.ingress.kubernetes.io/service.serversservice.forwardingTimeouts.responseHeaderTimeout: 600s
 spec:
+  ingressClassName: traefik
   tls:
   - hosts:
     - hrms.summitadyawinsa.co.id

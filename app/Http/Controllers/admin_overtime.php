@@ -633,6 +633,12 @@ class admin_overtime extends Controller
         $diketahui_j = '';
         $dicatat = '';
         $dicatat_j = '';
+        $diperintah = '';
+        $diperintah_j = '';
+        $approve = '';
+        $approve_j = '';
+        $paid = '';
+        $paid_j = '';
 
         foreach ($tb_overtime as $dt) {
             //$qry=DB::table('tb_employees')->leftjoin('tb_positions','tb_positions.id','tb_employees.position_id')->select('tb_employees.*','tb_positions.position_name')->where('status','1')->where('tb_employees.id',$dt->diperintah)->get();

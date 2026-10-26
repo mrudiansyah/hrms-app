@@ -91,7 +91,7 @@ spec:
         - name: APP_KEY
           value: "base64:F/nhN099ffGsA9sUiM/SS0HBVhXpVZRpanIQxhhhG1s="
         - name: APP_DEBUG
-          value: "false"
+          value: "true"
         - name: APP_URL
           value: "https://hrms.summitadyawinsa.co.id"
         - name: TRUSTED_PROXIES

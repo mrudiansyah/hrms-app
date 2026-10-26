@@ -2863,7 +2863,7 @@ class contract_controller extends Controller
             $qty=DB::table('tb_ksk_detail')->where('id_ksk',$id)->count();
             if($id_employee!=''){
                 $data['kontak']=DB::table('tb_employee_detail')->where('id_employee',$id_employee)->value('nomor_telepon');
-                $data['pesan']="*NOTIFIKASI KSK*\n\nID: *$id_ksk*\nDead Line: *$dead_line*\nDepartemen: *$dept*\nJumlah: *$qty orang*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://ems.summitadyawinsa.co.id/EMS/Employee/KSK/Detail/$id/$periode";
+                $data['pesan']="*NOTIFIKASI KSK*\n\nID: *$id_ksk*\nDead Line: *$dead_line*\nDepartemen: *$dept*\nJumlah: *$qty orang*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Employee/KSK/Detail/$id/$periode";
             }
         }
         // $data['kontak']='08211212418';

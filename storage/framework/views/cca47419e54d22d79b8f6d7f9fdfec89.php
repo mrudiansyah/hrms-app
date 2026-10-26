@@ -225,20 +225,12 @@
         <div class="glass-panel">
             <h2 class="login-title">HRMS Login</h2>
 
-            <?php if(session('login_failed')): ?>
+            <!-- <?php if(session('login_failed')): ?>
                 <div class="alert alert-danger" role="alert">
                     <?php echo e(session('login_failed')); ?>
 
-                    <?php if(session('login_source')): ?>
-                        <br>
-                        Autentikasi membaca tabel
-                        <strong><?php echo e(session('login_source.table')); ?></strong>
-                        pada database
-                        <strong><?php echo e(session('login_source.database')); ?></strong>
-                        (connection: <strong><?php echo e(session('login_source.connection')); ?></strong>).
-                    <?php endif; ?>
                 </div>
-            <?php endif; ?>
+            <?php endif; ?> -->
             
             <form method="POST" action="<?php echo e(route('login')); ?>">
                 <?php echo csrf_field(); ?>
@@ -317,5 +309,4 @@ unset($__errorArgs, $__bag); ?>
 
 </body>
 </html>
-
 <?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/auth/login.blade.php ENDPATH**/ ?>

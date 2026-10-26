@@ -225,19 +225,11 @@
         <div class="glass-panel">
             <h2 class="login-title">HRMS Login</h2>
 
-            @if (session('login_failed'))
+            <!-- @if (session('login_failed'))
                 <div class="alert alert-danger" role="alert">
                     {{ session('login_failed') }}
-                    @if (session('login_source'))
-                        <br>
-                        Autentikasi membaca tabel
-                        <strong>{{ session('login_source.table') }}</strong>
-                        pada database
-                        <strong>{{ session('login_source.database') }}</strong>
-                        (connection: <strong>{{ session('login_source.connection') }}</strong>).
-                    @endif
                 </div>
-            @endif
+            @endif -->
             
             <form method="POST" action="{{ route('login') }}">
                 @csrf
@@ -286,4 +278,3 @@
 
 </body>
 </html>
-

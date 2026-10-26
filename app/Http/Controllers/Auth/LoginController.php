@@ -70,17 +70,6 @@ class LoginController extends Controller
 
         $request->session()->flash('login_failed', $errorMessage);
 
-        if (config('app.debug')) {
-            $user = new User();
-            $connection = $user->getConnection();
-
-            $request->session()->flash('login_source', [
-                'table' => $user->getTable(),
-                'database' => $connection->getDatabaseName(),
-                'connection' => $connection->getName(),
-            ]);
-        }
-
         throw ValidationException::withMessages([
             $errorField => [$errorMessage],
         ]);

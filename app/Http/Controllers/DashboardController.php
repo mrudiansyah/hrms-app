@@ -326,40 +326,60 @@ class DashboardController extends Controller
     }
     function confirm_password(Request $data)
     {
-        $data['password'] = Auth::user()->password;
-        $data['email'] = Auth::user()->email;
-        $old = $data->old_password;
-        //$check=Hash::check($old, $data['password']);
-        $check = 1;
-        if ($check == 1) {
-            $new1 = $data->new_password;
-            $new2 = $data->password_confirmation;
-            if ($old == $new1) {
-                $teks = "Maaf, password baru tidak boleh sama dengan password lama";
-                return redirect()->back()->with(['pesan' => $teks]);
-            } elseif ($new1 != $new2) {
-                $teks = "Maaf, password baru anda masih belum sesuai, pastikan password & confirmation sama";
-                return redirect()->back()->with(['pesan' => $teks]);
-            } else {
-                $today = date('Y-m-d');
-                $sixMonthsLater = date('Y-m-d', strtotime('+3 months', strtotime($today)));
-                $new = Hash::make($new1);
-                $encryptedData = Crypt::encrypt($new1);
-                $update = DB::table('users')->where('email', $data['email'])->update([
-                    'password' => $new,
-                    'last_password' => $data['password'],
-                    'original_text' => $encryptedData,
-                    'reset_date' => $today,
-                    'expired_date' => $sixMonthsLater,
-                ]);
-                if ($update) {
-                    return redirect('login');
-                }
-            }
-        } else {
-            return redirect()->back()->with(['pesan' => "Maaf, password lama anda masih belum sesuai"]);
+        $data->validate([
+            'old_password' => ['required', 'string'],
+            'new_password' => ['required', 'string'],
+            'password_confirmation' => ['required', 'string'],
+        ]);
+
+        $user = Auth::user();
+        $old = $data->input('old_password');
+        $newPassword = $data->input('new_password');
+
+        if (!Hash::check($old, $user->password)) {
+            return redirect()->back()->with([
+                'pesan' => 'Password lama tidak sesuai.',
+                'pesan_type' => 'danger',
+            ]);
         }
-        //return $old.' '.$old_encripted;
+
+        if ($old === $newPassword) {
+            return redirect()->back()->with([
+                'pesan' => 'Password baru tidak boleh sama dengan password lama.',
+                'pesan_type' => 'danger',
+            ]);
+        }
+
+        if ($newPassword !== $data->input('password_confirmation')) {
+            return redirect()->back()->with([
+                'pesan' => 'Password baru dan konfirmasi tidak sama.',
+                'pesan_type' => 'danger',
+            ]);
+        }
+
+        $today = date('Y-m-d');
+        $threeMonthsLater = date('Y-m-d', strtotime('+3 months', strtotime($today)));
+        $newHash = Hash::make($newPassword);
+        $encryptedData = Crypt::encrypt($newPassword);
+        $updated = DB::table('users')->where('id', $user->id)->update([
+            'password' => $newHash,
+            'last_password' => $user->password,
+            'original_text' => $encryptedData,
+            'reset_date' => $today,
+            'expired_date' => $threeMonthsLater,
+        ]);
+
+        if (!$updated) {
+            return redirect()->back()->with([
+                'pesan' => 'Password gagal diperbarui. Silakan coba lagi.',
+                'pesan_type' => 'danger',
+            ]);
+        }
+
+        return redirect()->back()->with([
+            'pesan' => 'Password berhasil diperbarui.',
+            'pesan_type' => 'success',
+        ]);
     }
     function password_show($password)
     {

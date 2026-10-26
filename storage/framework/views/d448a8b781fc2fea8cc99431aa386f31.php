@@ -290,7 +290,7 @@
                     button
                         .toggleClass('btn-success', enabled)
                         .toggleClass('btn-warning', !enabled)
-                        .html('<i class="fa fa-wrench"></i> Maintenance: ' + (enabled ? 'ON' : 'OFF'));
+                        .html('<i class="fa fa-wrench"></i> ' + (enabled ? 'ON' : 'OFF'));
 
                     window.alert(response.message);
                 },

@@ -85,7 +85,10 @@
 									<td>{{$dt->nik}}</td>
 									<td>{{$dt->name}}</td>
 									<td>{{$dt->email}}</td>
-									<td>{{$dt->created_at}}</td>
+									@php
+										$createdAt = $dt->getRawOriginal('created_at');
+									@endphp
+									<td>{{ $createdAt && strtoupper(trim($createdAt)) !== 'NULL' ? $createdAt : '-' }}</td>
 									<td>{{$dt->expired_date}}</td>
 									<td>
 										@if($dt->email_verified_at == null)

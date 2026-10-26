@@ -4,11 +4,31 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            <?php if(session('pesan')): ?>
+                <div class="alert alert-<?php echo e(session('pesan_type', 'danger')); ?> alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">&times;</button>
+                    <?php echo e(session('pesan')); ?>
+
+                </div>
+            <?php endif; ?>
+
+            <?php if($errors->any()): ?>
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">&times;</button>
+                    <strong>Periksa kembali data yang dimasukkan:</strong>
+                    <ul style="margin-bottom: 0;">
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
             <div class="card">
                 <div class="card-header">Change Password</div>
 
                 <div class="card-body">
-                    <form method="POST" action="/HRMS/ConfirmPassword">
+                    <form method="POST" action="<?php echo e(route('change-password.confirm')); ?>">
                         <?php echo csrf_field(); ?>
                         <div style="text-align:center;">
                             <p><b>Untuk menjaga keamanan akun Anda, setiap 3 bulan password harus diperbaharui.</b></p>
@@ -17,7 +37,7 @@
                             <label for="password" class="col-md-4 col-form-label text-md-right">Old Password</label>
 
                             <div class="col-md-6">
-                                <input id="old_password" type="password" class="form-control" name="old_password" required autocomplete="old-password" value="1">
+                                <input id="old_password" type="password" class="form-control" name="old_password" required autocomplete="current-password">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -42,7 +62,7 @@
                                     Confirm
                                 </button>
                                 <button type="button" class="btn btn-danger" onclick="window.history.back()">
-                                    Cancel
+                                    Exit/Close
                                 </button>
                             </div>
                         </div>
@@ -52,14 +72,6 @@
         </div>
     </div>
 </div>
-    <?php if(session('pesan')): ?>
-		<div class="alert alert-danger alert-dismissible" style="position:absolute;width:350px;right:10px;top:105px;z-index: 1;">
-			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-			<h4><i class="icon fa fa-info"></i> Pesan</h4>
-			<?php echo e(session('pesan')); ?>
-
-		</div>
-    <?php endif; ?>
 	<script>
 		window.setTimeout(function() {
 			$(".alert").fadeTo(500, 0).slideUp(500, function(){

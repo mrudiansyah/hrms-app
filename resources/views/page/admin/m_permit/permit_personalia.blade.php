@@ -166,7 +166,7 @@
 													
 													<?php if($dt->status_disetujui=='1'){?>
 														<?php if($dt->category=='A'){?><button title="Approve" type="button" class="approve-modal btn btn-success btn-xs" data-approveid="{{$dt->id}}" data-approvename="{{$dt->employee_name}}"><i class="fa fa-check-square-o"></i></button> <?php }else{?>
-														<button title="Approve" type="button" class="approve-modals btn btn-success btn-xs" data-sysid="{{$dt->id}}" data-employeename="{{$dt->employee_name}}" data-start="{{$start}}" data-finish="{{$finish}}" data-minutes="{{$dt->minutes}}" data-category="{{$dt->category}}"><i class="fa fa-check-square-o"></i></button>
+														<button title="Approve" type="button" class="approve-modals btn btn-success btn-xs" data-sysid="{{$dt->id}}" data-employeename="{{$dt->employee_name}}" data-start="{{ $dt->start_izin ? date('Y-m-d\TH:i', strtotime($dt->start_izin)) : '' }}" data-finish="{{ $dt->finish_izin ? date('Y-m-d\TH:i', strtotime($dt->finish_izin)) : '' }}" data-minutes="{{$dt->minutes}}" data-category="{{$dt->category}}"><i class="fa fa-check-square-o"></i></button>
 														<?php }?>
 														<button title="Refuse" type="button" class="refuse-modal btn btn-warning btn-xs" data-refuseid="{{$dt->id}}" data-refusename="{{$dt->employee_name}}"><i class="fa fa-close"></i></button>
 													<?php }?>
@@ -490,8 +490,8 @@
 			$('#category').val($(this).data('category'));
 			$('#modal-approves').modal('show');
 
-			var Awal=new Date($('#start').val());
-			var Akhir=new Date($('#finish').val());
+			var Awal=new Date($('#start_permit').val());
+			var Akhir=new Date($('#finish_permit').val());
 			
 			var Thn=Akhir.getFullYear();
 			var Bln=Akhir.getMonth()+1;

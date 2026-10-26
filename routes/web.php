@@ -60,7 +60,7 @@ Route::get('/Dashboard/Preview', [App\Http\Controllers\DashboardController::clas
 Route::get('/Dashboard/Preview/ChartDetails', [App\Http\Controllers\DashboardPreviewController::class, 'chartDetails'])->name('dashboard.preview.chart-details');
 Route::post('/Dashboard/Notifikasi', [App\Http\Controllers\DashboardController::class, 'notifikasi'])->name('Dashboard.Notifikasi');
 Route::get('/ChangePassword', [App\Http\Controllers\DashboardController::class, 'change_password']);
-Route::post('/ConfirmPassword', [App\Http\Controllers\DashboardController::class, 'confirm_password']);
+Route::post('/ConfirmPassword', [App\Http\Controllers\DashboardController::class, 'confirm_password'])->name('change-password.confirm');
 Route::get('/PasswordShow/{password}', [App\Http\Controllers\DashboardController::class, 'password_show']);
 
 Route::get('/payroll/summary_overtime/{start?}/{end?}', [App\Http\Controllers\PayrollController::class, 'summary_overtime']);

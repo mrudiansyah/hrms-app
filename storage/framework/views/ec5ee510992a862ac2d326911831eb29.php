@@ -86,7 +86,10 @@
 									<td><?php echo e($dt->nik); ?></td>
 									<td><?php echo e($dt->name); ?></td>
 									<td><?php echo e($dt->email); ?></td>
-									<td><?php echo e($dt->created_at); ?></td>
+									<?php
+										$createdAt = $dt->getRawOriginal('created_at');
+									?>
+									<td><?php echo e($createdAt && strtoupper(trim($createdAt)) !== 'NULL' ? $createdAt : '-'); ?></td>
 									<td><?php echo e($dt->expired_date); ?></td>
 									<td>
 										<?php if($dt->email_verified_at == null): ?>

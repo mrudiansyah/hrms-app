@@ -258,17 +258,30 @@ class general_memo extends Controller
     }
     function ImportTable(Request $request){
         $request->validate([
+            'id_memo' => 'required|integer|exists:tb_memo,id',
             'file' => 'required|mimes:xls,xlsx,csv|max:2048'
         ]);
-        $file = $request->file('file');
-        $nama_file = rand().$file->getClientOriginalName();
-        $file->move('laravel/public/excel',$nama_file);
-        $import=Excel::import(new Import_tb_memo_ot, public_path('/laravel/public/excel/'.$nama_file));
-        if($import){
-          return redirect()->back()->with(['info'=>'Import Berhasil']);
-        }else{
-            return redirect()->back()->with(['errors'=>'Gagal Import']);
+
+        $memo = DB::table('tb_memo')->where('id', $request->id_memo)->first();
+        if (!$memo || $memo->table_name !== 'tb_memo_ot') {
+            return redirect()->back()->with('import_error', 'Impor Excel hanya tersedia untuk memo overtime.');
         }
+
+        $file = $request->file('file');
+        try {
+            Excel::import(new Import_tb_memo_ot($request->id_memo), $file);
+        } catch (\Throwable $exception) {
+            Log::error('General memo Excel import failed', [
+                'id_memo' => $request->id_memo,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return redirect('/GeneralMemo/Detail/' . $request->id_memo)
+                ->with('import_error', 'Impor gagal. Periksa format dan isi file Excel, lalu coba kembali.');
+        }
+
+        return redirect('/GeneralMemo/Detail/' . $request->id_memo)
+            ->with('info', 'Import berhasil.');
     }
     function templateTable($id){
         $data['table1']=DB::table('tb_memo')->where('id',$id)->get();

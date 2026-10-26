@@ -627,6 +627,24 @@ class admin_overtime extends Controller
         $tb_overtime = DB::table('tb_overtimes')->leftjoin('tb_departments', 'tb_departments.id', '=', 'tb_overtimes.dept_id')->where([['tb_overtimes.id', $id], ['tb_overtimes.status', '1']])->get(['tb_overtimes.*', 'tb_departments.dept_name']);
         $tb_overtime_detail = DB::table('tb_overtime_details')->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_overtime_details.id_employee')->where('tb_overtime_details.id_ot', $id)->get(['tb_overtime_details.*', 'tb_employees.NIK', 'tb_employees.employee_name']);
 
+        $weeklyPlannedHours = [];
+        foreach ($tb_overtime_detail as $detail) {
+            $planDate = date('Y-m-d', strtotime($detail->start_plan));
+            $weekStart = date('Y-m-d 00:00:00', strtotime('-' . date('w', strtotime($planDate)) . ' days', strtotime($planDate)));
+            $weekEnd = date('Y-m-d 23:59:59', strtotime('+6 days', strtotime($weekStart)));
+            $weekKey = $detail->id_employee . '|' . $weekStart;
+
+            if (!array_key_exists($weekKey, $weeklyPlannedHours)) {
+                $weeklyPlannedHours[$weekKey] = DB::table('tb_overtime_details')
+                    ->where('id_employee', $detail->id_employee)
+                    ->whereBetween('start_plan', [$weekStart, $weekEnd])
+                    ->where('ot_category', '1')
+                    ->sum('hours_plan');
+            }
+
+            $detail->weekly_planned_hours = $weeklyPlannedHours[$weekKey];
+        }
+
         $disetujui = '';
         $disetujui_j = '';
         $diketahui = '';

@@ -379,6 +379,7 @@
 						</div>
 						<div class="modal-body">
 							{{ csrf_field() }}
+							<input type="hidden" name="id_memo" value="{{ $data['id_memo'] }}">
 							<label></label>
 							<div class="form-group">
 								<input type="file" name="file" required="required">
@@ -396,7 +397,28 @@
 		</div>
 		<!-- /.modal-dialog -->
     </div>
-	<div class="modal fade" id="modal-loading">
+	@if (session('info'))
+		<div class="alert alert-success alert-dismissible" style="position:absolute;width:350px;right:10px;top:65px;z-index: 1;">
+			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+			{{ session('info') }}
+		</div>
+	@endif
+	@if (session('import_error') || $errors->any())
+		<div class="alert alert-danger alert-dismissible" style="position:absolute;width:350px;right:10px;top:65px;z-index: 1;">
+			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+			<h4><i class="icon fa fa-warning"></i> Import gagal</h4>
+			@if (session('import_error'))
+				{{ session('import_error') }}
+			@else
+				<ul>
+					@foreach ($errors->all() as $error)
+						<li>{{ $error }}</li>
+					@endforeach
+				</ul>
+			@endif
+		</div>
+	@endif
+    <div class="modal fade" id="modal-loading">
 		<div class="modal-dialog box box-info" style="padding:0;margin:0;height:100%;width:100%;opacity: 0;">
 			<div class="modal-content">
 				<div class="box-body">
@@ -632,4 +654,3 @@
 	</script>
 	
 @endsection
-

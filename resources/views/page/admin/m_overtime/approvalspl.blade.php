@@ -93,7 +93,7 @@
 					<?php if($id_loger==$dt->paid&&$dt->status_approve=='1'&&$dt->status_paid=='0')echo "<a class='btn btn-app denied-modal' style='color:#C00;' data-denid='".$dt->id."' data-denid1='paid' data-denname='".$dt->id_overtime."'><i class='fa fa-close'></i> Denied</a>";?>
 					<?php //if($id_loger==$dt->paid&&$dt->status_approve=='1'&&$dt->status_paid!='0')echo "<a href='/Admin/Overtime/Approval/Review/".$dt->id."/paid' class='btn btn-app' style='color:#00C;'><i class='fa fa-edit'></i> Review</a>";?>
 
-					<a href="/Admin/Overtime/Plan/0" class="btn btn-app"<?php if(isset($id_employee)&&$id_employee=='122')echo " onclick='window.close();'";?>><i class="fa fa-sign-out"></i> Back</a>
+					<a href="/ApprovalSPL" class="btn btn-app"<?php if(isset($id_employee)&&$id_employee=='122')echo " onclick='window.close();'";?>><i class="fa fa-sign-out"></i> Back</a>
 				</div>
 			</div>
 			<div style="padding:30px;background:#525659;">
@@ -164,21 +164,7 @@
 								@foreach($tb_overtime_detail as $dt2)
 								<?php 
 									$no++;$hours_acum=$hours_acum+$dt2->hours_act;$convertion_acum=$convertion_acum+$dt2->hours_convertion;
-									
-									
-									$short=date('Y-m-d',strtotime($dt2->start_plan));
-									$sekarang=date('w',strtotime($short));
-									$text="-".$sekarang." days";
-									$batas_awal=date('Y-m-d H:i:s',strtotime($text,strtotime($short.' 00:00:00')));
-									$short2=date('Y-m-d',strtotime($batas_awal));
-									$batas_akhir=date('Y-m-d H:i:s',strtotime('+6 days',strtotime($short2.' 23:59:59')));
-
-									//$jamot=0;
-									$host = mysqli_connect("192.168.1.4","ems","123456","db_ems");
-									$qry=mysqli_query($host,"SELECT sum(hours_plan) as jamot  FROM tb_overtime_details WHERE id_employee = '".$dt2->id_employee."' and start_plan>='".$batas_awal."' and start_plan<='".$batas_akhir."' and ot_category='1'")or die(mysqli_error($host));
-									while($dtjam=mysqli_fetch_array($qry)){
-										$jamot=$dtjam['jamot'];
-									}
+									$jamot = $dt2->weekly_planned_hours;
 						
 								?>
 								<tr id="R{{$no}}">

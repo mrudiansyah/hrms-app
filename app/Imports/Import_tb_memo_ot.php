@@ -10,6 +10,12 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 
 class Import_tb_memo_ot implements ToModel,WithStartRow
 {
+    private $idMemo;
+
+    public function __construct($idMemo)
+    {
+        $this->idMemo = $idMemo;
+    }
 
     /**
      * @return int
@@ -22,7 +28,7 @@ class Import_tb_memo_ot implements ToModel,WithStartRow
     public function model(array $row): Model
     {
         return new import_tb_memo_ot_model([
-            'id_memo' => $row[1],
+            'id_memo' => $this->idMemo,
             'part_no' => $row[2],
             'part_name'=> $row[3],
             'lines' => $row[4], 

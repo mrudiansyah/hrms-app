@@ -410,6 +410,7 @@
 						<div class="modal-body">
 							<?php echo e(csrf_field()); ?>
 
+							<input type="hidden" name="id_memo" value="<?php echo e($data['id_memo']); ?>">
 							<label></label>
 							<div class="form-group">
 								<input type="file" name="file" required="required">
@@ -441,12 +442,27 @@
 			<!-- /.modal-content -->
 		</div>
 	</div>
-	<?php if($errors->any()): ?>
+	<?php if(session('info')): ?>
+		<div class="alert alert-success alert-dismissible" style="position:absolute;width:350px;right:10px;top:65px;z-index: 1;">
+			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+			<?php echo e(session('info')); ?>
+
+		</div>
+	<?php endif; ?>
+	<?php if(session('import_error') || $errors->any()): ?>
 		<div class="alert alert-danger alert-dismissible" style="position:absolute;width:350px;right:10px;top:65px;z-index: 1;">
 			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-			<h4><i class="icon fa fa-warning"></i> Saving Failed Alert!</h4>
-				<?php echo e($errors); ?>
+			<h4><i class="icon fa fa-warning"></i> Import gagal</h4>
+			<?php if(session('import_error')): ?>
+				<?php echo e(session('import_error')); ?>
 
+			<?php else: ?>
+				<ul>
+					<?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+						<li><?php echo e($error); ?></li>
+					<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+				</ul>
+			<?php endif; ?>
 		</div>
 	<?php endif; ?>
 
@@ -609,6 +625,5 @@
 	</script>
 	
 <?php $__env->stopSection(); ?>
-
 
 <?php echo $__env->make('layouts/admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/page/general_memo/tb_memo_ot.blade.php ENDPATH**/ ?>

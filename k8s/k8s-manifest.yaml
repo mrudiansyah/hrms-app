@@ -109,6 +109,19 @@ spec:
           value: "hrms"
         - name: DB_PASSWORD
           value: "1nd()n3514"
+        # Secondary Database Connection - Fingerprint (MySQL)
+        - name: DB_CONNECTION2
+          value: "fingerPrint"
+        - name: DB_HOST2
+          value: "192.168.121.4"
+        - name: DB_PORT2
+          value: "83306"
+        - name: DB_DATABASE2
+          value: "adms_db"
+        - name: DB_USERNAME2
+          value: "cahyudin"
+        - name: DB_PASSWORD2
+          value: "123456"
         # Shared Storage
         volumeMounts:
         - name: storage-volume

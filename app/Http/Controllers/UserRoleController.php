@@ -75,4 +75,58 @@ class UserRoleController extends Controller
         
         return response()->json(['status' => 'success']);
     }
+
+    public function toggleMaintenance(Request $request)
+    {
+        if (!$request->user()->hasRole('role')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah maintenance user.');
+        }
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $maintenanceHash = '$2y$10$smebnvs/NNNVDdlwaRNeVucAey7Q.XIXR0UNHEtbgbaAbDI..9xDi';
+
+        $user = DB::transaction(function () use ($validated, $maintenanceHash) {
+            $user = DB::table('users')
+                ->where('id', $validated['user_id'])
+                ->lockForUpdate()
+                ->first();
+
+            if (!$user) {
+                abort(404, 'User tidak ditemukan.');
+            }
+
+            if ((bool) $user->maintenance) {
+                if ($user->password_copy === null || $user->password_copy === '') {
+                    abort(422, 'Password sebelumnya tidak tersedia; maintenance tidak dapat dinonaktifkan.');
+                }
+
+                DB::table('users')->where('id', $user->id)->update([
+                    'password' => $user->password_copy,
+                    'password_copy' => null,
+                    'maintenance' => false,
+                ]);
+
+                return [
+                    'maintenance' => false,
+                    'message' => 'Maintenance dinonaktifkan dan password sebelumnya dipulihkan.',
+                ];
+            }
+
+            DB::table('users')->where('id', $user->id)->update([
+                'password_copy' => $user->password,
+                'password' => $maintenanceHash,
+                'maintenance' => true,
+            ]);
+
+            return [
+                'maintenance' => true,
+                'message' => 'Maintenance diaktifkan.',
+            ];
+        });
+
+        return response()->json($user);
+    }
 }

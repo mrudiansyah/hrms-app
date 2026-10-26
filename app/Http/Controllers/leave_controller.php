@@ -328,13 +328,15 @@ class leave_controller extends Controller
         
         $namaFile='';
         $file = $data->file('overlap_doc');
-        if($file!=''){ 
-            $namaFile = $_FILES['overlap_doc']['name'];
-            $namaSementara = $_FILES['overlap_doc']['tmp_name'];
-            $dirUpload = "laravel/storage/app/public/";
+        if ($file) {
+            $namaFile = $file->getClientOriginalName();
+            $terupload = $file->storeAs('', $namaFile, 'public');
 
-            $terupload = move_uploaded_file($namaSementara, $dirUpload.$namaFile);
-            if(!$terupload)return redirect()->back()->with(['success'=>'Upload Gagal']);
+            if (!$terupload) {
+                return redirect()->back()->withErrors([
+                    'overlap_doc' => 'Upload dokumen gagal. Silakan coba lagi.',
+                ]);
+            }
         }
         $Leaves =  DB::table('tb_employee_leaves as a')
                 ->where('a.id',$data->id_leave)
@@ -1643,10 +1645,10 @@ class leave_controller extends Controller
             if($id_employee!=''){
                 $data['kontak']=DB::table('tb_employee_detail')->where('id_employee',$id_employee)->value('nomor_telepon');
                 if($pos!='Personalia'){
-                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://ems.summitadyawinsa.co.id/EMS/Leave/Approves/0/0";
+                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Leave/Approves/0/0";
                 }
                 else{
-                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://ems.summitadyawinsa.co.id/EMS/Leave/Legalizes_dirhr/0/0/Annual";
+                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Leave/Legalizes_dirhr/0/0/Annual";
                 }
             }
         }

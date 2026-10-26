@@ -118,9 +118,9 @@
 									<th>Name</th>
 									<th>Email</th>
 									<th>Registered</th>
-									<th>Expired Date</th>
+									<th>Expired</th>
 									<th>Status</th>
-                                    <th style="width:150px; text-align:center;">Action</th>
+                                    <th>Action</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -130,7 +130,11 @@
 									<td><?php echo e($dt->nik); ?></td>
 									<td><?php echo e($dt->name); ?></td>
 									<td><?php echo e($dt->email); ?></td>
-									<td><?php echo e($dt->created_at); ?></td>
+									<?php
+										$createdAt = $dt->getRawOriginal('created_at');
+										$isMaintenance = filter_var((string) $dt->maintenance, FILTER_VALIDATE_BOOLEAN);
+									?>
+									<td><?php echo e($createdAt && strtoupper(trim($createdAt)) !== 'NULL' ? $createdAt : '-'); ?></td>
 									<td><?php echo e($dt->expired_date); ?></td>
 									<td>
 										<?php if($dt->email_verified_at == null): ?>
@@ -141,8 +145,16 @@
 									</td>
                                     <td align="center">
                                         <button class="btn btn-info btn-xs btn-manage-roles" data-uid="<?php echo e($dt->id); ?>" data-uname="<?php echo e($dt->name); ?>">
-                                            <i class="fa fa-cogs"></i> Manage Roles
+                                            <i class="fa fa-cogs"></i>
                                         </button>
+										<button type="button"
+											class="btn btn-xs btn-toggle-maintenance <?php echo e($isMaintenance ? 'btn-success' : 'btn-warning'); ?>"
+											data-uid="<?php echo e($dt->id); ?>"
+											data-maintenance="<?php echo e($isMaintenance ? 1 : 0); ?>">
+											<i class="fa fa-wrench"></i>
+											<?php echo e($isMaintenance ? 'ON' : 'OFF'); ?>
+
+										</button>
                                     </td>
 								</tr>
 								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -249,6 +261,48 @@
                     alert('An error occurred while saving the role.');
                     // Revert the switch if failed
                     $(".role-switch[data-roleid='" + roleId + "']").prop('checked', !isChecked);
+                }
+            });
+        });
+
+        $(document).on('click', '.btn-toggle-maintenance', function() {
+            var button = $(this);
+            var userId = button.data('uid');
+            var isMaintenance = Number(button.attr('data-maintenance')) === 1;
+            var confirmation = isMaintenance
+                ? 'Nonaktifkan maintenance dan pulihkan password sebelumnya?'
+                : 'Aktifkan maintenance? Password user akan diganti sementara.';
+
+            if (!window.confirm(confirmation)) {
+                return;
+            }
+
+            button.prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: baseUrl + '/userrole-management/toggleMaintenance',
+                data: { user_id: userId },
+                success: function(response) {
+                    var enabled = response.maintenance;
+
+                    button.attr('data-maintenance', enabled ? 1 : 0);
+                    button
+                        .toggleClass('btn-success', enabled)
+                        .toggleClass('btn-warning', !enabled)
+                        .html('<i class="fa fa-wrench"></i> Maintenance: ' + (enabled ? 'ON' : 'OFF'));
+
+                    window.alert(response.message);
+                },
+                error: function(xhr) {
+                    var message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : 'Gagal memperbarui status maintenance.';
+
+                    window.alert(message);
+                },
+                complete: function() {
+                    button.prop('disabled', false);
                 }
             });
         });

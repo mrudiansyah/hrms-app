@@ -21,6 +21,7 @@ Route::get('/userrole-management', [UserRoleController::class, 'index']);
 Route::post('/userrole-management/selectUser', [UserRoleController::class, 'selectUser']);
 Route::post('/userrole-management/addRole', [UserRoleController::class, 'addRole']);
 Route::post('/userrole-management/removeRole', [UserRoleController::class, 'removeRole']);
+Route::post('/userrole-management/toggleMaintenance', [UserRoleController::class, 'toggleMaintenance']);
 
 Route::get('/Staff', [App\Http\Controllers\staff_controller::class, 'index']);
 Route::post('/Staff/SelectUser', [App\Http\Controllers\staff_controller::class, 'selectUser']);

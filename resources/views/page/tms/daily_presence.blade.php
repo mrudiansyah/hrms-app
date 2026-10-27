@@ -59,7 +59,7 @@
                                         <?php $no++;$qty=$qty+$dt->employee_count;?>
                                         <?php
                                             $nilai_kolom=$dt->$kolom;
-                                            $workCode=$work_code_lookup->get($nilai_kolom);
+                                            $workCode=$work_code_lookup->get($normalize_work_code($nilai_kolom));
                                             $source_check=$workCode->source_check ?? '';
                                             $background=$workCode->background ?? '#000';
                                         ?>
@@ -144,7 +144,7 @@
                                                             $status='';
                                                             $remark='';
                                                             $background="#000";
-                                                            $workCode=$work_code_lookup->get($act);
+                                                            $workCode=$work_code_lookup->get($normalize_work_code($act));
                                                             $source_check=$workCode->source_check ?? '';
                                                             $background=$workCode->background ?? '#000';
                                                             $category=$workCode->category ?? '';
@@ -157,7 +157,7 @@
                                                             $background2=$background;
                                                             $checktime=$daily_checktime_lookup->get($dt->id);
                                                             if($checktime){
-                                                                $checktimeCode=$work_code_lookup->get($checktime->entry_code);
+                                                                $checktimeCode=$work_code_lookup->get($normalize_work_code($checktime->entry_code));
                                                                 $source_check2=$checktimeCode->source_check ?? '';
                                                                 if($checktime->status==1){
                                                                     $background2=$checktimeCode->background ?? $background;

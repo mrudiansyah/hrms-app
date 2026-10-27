@@ -1170,13 +1170,25 @@ class tms_controller extends Controller
             $tb_work_entries = $tb_work_entries->where('department', $department);
         $tb_work_entries = $tb_work_entries->get(['tb_work_entries.*', 'tb_work_contract.NIK', 'tb_work_contract.PIN', 'tb_work_contract.nama_karyawan', 'tb_work_contract.department', 'tb_work_contract.jabatan', 'tb_work_contract.id as id_contract', 'tb_work_contract.id_work_shift', 'tb_work_contract.suggest_ws']);
 
-        $work_code_lookup = DB::table('tb_work_code')->get()->keyBy('work_code');
+        $normalize_work_code = function ($code) {
+            $code = trim((string) $code);
+            if (strpos($code, '.') !== false) {
+                $code = rtrim(rtrim($code, '0'), '.');
+            }
+            return $code;
+        };
+        $work_code_lookup = DB::table('tb_work_code')->get()->keyBy(function ($workCode) use ($normalize_work_code) {
+            return $normalize_work_code($workCode->work_code);
+        });
         $entry_ids = $tb_work_entries->pluck('id')->unique();
         $daily_checktime_lookup = collect();
         if ($entry_ids->isNotEmpty()) {
             $daily_checktime_lookup = DB::table('tb_work_checktime')
                 ->whereIn('id_work_entry', $entry_ids)
-                ->where('id_column', (int) $day)
+                ->whereRaw(
+                    'CONVERT(varchar(10), [id_column]) IN (?, ?, ?)',
+                    [(string) (int) $day, $day, 'D' . $day]
+                )
                 ->get()
                 ->keyBy('id_work_entry');
         }
@@ -1188,7 +1200,7 @@ class tms_controller extends Controller
             $lock_status = 0;
         $data['capture'] = DB::table('tb_log_capture')->where('capture_date', $tanggal)->count();
         if (request()->user()->hasRole('root') || request()->user()->hasRole('tms') || request()->user()->hasRole('admin_department')) {
-            return view('page/tms/daily_presence', ['tb_department' => $tb_department, 'tb_work_code' => $tb_work_code, 'tb_work_entry' => $tb_work_entry, 'tb_work_entries' => $tb_work_entries, 'work_code_lookup' => $work_code_lookup, 'daily_checktime_lookup' => $daily_checktime_lookup, 'department' => $department, 'periode' => $periode, 'tanggal' => $tanggal, 'kolom' => $kolom, 'data' => $data, 'code' => $code, 'site' => $this->site, 'menu' => 'tms', 'juduls' => 'Work Entry', 'subjudul' => $subjudul, 'lock_status' => $lock_status]);
+            return view('page/tms/daily_presence', ['tb_department' => $tb_department, 'tb_work_code' => $tb_work_code, 'tb_work_entry' => $tb_work_entry, 'tb_work_entries' => $tb_work_entries, 'work_code_lookup' => $work_code_lookup, 'normalize_work_code' => $normalize_work_code, 'daily_checktime_lookup' => $daily_checktime_lookup, 'department' => $department, 'periode' => $periode, 'tanggal' => $tanggal, 'kolom' => $kolom, 'data' => $data, 'code' => $code, 'site' => $this->site, 'menu' => 'tms', 'juduls' => 'Work Entry', 'subjudul' => $subjudul, 'lock_status' => $lock_status]);
         } else {
             return abort(403, 'Anda tidak punya akses');
         }

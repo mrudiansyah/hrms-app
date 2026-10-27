@@ -9,4 +9,5 @@ return [
         'https://ems.summitadyawinsa.co.id/EMS/api/wuzapi/send'
     ),
     'api_key' => env('WUZAPI_API_KEY'),
+    'ca_bundle' => env('WUZAPI_CA_BUNDLE'),
 ];

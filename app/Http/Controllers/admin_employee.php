@@ -44,7 +44,7 @@ class admin_employee extends Controller
         //->count();
         ->get(['tb_employees.*','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_salaries.salary','tb_employees1.employee_name as leader']);
         //$this->generate_leave();
-        $tb_employee_data=DB::table('view_employee_data')
+        $tb_employee_data=DB::table('view_employee_data_simple')
         ->where('position_name','<>','PSAB')
         ->get();
         return view('page/admin/m_employee/employee_read',['tb_employee'=>$tb_employee_data,'menu'=>'employee']);

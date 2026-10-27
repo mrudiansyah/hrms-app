@@ -44,9 +44,9 @@ class WuzapiController extends Controller
         ]);
 
         $phone = preg_replace('/\D+/', '', $request->input('phone'));
-        if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
-        }
+        // if (str_starts_with($phone, '0')) {
+        //     $phone = '62' . substr($phone, 1);
+        // }
 
         try {
             $response = $this->wuzapi->sendApiText($phone, $request->input('message'));
@@ -56,7 +56,7 @@ class WuzapiController extends Controller
             ]);
 
             return redirect()->back()
-                ->with('error', 'Tidak dapat terhubung ke API Wuzapi.')
+                ->with('error', 'Tidak dapat terhubung ke API Wuzapis.')
                 ->withInput();
         } catch (RuntimeException $exception) {
             Log::error('Wuzapi send API is not configured.', [

@@ -69,7 +69,7 @@
 						<i class="fa fa-user"></i>
 						<h3 class="box-title">Data Tables</h3>
 						<div class="box-tools pull-right">
-							<a href='/Admin/Employee/Create'><button type="button" class="btn btn-primary btn-md"><i class="fa fa-plus"></i> &nbsp;Add New</button></a>
+							<!-- <a href='/Admin/Employee/Create'><button type="button" class="btn btn-primary btn-md"><i class="fa fa-plus"></i> &nbsp;Add New</button></a> -->
 							<a href='/Admin/EmployeeBPJS'><button type="button" class="btn btn-success btn-md"><i class="fa fa-user-plus"></i> &nbsp;BPJS</button></a>
 							<a href='/Admin/Employee/Domiciles'><button type="button" class="btn btn-warning btn-md"><i class="fa fa-map-marker"></i> &nbsp;Domiciles</button></a>
 							<a href='/Admin/Employee/PSAB'><button type="button" class="btn btn-default btn-md"><i class="fa fa-user"></i> &nbsp;PSAB</button></a>
@@ -100,16 +100,9 @@
 									<th>TAX</th>
 									<th>BIRTH_CITY</th>
 									<th>DATE_BIRTH</th>
-									<th>KABUPATEN</th>
-									<!--
-									<th>ADDRESS KTP</th>
-									<th>DOMICILES</th>
-									-->
 									<th>TELEPON</th>
 									<th>BLOOD</th>
 									<th>RELIGION</th>
-									<!-- <th>EDUCATION</th>
-									<th>PROGRAM</th> -->
 									<th>MOTHER</th>
 									<th>KTP</th>
 									<th>NPWP</th>
@@ -117,12 +110,6 @@
 									<th>KK</th>
 									<th>BPJS_KES</th>
 									<th>BPJS_KET</th>
-									<th>EMERGENCY</th>
-									<th>RELATION</th>
-									<th>CONTACT</th>
-									<!--
-									<th>ADDRESS</th>
-									-->
 								</tr>
 							</thead>
 							<tbody>
@@ -148,16 +135,9 @@
 									<td>{{$dt->kode_status}}</td>
 									<td>{{$dt->tempat_lahir}}</td>
 									<td>{{$dt->tanggal_lahir}}</td>
-									<td>{{$dt->kabupaten}}</td>
-									<!--
-									<td>{{$dt->detail}} {{$dt->kelurahan}} {{$dt->kecamatan}} {{$dt->kabupaten}} {{$dt->provinsi}}</td>
-									<td>{{$dt->dom_detail}} {{$dt->dom_kelurahan}} {{$dt->dom_kecamatan}} {{$dt->dom_kabupaten}} {{$dt->dom_provinsi}}</td>
-									-->
 									<td>{{$dt->nomor_telepon}}</td>
 									<td>{{$dt->golongan_darah}}</td>
 									<td>{{$dt->agama}}</td>
-									<!-- <td>{{$dt->top_education}}</td>
-									<td>{{$dt->prodi}}</td> -->
 									<td>{{$dt->ibu_kandung}}</td>
 									<td>{{$dt->nomor_ktp}}</td>
 									<td>{{$dt->nomor_npwp}}</td>
@@ -165,12 +145,6 @@
 									<td>{{$dt->nomor_kk}}</td>
 									<td>{{$dt->nomor_bpjs_kes}}</td>
 									<td>{{$dt->nomor_bpjs_ket}}</td>
-									<td>{{$dt->nama_keluarga}}</td>
-									<td>{{$dt->hubungan}}</td>
-									<td>{{$dt->nomor_kontak}}</td>
-									<!--
-									<td>{{$dt->detail_kontak}} {{$dt->kelurahan_kontak}} {{$dt->kecamatan_kontak}} {{$dt->kabupaten_kontak}} {{$dt->provinsi_kontak}}</td>
-									-->
 								</tr>
 								@endforeach
 							</tbody>

@@ -69,7 +69,7 @@
 						<i class="fa fa-user"></i>
 						<h3 class="box-title">Data Tables</h3>
 						<div class="box-tools pull-right">
-							<a href='/Admin/Employee/Create'><button type="button" class="btn btn-primary btn-md"><i class="fa fa-plus"></i> &nbsp;Add New</button></a>
+							<!-- <a href='/Admin/Employee/Create'><button type="button" class="btn btn-primary btn-md"><i class="fa fa-plus"></i> &nbsp;Add New</button></a> -->
 							<a href='/Admin/EmployeeBPJS'><button type="button" class="btn btn-success btn-md"><i class="fa fa-user-plus"></i> &nbsp;BPJS</button></a>
 							<a href='/Admin/Employee/Domiciles'><button type="button" class="btn btn-warning btn-md"><i class="fa fa-map-marker"></i> &nbsp;Domiciles</button></a>
 							<a href='/Admin/Employee/PSAB'><button type="button" class="btn btn-default btn-md"><i class="fa fa-user"></i> &nbsp;PSAB</button></a>
@@ -100,16 +100,9 @@
 									<th>TAX</th>
 									<th>BIRTH_CITY</th>
 									<th>DATE_BIRTH</th>
-									<th>KABUPATEN</th>
-									<!--
-									<th>ADDRESS KTP</th>
-									<th>DOMICILES</th>
-									-->
 									<th>TELEPON</th>
 									<th>BLOOD</th>
 									<th>RELIGION</th>
-									<!-- <th>EDUCATION</th>
-									<th>PROGRAM</th> -->
 									<th>MOTHER</th>
 									<th>KTP</th>
 									<th>NPWP</th>
@@ -117,12 +110,6 @@
 									<th>KK</th>
 									<th>BPJS_KES</th>
 									<th>BPJS_KET</th>
-									<th>EMERGENCY</th>
-									<th>RELATION</th>
-									<th>CONTACT</th>
-									<!--
-									<th>ADDRESS</th>
-									-->
 								</tr>
 							</thead>
 							<tbody>
@@ -148,16 +135,9 @@
 									<td><?php echo e($dt->kode_status); ?></td>
 									<td><?php echo e($dt->tempat_lahir); ?></td>
 									<td><?php echo e($dt->tanggal_lahir); ?></td>
-									<td><?php echo e($dt->kabupaten); ?></td>
-									<!--
-									<td><?php echo e($dt->detail); ?> <?php echo e($dt->kelurahan); ?> <?php echo e($dt->kecamatan); ?> <?php echo e($dt->kabupaten); ?> <?php echo e($dt->provinsi); ?></td>
-									<td><?php echo e($dt->dom_detail); ?> <?php echo e($dt->dom_kelurahan); ?> <?php echo e($dt->dom_kecamatan); ?> <?php echo e($dt->dom_kabupaten); ?> <?php echo e($dt->dom_provinsi); ?></td>
-									-->
 									<td><?php echo e($dt->nomor_telepon); ?></td>
 									<td><?php echo e($dt->golongan_darah); ?></td>
 									<td><?php echo e($dt->agama); ?></td>
-									<!-- <td><?php echo e($dt->top_education); ?></td>
-									<td><?php echo e($dt->prodi); ?></td> -->
 									<td><?php echo e($dt->ibu_kandung); ?></td>
 									<td><?php echo e($dt->nomor_ktp); ?></td>
 									<td><?php echo e($dt->nomor_npwp); ?></td>
@@ -165,12 +145,6 @@
 									<td><?php echo e($dt->nomor_kk); ?></td>
 									<td><?php echo e($dt->nomor_bpjs_kes); ?></td>
 									<td><?php echo e($dt->nomor_bpjs_ket); ?></td>
-									<td><?php echo e($dt->nama_keluarga); ?></td>
-									<td><?php echo e($dt->hubungan); ?></td>
-									<td><?php echo e($dt->nomor_kontak); ?></td>
-									<!--
-									<td><?php echo e($dt->detail_kontak); ?> <?php echo e($dt->kelurahan_kontak); ?> <?php echo e($dt->kecamatan_kontak); ?> <?php echo e($dt->kabupaten_kontak); ?> <?php echo e($dt->provinsi_kontak); ?></td>
-									-->
 								</tr>
 								<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 							</tbody>

@@ -149,69 +149,75 @@ class ApprovalSPLController extends Controller
             11 =>'status_paid'
           );   
         $user_email = Auth::user()->email;
-        $tb_email= DB::table('tb_emails')->where('email_address',$user_email)->get();
-        $id_emp = '';
-        foreach($tb_email as $e){
-            $id_emp = $e->id_employee;
-        }
+        $employeeIds = DB::table('tb_emails')
+            ->where('email_address', $user_email)
+            ->pluck('id_employee')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
        
           $limit = $request->input('length');
           $start = $request->input('start');
           $order = ($request->input('order.0.column')==0 ? $columns[2] : $columns[$request->input('order.0.column')]);
           $dir = ($request->input('order.0.column')==0 ? 'desc' : $request->input('order.0.dir')) ; 
-          $tb_overtime = DB::table('tb_overtimes')
-          ->leftjoin('tb_employees as tb1','tb1.id','=','tb_overtimes.diperintah')
-          ->leftjoin('tb_employees as tb2','tb2.id','=','tb_overtimes.disetujui')
-          ->leftjoin('tb_employees as tb3','tb3.id','=','tb_overtimes.diketahui')
-          ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
-          ->where(function ($query) use ($id_emp) {
-            $query->where([['tb_overtimes.diperintah',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-          ->orwhere([['tb_overtimes.disetujui',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-          ->orwhere([['tb_overtimes.diketahui',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-          ->orwhere([['tb_overtimes.dicatat',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-          ->orwhere([['tb_overtimes.approve',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-          ->orwhere([['tb_overtimes.paid',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_approve','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete','=',0]]);
-          })
-          ->select('tb_overtimes.*','tb1.employee_name as nm1','tb2.employee_name as nm2','tb3.employee_name as nm3');
-
-          $totalData =$tb_overtime->get()->count(); 
+          $buildQuery = function () use ($employeeIds) {
+            return DB::table('tb_overtimes')
+                ->leftjoin('tb_employees as tb1','tb1.id','=','tb_overtimes.diperintah')
+                ->leftjoin('tb_employees as tb2','tb2.id','=','tb_overtimes.disetujui')
+                ->leftjoin('tb_employees as tb3','tb3.id','=','tb_overtimes.diketahui')
+                ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
+                ->where(function ($query) use ($employeeIds) {
+                    $query->where(function ($query) use ($employeeIds) {
+                        $query->where(function ($query) use ($employeeIds) {
+                            $query->whereIn('tb_overtimes.diperintah', $employeeIds)
+                                ->orWhereIn('tb_overtimes.disetujui', $employeeIds)
+                                ->orWhereIn('tb_overtimes.diketahui', $employeeIds)
+                                ->orWhereIn('tb_overtimes.dicatat', $employeeIds)
+                                ->orWhereIn('tb_overtimes.approve', $employeeIds);
+                        })
+                        ->where('tb_overtimes.status', '1')
+                        ->where('tb_overtimes.status_diperintah', '<=', '3')
+                        ->where('tb_overtimes.status_disetujui', '<=', '3')
+                        ->where('tb_overtimes.status_diketahui', '<=', '3')
+                        ->where('tb_overtimes.status_dicatat', '0')
+                        ->where('tb_overtimes.status_paid', '0')
+                        ->where('tb_departments.isTrial', '1')
+                        ->where('tb_overtimes.isDelete', 0);
+                    })
+                    ->orWhere(function ($query) use ($employeeIds) {
+                        $query->whereIn('tb_overtimes.paid', $employeeIds)
+                            ->where('tb_overtimes.status', '1')
+                            ->where('tb_overtimes.status_approve', '0')
+                            ->where('tb_overtimes.status_paid', '0')
+                            ->where('tb_departments.isTrial', '1')
+                            ->where('tb_overtimes.isDelete', 0);
+                    });
+                })
+                ->select('tb_overtimes.*','tb1.employee_name as nm1','tb2.employee_name as nm2','tb3.employee_name as nm3');
+          };
+          $tb_overtime = $buildQuery();
+          $totalData = (clone $tb_overtime)->count();
           $totalFiltered = $totalData;  
           
           if(empty($request->input('search.value'))){
-            $posts =$tb_overtime
+            $posts =(clone $tb_overtime)
             ->offset($start)
             ->limit($limit)
             ->orderBy($order,$dir)->get();
           } else {
           $search = $request->input('search.value');  
-            $posts = $tb_overtime
-            ->where(function ($query) use ($search,$start,$limit) {
+            $filteredQuery = (clone $tb_overtime)
+            ->where(function ($query) use ($search) {
                 $query->where('tb_overtimes.dept_name','LIKE',"%$search%")
                 ->orWhere('tb_overtimes.ot_date','LIKE',"%$search%")
                 ->orWhere('tb_overtimes.id_overtime','LIKE',"%$search%");
-            })
+            });
+            $posts = (clone $filteredQuery)
             ->offset($start)
             ->limit($limit)
             ->orderBy($order,$dir)->get();
-            $totalFiltered = DB::table('tb_overtimes')
-            ->leftjoin('tb_employees as tb1','tb1.id','=','tb_overtimes.diperintah')
-            ->leftjoin('tb_employees as tb2','tb2.id','=','tb_overtimes.disetujui')
-            ->leftjoin('tb_employees as tb3','tb3.id','=','tb_overtimes.diketahui')
-            ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
-            ->where(function ($query) use ($id_emp) {
-              $query->where([['tb_overtimes.diperintah',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-            ->orwhere([['tb_overtimes.disetujui',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-            ->orwhere([['tb_overtimes.diketahui',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-            ->orwhere([['tb_overtimes.dicatat',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-            ->orwhere([['tb_overtimes.approve',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_diperintah','<=','3'],['tb_overtimes.status_disetujui','<=','3'],['tb_overtimes.status_diketahui','<=','3'],['tb_overtimes.status_dicatat','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete',0]])
-            ->orwhere([['tb_overtimes.paid',$id_emp],['tb_overtimes.status','1'],['tb_overtimes.status_approve','0'],['tb_overtimes.status_paid','0'],['tb_departments.isTrial','1'],['tb_overtimes.isDelete','=',0]]);
-            })
-            ->where(function ($query) use ($search,$start,$limit) {
-                $query->orWhere('tb_overtimes.dept_name','LIKE',"%$search%")
-                ->orWhere('tb_overtimes.ot_date','LIKE',"%$search%")
-                ->orWhere('tb_overtimes.id_overtime','LIKE',"%$search%");
-            })
-            ->count();
+            $totalFiltered = $filteredQuery->count();
         } 
         $data = array();
         if(!empty($posts))
@@ -358,11 +364,13 @@ class ApprovalSPLController extends Controller
             
     function GetDataCompleteApproval(Request $request){
         $user_email = Auth::user()->email;
-        $tb_email= DB::table('tb_emails')->where('email_address',$user_email)->get();
-        $id_employee = '';
-        foreach($tb_email as $e){
-            $id_employee = $e->id_employee;
-        }
+        $employeeIds = DB::table('tb_emails')
+            ->where('email_address', $user_email)
+            ->pluck('id_employee')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
         $periode = $request->periode;
         date_default_timezone_set("Asia/Jakarta");
         $kalendar=CAL_GREGORIAN;
@@ -389,17 +397,26 @@ class ApprovalSPLController extends Controller
             11 =>'status_paid'
 
           );   
-        $tb_overtime = DB::table('tb_overtimes')
-        ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
-        ->where([['tb_overtimes.diperintah',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.disetujui',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.diketahui',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.dicatat',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.approve',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-        ->orwhere([['tb_overtimes.paid',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-        ->select(['tb_overtimes.*'],['tb_departments.dept_name']);
-
-        $totalData = $tb_overtime->count();
+        $buildQuery = function () use ($employeeIds, $periode_awal, $periode_akhir) {
+            return DB::table('tb_overtimes')
+                ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
+                ->where('tb_overtimes.status', '1')
+                ->where('tb_overtimes.status_paid', '1')
+                ->where('tb_departments.isTrial', '1')
+                ->whereBetween('tb_overtimes.ot_date', [$periode_awal, $periode_akhir])
+                ->where('tb_overtimes.isDelete', 0)
+                ->where(function ($query) use ($employeeIds) {
+                    $query->whereIn('tb_overtimes.diperintah', $employeeIds)
+                        ->orWhereIn('tb_overtimes.disetujui', $employeeIds)
+                        ->orWhereIn('tb_overtimes.diketahui', $employeeIds)
+                        ->orWhereIn('tb_overtimes.dicatat', $employeeIds)
+                        ->orWhereIn('tb_overtimes.approve', $employeeIds)
+                        ->orWhereIn('tb_overtimes.paid', $employeeIds);
+                })
+                ->select('tb_overtimes.*');
+        };
+        $tb_overtime = $buildQuery();
+        $totalData = (clone $tb_overtime)->count();
         $totalFiltered = $totalData;  
         $limit = $request->input('length');
         $start = $request->input('start');
@@ -408,43 +425,24 @@ class ApprovalSPLController extends Controller
 
         if(empty($request->input('search.value')))
         {  
-            $posts = $tb_overtime
+            $posts = (clone $tb_overtime)
             ->offset($start)
         ->limit($limit)
         ->orderBy($order,$dir)
         ->get();
         }else{
             $search = $request->input('search.value');  
-            $posts = DB::table('tb_overtimes')
-            ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
-            ->where(function ($query) use ($id_employee,$periode_awal,$periode_akhir) {
-                $query->where([['tb_overtimes.diperintah',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orWhere([['tb_overtimes.disetujui',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.diketahui',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.dicatat',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.approve',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.paid',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]]);
-            })->offset($start)
-            ->orWhere('tb_overtimes.dept_name','LIKE',"%$search%")
-            ->orWhere('tb_overtimes.ot_date','LIKE',"%$search%")
-            ->orWhere('tb_overtimes.id_overtime','LIKE',"%$search%")
-            ->limit($limit)
-            ->orderBy($order,$dir)->get();
-            $totalFiltered = DB::table('tb_overtimes')
-            ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
-            ->where(function ($query) use ($id_employee,$periode_awal,$periode_akhir) {
-                $query->where([['tb_overtimes.diperintah',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orWhere([['tb_overtimes.disetujui',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.diketahui',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.dicatat',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.approve',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]])
-                ->orwhere([['tb_overtimes.paid',$id_employee],['status','1'],['tb_overtimes.status_paid','1'],['tb_departments.isTrial','1'],['tb_departments.isTrial','1'],['ot_date','>=',$periode_awal],['ot_date','<=',$periode_akhir],['tb_overtimes.isDelete',0]]);
-            })
+            $filteredQuery = (clone $tb_overtime)
             ->where(function ($query) use ($search) {
                 $query->where('tb_overtimes.dept_name','LIKE',"%$search%")
-                ->orWhere('tb_overtimes.ot_date','LIKE',"%$search%")
-                ->orWhere('tb_overtimes.id_overtime','LIKE',"%$search%");
-            })->count();   
+                    ->orWhere('tb_overtimes.ot_date','LIKE',"%$search%")
+                    ->orWhere('tb_overtimes.id_overtime','LIKE',"%$search%");
+            });
+            $posts = (clone $filteredQuery)
+            ->offset($start)
+            ->limit($limit)
+            ->orderBy($order,$dir)->get();
+            $totalFiltered = $filteredQuery->count();
         }
         $data = array();
         if(!empty($posts))

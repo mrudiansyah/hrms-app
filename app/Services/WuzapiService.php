@@ -58,6 +58,9 @@ class WuzapiService
         return Http::acceptJson()
             ->asJson()
             ->withHeaders(['X-API-Key' => $apiKey])
+            ->withOptions([
+                'verify' => config('wuzapi.ca_bundle') ?: true,
+            ])
             ->connectTimeout(5)
             ->timeout(10)
             ->post(config('wuzapi.send_api_url'), [

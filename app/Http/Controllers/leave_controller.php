@@ -203,7 +203,7 @@ class leave_controller extends Controller
                 ->leftjoin('tb_employees as tb_employees1','tb_employees1.id','=','tb_leaves.approved2')
                 ->where('category','annual')
                 //->where('start_leave','>=',$Periode_awal)
-                ->where('id_leave',$id_leave)
+                ->where('id_leave',$id_leave)->orderby('doc_date','asc')
                 ->get(['tb_leaves.*','tb_employees.employee_name as approved_name','tb_employees1.employee_name as approved1_name']);
                 
                 $tb_docter=DB::table('tb_leaves')->where('id_employee',$dt->id_employee)->where('category','docter')->orderby('doc_date','desc')->take(6)->get();

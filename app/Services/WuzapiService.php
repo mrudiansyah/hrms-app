@@ -15,9 +15,9 @@ class WuzapiService
 
     public function __construct()
     {
-        $this->baseUrl = config('wuzapi.url');
-        $this->token = config('wuzapi.token');
-        $this->session = config('wuzapi.session');
+        $this->baseUrl = config('wuzapi.url', 'http://192.168.1.4:8000');
+        $this->token = config('wuzapi.token', 'rahasia123');
+        $this->session = config('wuzapi.session', 'default');
     }
 
     /**
@@ -30,16 +30,17 @@ class WuzapiService
     public function sendText($to, $message)
     {
         try {
-            $response = Http::withHeaders([
-                'token' => $this->token,
-            ])
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'token' => $this->token ?: 'rahasia123',
+                ])
                 ->connectTimeout(5)
                 ->timeout(10)
                 ->post($this->baseUrl . '/chat/send/text', [
-                'Phone'   => $this->formatPhone($to),
-                'Body'    => $message,
-                'Session' => $this->session,
-            ]);
+                    'Phone'   => $this->formatPhone($to),
+                    'Body'    => $message,
+                    'Session' => $this->session ?: 'default',
+                ]);
 
             return $response->json();
         } catch (\Exception $e) {
@@ -50,22 +51,71 @@ class WuzapiService
 
     public function sendApiText($phone, $message): Response
     {
-        $apiKey = config('wuzapi.api_key');
-        if (!$apiKey) {
-            throw new RuntimeException('Wuzapi send API key is not configured.');
+        $apiKey = config('wuzapi.api_key') ?: 'SummitAdyawinsa2014';
+        $formattedPhone = $this->formatPhone($phone);
+        $sendUrl = config('wuzapi.send_api_url', 'https://ems.summitadyawinsa.co.id/EMS/api/wuzapi/send');
+
+        $caBundle = config('wuzapi.ca_bundle');
+        $verifyOption = (is_string($caBundle) && $caBundle !== '' && is_file($caBundle))
+            ? $caBundle
+            : false;
+
+        try {
+            $response = Http::acceptJson()
+                ->asJson()
+                ->withHeaders(['X-API-Key' => $apiKey])
+                ->withOptions([
+                    'verify' => $verifyOption,
+                ])
+                ->connectTimeout(5)
+                ->timeout(12)
+                ->post($sendUrl, [
+                    'phone' => $formattedPhone,
+                    'message' => $message,
+                ]);
+
+            if ($response->successful()) {
+                return $response;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Primary Wuzapi send_api_url failed, attempting LAN IP fallback: ' . $e->getMessage());
         }
 
-        return Http::acceptJson()
+        try {
+            $fallbackResponse = Http::withoutVerifying()
+                ->acceptJson()
+                ->asJson()
+                ->withHeaders([
+                    'X-API-Key' => $apiKey,
+                    'Host' => 'ems.summitadyawinsa.co.id',
+                ])
+                ->connectTimeout(5)
+                ->timeout(12)
+                ->post('https://192.168.1.4/EMS/api/wuzapi/send', [
+                    'phone' => $formattedPhone,
+                    'message' => $message,
+                ]);
+
+            if ($fallbackResponse->successful()) {
+                return $fallbackResponse;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('LAN IP EMS Wuzapi endpoint failed, attempting direct Wuzapi port 8000 fallback: ' . $e->getMessage());
+        }
+
+        $directUrl = rtrim($this->baseUrl ?: 'http://192.168.1.4:8000', '/') . '/chat/send/text';
+        return Http::withoutVerifying()
+            ->acceptJson()
             ->asJson()
-            ->withHeaders(['X-API-Key' => $apiKey])
-            ->withOptions([
-                'verify' => config('wuzapi.ca_bundle') ?: true,
+            ->withHeaders([
+                'token' => $this->token ?: 'rahasia123',
             ])
             ->connectTimeout(5)
-            ->timeout(10)
-            ->post(config('wuzapi.send_api_url'), [
-                'phone' => $this->formatPhone($phone),
-                'message' => $message,
+            ->timeout(12)
+            ->post($directUrl, [
+                'Phone' => $formattedPhone,
+                'Body' => $message,
+                'Session' => $this->session ?: 'default',
             ]);
     }
 
@@ -80,14 +130,15 @@ class WuzapiService
     public function sendImage($to, $caption, $imageUrl)
     {
         try {
-            $response = Http::withHeaders([
-                'token' => $this->token,
-            ])->post($this->baseUrl . '/chat/send/image', [
-                'Phone'   => $this->formatPhone($to),
-                'Caption' => $caption,
-                'URL'     => $imageUrl,
-                'Session' => $this->session,
-            ]);
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'token' => $this->token ?: 'rahasia123',
+                ])->post($this->baseUrl . '/chat/send/image', [
+                    'Phone'   => $this->formatPhone($to),
+                    'Caption' => $caption,
+                    'URL'     => $imageUrl,
+                    'Session' => $this->session ?: 'default',
+                ]);
 
             return $response->json();
         } catch (\Exception $e) {
@@ -104,11 +155,12 @@ class WuzapiService
     public function getStatus()
     {
         try {
-            $response = Http::withHeaders([
-                'token' => $this->token,
-            ])->get($this->baseUrl . '/session/status', [
-                'Session' => $this->session,
-            ]);
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'token' => $this->token ?: 'rahasia123',
+                ])->get($this->baseUrl . '/session/status', [
+                    'Session' => $this->session ?: 'default',
+                ]);
 
             return $response->json();
         } catch (\Exception $e) {

@@ -122,6 +122,30 @@ spec:
           value: "cahyudin"
         - name: DB_PASSWORD2
           value: "123456"
+        # HCMIS Configuration
+        - name: HCMIS_PROTOCOL
+          value: "https"
+        - name: HCMIS_HOST
+          value: "hcmis.adyawinsadinamika.com"
+        - name: HCMIS_USERNAME
+          value: "cahyudin@summitadyawinsa.co.id"
+        - name: HCMIS_PASSWORD
+          value: "Ceha#1076"
+        - name: HCMIS_COMPANY
+          value: "SAI"
+        - name: HCMIS_ORG
+          value: "SAI"
+        # Wuzapi WhatsApp API Configuration
+        - name: WUZAPI_URL
+          value: "http://192.168.1.4:8000"
+        - name: WUZAPI_TOKEN
+          value: "rahasia123"
+        - name: WUZAPI_SESSION
+          value: "default"
+        - name: WUZAPI_SEND_API_URL
+          value: "https://ems.summitadyawinsa.co.id/EMS/api/wuzapi/send"
+        - name: WUZAPI_API_KEY
+          value: "SummitAdyawinsa2014"
         # Shared Storage
         volumeMounts:
         - name: storage-volume

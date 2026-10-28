@@ -1657,10 +1657,10 @@ class leave_controller extends Controller
             if($id_employee!=''){
                 $data['kontak']=DB::table('tb_employee_detail')->where('id_employee',$id_employee)->value('nomor_telepon');
                 if($pos!='Personalia'){
-                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Leave/Approves/0/0";
+                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via HRMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Leave/Approves/0/0";
                 }
                 else{
-                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Leave/Legalizes_dirhr/0/0/Annual";
+                    $data['pesan']="*NOTIFIKASI CUTI*\n\nID: *$id*\nTanggal: *$date1 - $date2*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via HRMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Leave/Legalizes_dirhr/0/0/Annual";
                 }
             }
         }

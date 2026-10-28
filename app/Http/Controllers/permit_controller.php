@@ -595,7 +595,7 @@ class permit_controller extends Controller
             $name=$dt->employee_name;
             if($id_employee!=''){
                 $data['kontak']=DB::table('tb_employee_detail')->where('id_employee',$id_employee)->value('nomor_telepon');
-                $data['pesan']="*NOTIFIKASI PERMIT*\n\nID: *$id*\nTanggal: *$date*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Permit/Approves/0/0";
+				$data['pesan']="*NOTIFIKASI PERMIT*\n\nID: *$id*\nTanggal: *$date*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via HRMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Permit/Approves/0/0";
             }
         }
         // $data['kontak']='08211212418';

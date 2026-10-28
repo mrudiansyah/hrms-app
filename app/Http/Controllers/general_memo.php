@@ -629,7 +629,7 @@ class general_memo extends Controller
             $name=$dt->employee_name;
             if($id_employee!=''){
                 $data['kontak']=DB::table('tb_employee_detail')->where('id_employee',$id_employee)->value('nomor_telepon');
-                $data['pesan']="*NOTIFIKASI MEMO*\n\nNO: *$memo_number*\nTanggal: *$date*\nTentang: *$desc*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/GeneralMemo/Detail/$id";
+                $data['pesan']="*NOTIFIKASI MEMO*\n\nNO: *$memo_number*\nTanggal: *$date*\nTentang: *$desc*\nNama: *$name*\nDepartemen: *$dept*\n\nMenunggu Approval Anda sebagai *$pos*.\n\nSegera lakukan pengecekan via HRMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/GeneralMemo/Detail/$id";
             }
         }
         //$data['kontak']='083148870127';

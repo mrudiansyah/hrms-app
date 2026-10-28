@@ -809,10 +809,10 @@ class admin_overtime extends Controller
             $qty = DB::table('tb_overtime_details')->where('id_ot', $id)->count();
             if ($id_employee != '') {
                 $data['kontak'] = DB::table('tb_employee_detail')->where('id_employee', $id_employee)->value('nomor_telepon');
-                $data['pesan'] = "*NOTIFIKASI SPL*\n\nID: *$id_overtime*\nTanggal: *$ot_date*\nDepartemen: *$dept*\nJumlah: *$qty orang*\n\nMenunggu *$pos* oleh Anda.\n\nSegera lakukan pengecekan via EMS via link berikut:\nhttps://hrms.summitadyawinsa.co.id/Admin/Overtime/Approval/$id";
+                $data['pesan'] = "*NOTIFIKASI SPL*\n\nID: *$id_overtime*\nTanggal: *$ot_date*\nDepartemen: *$dept*\nJumlah: *$qty orang*\n\nMenunggu *$pos* oleh Anda.\n\nSegera lakukan pengecekan via HRMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Admin/Overtime/Approval/$id";
             }
         }
-        $data['kontak'] = '083148870127';
+        //$data['kontak'] = '083148870127';
         if ($data['kontak'] != '') {
             \App\Http\Controllers\WuzapiController::sendInternalMessage($data['kontak'], $data['pesan']);
             return 'Success';
@@ -2561,7 +2561,7 @@ class admin_overtime extends Controller
             $qty = DB::table('tb_overtime_details')->where('id_ot', $id)->count();
             if ($id_employee != '') {
                 $data['kontak'] = DB::table('tb_employee_detail')->where('id_employee', $id_employee)->value('nomor_telepon');
-                $data['pesan'] = "*NOTIFIKASI SPL*\n\nID: *$id_overtime*\nTanggal: *$ot_date*\nDepartemen: *$dept*\nJumlah: *$qty orang*\n\nMenunggu *$pos* oleh Anda.\n\nSegera lakukan pengecekan via EMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Admin/Overtime/Approval/$id";
+                $data['pesan'] = "*NOTIFIKASI SPL*\n\nID: *$id_overtime*\nTanggal: *$ot_date*\nDepartemen: *$dept*\nJumlah: *$qty orang*\n\nMenunggu *$pos* oleh Anda.\n\nSegera lakukan pengecekan via HRMS, klik link berikut:\nhttps://hrms.summitadyawinsa.co.id/Admin/Overtime/Approval/$id";
             }
         }
         // $data['kontak']='08211212418';

@@ -90,88 +90,88 @@ class contract_controller extends Controller
       ->orderby('active','desc')
       ->get(['tb_employees.PIN','tb_employees.id as idemployee','tb_employees.join_date as joindate','tb_employees.NIK','tb_employees.employee_name','tb_employees.gender','tb_employees.status','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_statuses.*']);
 
-      $tb=DB::table('view_migration_hcmis')->where('hcmis_id','!=','0')->where('hcmis_status','=',0)->orderby('id_employee','asc')->skip(3)->take(50)->get();
-      foreach($tb as $data){
+      //HCMIS
+      $sync_hcmis=1;
+      if ($sync_hcmis==1) {
+        $tb=DB::table('view_migration_hcmis')->where('hcmis_id','!=','0')->where('hcmis_status','=',0)->orderby('id_employee','asc')->skip(3)->take(50)->get();
+        foreach($tb as $data){
 
-          //HCMIS
-          $sync_hcmis=1;
-          if ($sync_hcmis==1) {
-            if($data->contract_name=='Permanen')$contract_type='PKWTT';
-            else $contract_type='PKWT';
-            if($data->contract_name=='Permanen')$employement='1';
-            elseif($data->contract_name=='Kontrak')$employement='2';
-            elseif($data->contract_name=='Other')$employement='3';
-            elseif($data->contract_name=='Magang')$employement='4';
-            elseif($data->contract_name=='Pensiun Dini')$employement='5';
-            else $employement='7';
-            $tb1=DB::table('tb_employees')->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')->where('tb_employees.id',$data->id_employee)->get(['tb_employees.*','tb_departments.hcmis_id','tb_departments.division_id']);
-            try {
-                foreach($tb1 as $dt){
-                // normalize gender to 'male'|'female'
-                $g = strtolower(trim($dt->gender ?? ''));
-                if ($g === 'laki-laki' || $g === 'male') $gender = 'male';
-                else $gender = 'female';
+              if($data->contract_name=='Permanen')$contract_type='PKWTT';
+              else $contract_type='PKWT';
+              if($data->contract_name=='Permanen')$employement='1';
+              elseif($data->contract_name=='Kontrak')$employement='2';
+              elseif($data->contract_name=='Other')$employement='3';
+              elseif($data->contract_name=='Magang')$employement='4';
+              elseif($data->contract_name=='Pensiun Dini')$employement='5';
+              else $employement='7';
+              $tb1=DB::table('tb_employees')->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')->where('tb_employees.id',$data->id_employee)->get(['tb_employees.*','tb_departments.hcmis_id','tb_departments.division_id']);
+              try {
+                  foreach($tb1 as $dt){
+                  // normalize gender to 'male'|'female'
+                  $g = strtolower(trim($dt->gender ?? ''));
+                  if ($g === 'laki-laki' || $g === 'male') $gender = 'male';
+                  else $gender = 'female';
 
-                $employee_number = $dt->NIK ?? ($data->NIK ?? null);
-                $full_name = $dt->employee_name ?? ($data->employee_name ?? null);
+                  $employee_number = $dt->NIK ?? ($data->NIK ?? null);
+                  $full_name = $dt->employee_name ?? ($data->employee_name ?? null);
 
-                // normalize and validate dates for HCMIS
-                $start_date = $data->start_contract ?? null;
-                $end_date = $data->finish_contract ?? null;
-                if ($data->contract_name == 'Permanen') {
-                  // permanen may not require end_date
-                  $end_date = null;
-                } else {
-                  // if end_date missing or earlier than start_date, set end_date = start_date
-                  if (empty($end_date) && !empty($start_date)) {
-                    $end_date = $start_date;
-                    Log::warning('HCMIS date normalization: end_date missing, set to start_date', ['start_date' => $start_date, 'end_date' => $end_date, 'employee_number' => $employee_number]);
-                  } elseif (!empty($start_date) && !empty($end_date) && strtotime($end_date) < strtotime($start_date)) {
-                    Log::warning('HCMIS date normalization: end_date earlier than start_date, adjusting end_date to start_date', ['start_date' => $start_date, 'original_end_date' => $end_date, 'employee_number' => $employee_number]);
-                    $end_date = $start_date;
+                  // normalize and validate dates for HCMIS
+                  $start_date = $data->start_contract ?? null;
+                  $end_date = $data->finish_contract ?? null;
+                  if ($data->contract_name == 'Permanen') {
+                    // permanen may not require end_date
+                    $end_date = null;
+                  } else {
+                    // if end_date missing or earlier than start_date, set end_date = start_date
+                    if (empty($end_date) && !empty($start_date)) {
+                      $end_date = $start_date;
+                      Log::warning('HCMIS date normalization: end_date missing, set to start_date', ['start_date' => $start_date, 'end_date' => $end_date, 'employee_number' => $employee_number]);
+                    } elseif (!empty($start_date) && !empty($end_date) && strtotime($end_date) < strtotime($start_date)) {
+                      Log::warning('HCMIS date normalization: end_date earlier than start_date, adjusting end_date to start_date', ['start_date' => $start_date, 'original_end_date' => $end_date, 'employee_number' => $employee_number]);
+                      $end_date = $start_date;
+                    }
+                  }
+
+                  $payload = [
+                    'company_code'      => config('hcmis.company_code'),
+                    'org_code'          => config('hcmis.org_code'),
+                    'username'          => config('hcmis.username'),
+                    'password'          => config('hcmis.password'),
+                    'employee_number'   => $employee_number,
+                    'full_name'         => $full_name,
+                    'gender'            => $gender,
+                    'contract_type'     => $contract_type,
+                    'employment_status_id' => $employement,
+                    'start_date'        => $start_date,
+                    'end_date'          => $end_date,
+                    'division_id'       => $dt->division_id,
+                    'department_id'     => $dt->hcmis_id,
+                  ];
+
+                  // if required fields missing, log and skip HCMIS call
+                  if (empty($payload['employee_number']) || empty($payload['full_name'])) {
+                    Log::warning('HCMIS sync skipped: missing required fields', $payload);
+                    continue;
+                  }
+
+                  Log::info('HCMIS sync payload', $payload);
+
+                  $hcmisController = app(HcmisController::class);
+                  // Insert-only: always try to create the employee in HCMIS.
+                  $response = $hcmisController->employeesStore(new HttpRequest($payload));
+                  $hcmisResult = json_decode($response->getContent(), true);
+                  Log::info('HCMIS insertContract response', (array) $hcmisResult);
+
+                  // If HCMIS reports the record already exists, just log and continue.
+                  if (!empty($hcmisResult['status_code']) && $hcmisResult['status_code'] === 422 && strpos(strtolower($hcmisResult['message'] ?? ''), 'already been taken') !== false) {
+                    Log::info('HCMIS insert conflict: record already exists, skipping update', ['employees_number' => $employee_number, 'hcmis_result' => $hcmisResult]);
                   }
                 }
-
-                $payload = [
-                  'company_code'      => config('hcmis.company_code'),
-                  'org_code'          => config('hcmis.org_code'),
-                  'username'          => config('hcmis.username'),
-                  'password'          => config('hcmis.password'),
-                  'employee_number'   => $employee_number,
-                  'full_name'         => $full_name,
-                  'gender'            => $gender,
-                  'contract_type'     => $contract_type,
-                  'employment_status_id' => $employement,
-                  'start_date'        => $start_date,
-                  'end_date'          => $end_date,
-                  'division_id'       => $dt->division_id,
-                  'department_id'     => $dt->hcmis_id,
-                ];
-
-                // if required fields missing, log and skip HCMIS call
-                if (empty($payload['employee_number']) || empty($payload['full_name'])) {
-                  Log::warning('HCMIS sync skipped: missing required fields', $payload);
-                  continue;
-                }
-
-                Log::info('HCMIS sync payload', $payload);
-
-                $hcmisController = app(HcmisController::class);
-                // Insert-only: always try to create the employee in HCMIS.
-                $response = $hcmisController->employeesStore(new HttpRequest($payload));
-                $hcmisResult = json_decode($response->getContent(), true);
-                Log::info('HCMIS insertContract response', (array) $hcmisResult);
-
-                // If HCMIS reports the record already exists, just log and continue.
-                if (!empty($hcmisResult['status_code']) && $hcmisResult['status_code'] === 422 && strpos(strtolower($hcmisResult['message'] ?? ''), 'already been taken') !== false) {
-                  Log::info('HCMIS insert conflict: record already exists, skipping update', ['employees_number' => $employee_number, 'hcmis_result' => $hcmisResult]);
-                }
+              } catch (\Exception $e) {
+                Log::error('HCMIS sync exception: '.$e->getMessage());
               }
-            } catch (\Exception $e) {
-              Log::error('HCMIS sync exception: '.$e->getMessage());
-            }
 
-          }
+        }
       }
 
       return view('page/admin/m_employee/contract',['tb_employee'=>$tb_employee,'menu'=>'employee','submenu'=>'contract','submenu'=>'contract','Judul'=>'Employee (Active)']);
@@ -1718,9 +1718,9 @@ class contract_controller extends Controller
     }
     function kskDistribute($periode){
       $email=Auth::user()->email;
-      $update=DB::connection('mysql')->table('tb_ksk')->where('periode',$periode)->update(['distribute_status'=>'1']);
+      $update=DB::table('tb_ksk')->where('periode',$periode)->update(['distribute_status'=>'1']);
       if($update){
-        $tb_ksk=DB::connection('mysql')->table('tb_ksk')
+        $tb_ksk=DB::table('tb_ksk')
         ->select(['tb_ksk.direct_id'])
         ->groupby('tb_ksk.direct_id')
         ->where('periode',$periode)
@@ -1773,7 +1773,7 @@ class contract_controller extends Controller
           ->orderby('no_ksk','asc')->get();
 
           $judul="KSK ".$periode;
-          $tb_email=DB::connection('mysql')->table('tb_emails')
+          $tb_email=DB::table('tb_emails')
           ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
           ->where('id_employee',$dt->direct_id)->get(['tb_employees.*','tb_emails.email_address']);
           foreach($tb_email as $dt2){
@@ -1787,7 +1787,7 @@ class contract_controller extends Controller
             Log::info('Send Notification KSK to '.$tujuan);      
           }
         }
-        $tb1=DB::connection('mysql')->table('tb_ksk')->where('periode',$periode)->get();
+        $tb1=DB::table('tb_ksk')->where('periode',$periode)->get();
         foreach($tb1 as $dt){
           $this->notificationKSK($dt->id);
         }
@@ -2031,7 +2031,7 @@ class contract_controller extends Controller
     
     }
     function kskTemplate($periode){
-      $reset=DB::connection('mysql')->table('tb_ksk_detail_performance')->where('periode',$periode)->delete();
+      $reset=DB::table('tb_ksk_detail_performance')->where('periode',$periode)->delete();
       $tb_ksk=DB::table('tb_ksk_detail')
       ->leftjoin('tb_ksk','tb_ksk.no_ksk','=','tb_ksk_detail.no_ksk')
       ->leftjoin('tb_departments','tb_departments.id','=','tb_ksk.dept_id')
@@ -2066,10 +2066,10 @@ class contract_controller extends Controller
       date_default_timezone_set("Asia/Jakarta");
       $sekarang=date('Y-m-d H:i:s');
 
-      $tb_ksk_detail_performance=DB::connection('mysql')->table('tb_ksk_detail_performance')->where('periode',$periode)->get();
+      $tb_ksk_detail_performance=DB::table('tb_ksk_detail_performance')->where('periode',$periode)->get();
       
       foreach($tb_ksk_detail_performance as $dt){
-        $update=DB::connection('mysql')->table('tb_ksk_detail')->where('id',$dt->id_ksk_detail)->update([
+        $update=DB::table('tb_ksk_detail')->where('id',$dt->id_ksk_detail)->update([
           'warning_letter'=>'0',
           'sick'=>$dt->sick,
           'permit'=>$dt->permit,
@@ -2086,13 +2086,13 @@ class contract_controller extends Controller
     function updateLock($periode,$status){
       if($status==0)$next=1;else $next=0;
       if (request()->user()->hasRole('root')||request()->user()->hasRole('hr_access')){
-        $check=DB::connection('mysql')->table('tb_ksk_lock')->where('periode',$periode)->count();
+        $check=DB::table('tb_ksk_lock')->where('periode',$periode)->count();
         if($check==0){
-          $add=DB::connection('mysql')->table('tb_ksk_lock')->insert([
+          $add=DB::table('tb_ksk_lock')->insert([
             'periode'=>$periode
           ]);
         }
-        $update=DB::connection('mysql')->table('tb_ksk_lock')->where('periode',$periode)->update(['is_lock'=>$next]);
+        $update=DB::table('tb_ksk_lock')->where('periode',$periode)->update(['is_lock'=>$next]);
         return redirect()->back();
       }
     }
@@ -2835,7 +2835,7 @@ class contract_controller extends Controller
       return response($result, 200)->header('Content-Type', 'text/plain');
     }
     public function notificationKSK($id){
-        $tb_ksk=DB::connection('mysql')->table('tb_ksk')
+        $tb_ksk=DB::table('tb_ksk')
         ->leftjoin('tb_departments','tb_departments.id','=','tb_ksk.dept_id')
         ->where('tb_ksk.id',$id)
         ->get(['tb_ksk.*','tb_departments.dept_name']);

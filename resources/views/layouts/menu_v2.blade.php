@@ -283,7 +283,7 @@
 
             <!-- TIME MANAGEMENT SHEET (TMS) -->
             @if(request()->user()->hasRole('tms') || request()->user()->hasRole('admin_department') || request()->user()->hasRole('admin_calendar') || request()->user()->hasRole('permit') || request()->user()->hasRole('permit_approve') || request()->user()->hasRole('permit_personalia') || request()->user()->hasRole('permit_scurity'))
-                <li class="treeview<?php if (isset($menu) && ($menu == 'tms' || $menu == 'calendar' || $menu == 'tms_check') || $menu == 'event') echo ' active';?>">
+                <li class="treeview<?php if (isset($menu) && ($menu == 'tms' || $menu == 'calendar' || $menu == 'tms_check') || $menu == 'event' || $menu == 'permit' || $menu == 'leave') echo ' active';?>">
                     <a href="#">
                         <i class="fa fa-clock-o text-purple"></i> <span>Attendance</span>
                         <span class="pull-right-container">

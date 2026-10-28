@@ -45,8 +45,7 @@
 
   <!-- <link rel="shortcut icon" href="{{ asset('public/gambar/ems.png') }}"> -->
   <!-- <link rel="shortcut icon" href="{{ asset('public/gambar/ems.png') }}"> -->
-  <link rel="shortcut icon" href="{{ asset('public/gambar/apple-touch-icon.png') }}" type="image/x-icon">
-  <link rel="icon" href="{{ asset('public/gambar/favicon.ico') }}" type="image/x-icon">
+  <link rel="icon" type="image/svg+xml" href="{{ asset('/gambar/hr-icon.svg') }}">
 
   <!-- Google Font -->
   <link rel="stylesheet"

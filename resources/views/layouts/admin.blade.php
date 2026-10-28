@@ -56,6 +56,17 @@
       background: #0b2238;
     }
 
+    .main-header .logo .brand-icon {
+      width: 30px;
+      height: 30px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .main-header .logo .logo-mini .brand-icon {
+      margin-right: 0;
+    }
+
     .skin-blue-light .main-header .navbar .nav > li > a {
       color: #fff;
       transition: background-color 0.2s ease;
@@ -87,8 +98,7 @@
     }
   </style>
 
-  <link rel="shortcut icon" href="{{ asset('public/gambar/apple-touch-icon.png') }}" type="image/x-icon">
-  <link rel="icon" href="{{ asset('public/gambar/favicon.ico') }}" type="image/x-icon">
+  <link rel="icon" type="image/svg+xml" href="{{ asset('/gambar/hr-icon.svg') }}">
 
   <!-- Google Font -->
   <!--
@@ -162,9 +172,9 @@ $periode = date('Y-m');?>
       <!-- Logo -->
       <a href="" class="logo">
         <!-- mini logo for sidebar mini 50x50 pixels -->
-        <span class="logo-mini"><b>HR</b>MS</span>
+        <span class="logo-mini"><img class="brand-icon" src="{{ asset('/gambar/hr-icon.svg') }}" alt=""></span>
         <!-- logo for regular state and mobile devices -->
-        <span class="logo-lg"><b>HRMS</b></span>
+        <span class="logo-lg"><img class="brand-icon" src="{{ asset('/gambar/hr-icon.svg') }}" alt=""><b>HRMS</b></span>
       </a>
       <!-- Header Navbar: style can be found in header.less -->
       <nav class="navbar navbar-static-top">

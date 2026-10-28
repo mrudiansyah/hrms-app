@@ -632,6 +632,8 @@ Route::get('/Leave/Delete/{id}',[App\Http\Controllers\leave_controller::class,'d
 
 Route::get('/Admin/Overtime/Delete/{id}',[App\Http\Controllers\admin_overtime::class,'deleteOvertime']);
 
+Route::get('/Status/KSK/Lock/{periode}/{status}', [App\Http\Controllers\contract_controller::class, 'updateLock']);
+
 //End Payroll
 
 

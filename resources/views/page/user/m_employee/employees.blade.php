@@ -48,10 +48,8 @@
 							<th>Join Date</th>
 							<th>Dept</th>
 							<th>Position</th>
-							<th>Shift</th>
 							@if($status!='Permanen')
 							<th>End Contract</th>
-							<th>Total Contract</th>
 							@endif
 						</tr>
 					</thead>
@@ -66,21 +64,8 @@
 								<td>{{$dt->join_date}}</td>
 								<td>{{$dt->dept_code}}</td>
 								<td>{{$dt->position_name}}</td>
-								<td><?php if($dt->id_shift>0)echo $dt->shift_code;else echo "Un Set";?></td>
 								@if($status!='Permanen')
 								<td>{{$dt->finish_contract}}</td>
-								<td>
-									<?php 
-										// $start_contract=date('Y-m-d',strtotime('-1 days',strtotime($dt->join_date)));
-										// $datetime2 = date_create($dt->finish_contract);
-										// $datetime3 = date_create($start_contract);
-										// $bulan = date_diff($datetime2, $datetime3);
-										// $lama_tahun=$bulan->format('%y');
-										// $lama_bulan=$bulan->format('%m');
-										// $lama_contract=$lama_tahun*12+$lama_bulan;
-										// if($lama_tahun>0)echo $lama_tahun.' Tahun ';if($lama_bulan>0)echo $lama_bulan.' Bulan';
-									?>
-								</td>
 								@endif
 							</tr>
 						@endforeach

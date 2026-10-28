@@ -750,6 +750,9 @@
                             <?php if(request()->user()->hasRole('info_overtime_dept')): ?>
                                 <li><a href="/Overtimes/Assigment/0"><i class="fa fa-circle-o"></i> Assignment Report</a></li>
                             <?php endif; ?>
+                            <?php if(request()->user()->hasRole('info_overtime_dept')|| request()->user()->hasRole('info_overtime')): ?>
+                                <li><a href="/Overtimes/Report"><i class="fa fa-circle-o"></i> Overtime Report</a></li>
+                            <?php endif; ?>
                         </ul>
                     </li>
             <?php endif; ?>

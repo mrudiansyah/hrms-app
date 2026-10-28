@@ -741,14 +741,17 @@
                     <li class="treeview<?php    if (isset($menu) && ($menu == 'overtimes' || $menu == 'report_assigment'))
                 echo ' active';?>">
                         <a href="#">
-                            <i class="fa fa-book text-warning"></i> <span>Report Overtime</span>
+                            <i class="fa fa-book text-warning"></i> <span>Assignment & Overtime</span>
                             <span class="pull-right-container">
                                 <i class="fa fa-angle-left pull-right"></i>
                             </span>
                         </a>
                         <ul class="treeview-menu">
                             @if (request()->user()->hasRole('info_overtime_dept'))
-                                <li><a href="/Overtimes/Assigment/0"><i class="fa fa-circle-o"></i> Assignment Report</a></li>
+                                <li><a href="/Overtimes/Assigment/0"><i class="fa fa-circle-o"></i> Assignment</a></li>
+                            @endif
+                            @if (request()->user()->hasRole('info_overtime_dept')|| request()->user()->hasRole('info_overtime'))
+                                <li><a href="/Overtimes/Report"><i class="fa fa-circle-o"></i> Overtime</a></li>
                             @endif
                         </ul>
                     </li>

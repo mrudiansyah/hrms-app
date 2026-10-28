@@ -411,6 +411,7 @@ Route::post('/Employee/KSK/Status', [App\Http\Controllers\employee_controller::c
 Route::get('/Employee/KSK/Confirm/{id_ksk}', [App\Http\Controllers\employee_controller::class, 'kskConfirm']);
 
 Route::get('/Overtimes/Assigment/{id}', [App\Http\Controllers\overtime_controller::class, 'assigment']);
+Route::get('/Overtimes/Report', [App\Http\Controllers\overtime_controller::class, 'overtimeReport']);
 
 Route::get('/Admin/Freeday', [App\Http\Controllers\admin_freeday::class, 'index']);
 Route::post('/Admin/Freeday/Create', [App\Http\Controllers\admin_freeday::class, 'createData']);

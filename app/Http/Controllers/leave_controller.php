@@ -206,9 +206,9 @@ class leave_controller extends Controller
                 ->where('id_leave',$id_leave)->orderby('doc_date','asc')
                 ->get(['tb_leaves.*','tb_employees.employee_name as approved_name','tb_employees1.employee_name as approved1_name']);
                 
-                $tb_docter=DB::table('tb_leaves')->where('id_employee',$dt->id_employee)->where('category','docter')->orderby('doc_date','desc')->take(6)->get();
+                $tb_docter=DB::table('tb_leaves')->where('id_employee',$dt->id_employee)->where('category','docter')->orderby('doc_date','asc')->take(6)->get();
                 //return $tb_docter;
-                $tb_special=DB::table('tb_leaves')->where('id_employee',$dt->id_employee)->where('category','special')->orderby('doc_date','desc')->take(6)->get();
+                $tb_special=DB::table('tb_leaves')->where('id_employee',$dt->id_employee)->where('category','special')->orderby('doc_date','asc')->take(6)->get();
                 //$anual_count=tb_leave::where('id_leave',$id_leave)->where('category','annual')->count();
                 $anual_count=DB::table('tb_leaves')->where('id_leave',$id_leave)
                 ->where('category','annual')

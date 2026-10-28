@@ -287,6 +287,184 @@ class overtime_controller extends Controller
         return view('page/user/m_overtime/overtime_cancel',['tb_overtime_detail'=>$tb_overtime_detail,'Tglawal'=>$Tglawal,'Tglakhir'=>$Tglakhir,'tb_admin'=>$tb_admin,'tb_employee'=>$tb_employee,'menu'=>'overtimes']);
 
     }
+    public function overtimeReport(Request $request)
+    {
+        if (!Auth::user()->hasRole('info_overtime_dept') && !Auth::user()->hasRole('info_overtime')) {
+            abort(403, 'Anda tidak punya akses');
+        }
+
+        $email = Auth::user()->email;
+        $emailRecord = DB::table('tb_emails')->where('email_address', $email)->first();
+        $departments = collect();
+
+        if ($emailRecord) {
+            $departments = DB::table('tb_admins')
+                ->join('tb_departments', 'tb_departments.id', '=', 'tb_admins.dept_id')
+                ->where('tb_admins.id_employee', $emailRecord->id_employee)
+                ->where('tb_departments.isDelete', 0)
+                ->select('tb_departments.id as dept_id', 'tb_departments.dept_code', 'tb_departments.dept_name')
+                ->distinct()
+                ->orderBy('tb_departments.dept_code')
+                ->get();
+        }
+
+        $departmentIds = $departments->pluck('dept_id')
+            ->map(function ($id) {
+                return (int) $id;
+            })
+            ->unique()
+            ->values()
+            ->all();
+
+        $currentPeriod = date('Y-m');
+        $period = $request->input('periode', $currentPeriod);
+        if (!is_string($period) || !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $period)) {
+            $period = $currentPeriod;
+        }
+
+        $requestedDepartment = filter_var($request->input('dept_id'), FILTER_VALIDATE_INT);
+        $departmentFilter = $requestedDepartment !== false && in_array($requestedDepartment, $departmentIds, true)
+            ? $requestedDepartment
+            : null;
+
+        $periodRows = DB::table('view_detail_overtime')
+            ->whereIn('dept_id', $departmentIds)
+            ->whereNotNull('periode_ot')
+            ->distinct()
+            ->orderBy('periode_ot', 'desc')
+            ->get(['periode_ot']);
+        $periods = $periodRows->pluck('periode_ot')->filter()->unique()->values();
+        if (!$periods->contains($currentPeriod)) {
+            $periods->prepend($currentPeriod);
+        }
+
+        $baseQuery = DB::table('view_detail_overtime')
+            ->whereIn('dept_id', $departmentIds)
+            ->where('periode_ot', $period);
+        if ($departmentFilter !== null) {
+            $baseQuery->where('dept_id', $departmentFilter);
+        }
+
+        $categories = (clone $baseQuery)
+            ->whereNotNull('category_ot')
+            ->where('category_ot', '<>', '')
+            ->select('category_ot')
+            ->distinct()
+            ->orderBy('category_ot')
+            ->get()
+            ->pluck('category_ot');
+        $category = $request->input('category_ot', '');
+        if (!is_string($category) || !$categories->contains($category)) {
+            $category = '';
+        }
+
+        $detailQuery = clone $baseQuery;
+        if ($category !== '') {
+            $detailQuery->where('category_ot', $category);
+        }
+        $details = $detailQuery
+            ->whereNotNull('detail_category')
+            ->where('detail_category', '<>', '')
+            ->select('detail_category')
+            ->distinct()
+            ->orderBy('detail_category')
+            ->get()
+            ->pluck('detail_category');
+        $detailCategory = $request->input('detail_category', '');
+        if (!is_string($detailCategory) || !$details->contains($detailCategory)) {
+            $detailCategory = '';
+        }
+
+        $employeeQuery = clone $baseQuery;
+        if ($category !== '') {
+            $employeeQuery->where('category_ot', $category);
+        }
+        if ($detailCategory !== '') {
+            $employeeQuery->where('detail_category', $detailCategory);
+        }
+        $employees = $employeeQuery
+            ->whereNotNull('NIK')
+            ->select('NIK', 'employee_name')
+            ->distinct()
+            ->orderBy('employee_name')
+            ->get();
+        $employee = $request->input('employee', '');
+        $employeeNiks = $employees->pluck('NIK')->map(function ($nik) {
+            return (string) $nik;
+        });
+        if (!is_string($employee) || !$employeeNiks->contains($employee)) {
+            $employee = '';
+        }
+
+        $canSeeAmountDetails = Auth::user()->hasRole('info_overtime_dept');
+        $sortOptions = [
+            'hours_act' => 'Hours actual',
+            'ammount' => 'Amount',
+            'ot_date' => 'Overtime date',
+            'employee_name' => 'Employee',
+            'dept_employee' => 'Department',
+        ];
+        if (!$canSeeAmountDetails) {
+            unset($sortOptions['ammount']);
+        }
+        $sortBy = $request->input('sort_by', 'hours_act');
+        if (!is_string($sortBy) || !array_key_exists($sortBy, $sortOptions)) {
+            $sortBy = 'hours_act';
+        }
+        $sortDirection = $request->input('direction', $sortBy === 'hours_act' ? 'desc' : 'asc');
+        if (!is_string($sortDirection) || !in_array($sortDirection, ['asc', 'desc'], true)) {
+            $sortDirection = $sortBy === 'hours_act' ? 'desc' : 'asc';
+        }
+
+        $columns = [
+            'id_overtime', 'dept_creater', 'ot_date', 'NIK', 'employee_name',
+            'position_name', 'dept_employee', 'start_act', 'finish_act', 'hours_act',
+            'ammount', 'category_ot', 'detail_category', 'reason_ot', 'reason',
+            'job_ot', 'customer', 'verified', 'captured_at', 'dept_id',
+            'periode_payroll', 'periode_ot',
+        ];
+
+        $rowsQuery = clone $baseQuery;
+        if ($category !== '') {
+            $rowsQuery->where('category_ot', $category);
+        }
+        if ($detailCategory !== '') {
+            $rowsQuery->where('detail_category', $detailCategory);
+        }
+        if ($employee !== '') {
+            $rowsQuery->where('NIK', $employee);
+        }
+        $totalHours = (clone $rowsQuery)->sum('hours_act');
+        $totalAmount = (clone $rowsQuery)->sum('ammount');
+        $rows = $rowsQuery
+            ->select($columns)
+            ->orderBy($sortBy, $sortDirection)
+            ->paginate(50)
+            ->appends($request->except('page'));
+
+        return view('page/admin/m_overtime/report', [
+            'rows' => $rows,
+            'columns' => $columns,
+            'totalHours' => $totalHours,
+            'totalAmount' => $totalAmount,
+            'canSeeAmountDetails' => $canSeeAmountDetails,
+            'departments' => $departments,
+            'periods' => $periods,
+            'period' => $period,
+            'departmentFilter' => $departmentFilter,
+            'categories' => $categories,
+            'category' => $category,
+            'details' => $details,
+            'detailCategory' => $detailCategory,
+            'employees' => $employees,
+            'employee' => $employee,
+            'sortOptions' => $sortOptions,
+            'sortBy' => $sortBy,
+            'sortDirection' => $sortDirection,
+            'menu' => 'overtimes',
+        ]);
+    }
+
     function employeeOT($periode,$dept_id){
         date_default_timezone_set("Asia/Jakarta");
         $kalendar=CAL_GREGORIAN;

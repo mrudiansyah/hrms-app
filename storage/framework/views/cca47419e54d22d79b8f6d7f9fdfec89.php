@@ -9,6 +9,7 @@
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 
     <title><?php echo e(config('app.name', 'EMS')); ?> - Login</title>
+    <link rel="icon" type="image/svg+xml" href="<?php echo e(asset('/gambar/hr-icon.svg')); ?>">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

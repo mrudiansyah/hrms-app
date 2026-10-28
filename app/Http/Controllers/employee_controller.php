@@ -20,38 +20,47 @@ class employee_controller extends Controller
         $this->middleware(['auth','verified']);
     }
     function index($status){
-        $nama=Auth::user()->name;
         $email=Auth::user()->email;
-        $cek1=DB::table('tb_emails')->where('email_address',$email)->get();
-        foreach($cek1 as $dt){$id_user=$dt->id_employee;}
-        $tb_admins=DB::table('tb_admins')->where('id_employee',$id_user)->get();
-    
-        //if($status==0)$status='Magang';
-        //$tb_employee=DB::table('tb_employees')->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')->leftjoin('tb_employee_shifts','tb_employee_shifts.id_employee','=','tb_employees.id')->where([['tb_employee_shifts.status','1'],['tb_employees.status','1']])->get(['tb_employees.*','tb_departments.dept_code','tb_positions.position_name','tb_employee_shifts.id_shift']);
-        $tb_employee=DB::table('tb_employees')
-        ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
-        ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
-        ->leftjoin('tb_employee_shifts','tb_employee_shifts.id_employee','=','tb_employees.id')
-        ->leftjoin('tb_group_shifts','tb_group_shifts.id','=','tb_employee_shifts.id_shift')
-        ->leftjoin('tb_statuses', function ($join) {
-            $join->on('tb_statuses.id_employee', '=', 'tb_employees.id')
-                  ->where('tb_statuses.active', '1');
-        });
+        $emailRecord=DB::table('tb_emails')->where('email_address',$email)->first(['id_employee']);
+        $descendantIds=[];
+
+        if($emailRecord){
+            $visitedIds=[(int)$emailRecord->id_employee=>true];
+            $leaderIds=[(int)$emailRecord->id_employee];
+
+            while(!empty($leaderIds)){
+                $childIds=DB::table('tb_employees')
+                    ->whereIn('leader_id',$leaderIds)
+                    ->pluck('id')
+                    ->map(function($id){return (int)$id;})
+                    ->all();
+                $nextLeaderIds=[];
+
+                foreach($childIds as $childId){
+                    if(!isset($visitedIds[$childId])){
+                        $visitedIds[$childId]=true;
+                        $descendantIds[]=$childId;
+                        $nextLeaderIds[]=$childId;
+                    }
+                }
+
+                $leaderIds=$nextLeaderIds;
+            }
+        }
+
+        $tb_employee=DB::table('view_employee_data_simple')
+            ->whereIn('id',$descendantIds);
         if($status!=0){
-            $tb_employee=$tb_employee->where([['tb_employees.status','1'],['dept_id','0'],['tb_employee_shifts.status','1'],['tb_statuses.contract_name', $status]]);
-            foreach($tb_admins as $dt2){
-                $tb_employee=$tb_employee->orwhere([['tb_employees.status','1'],['dept_id',$dt2->dept_id],['tb_employee_shifts.status','1'],['tb_statuses.contract_name', $status]]);
-            }
+            $tb_employee=$tb_employee->where('contract_name',$status);
         }
-        else{
-            $tb_employee=$tb_employee->where([['tb_employees.status','1'],['dept_id','0'],['tb_employee_shifts.status','1']]);
-            foreach($tb_admins as $dt2){
-                $tb_employee=$tb_employee->orwhere([['tb_employees.status','1'],['dept_id',$dt2->dept_id],['tb_employee_shifts.status','1']]);
-            }
-        }
-        $tb_employee=$tb_employee->orderby('tb_statuses.finish_contract','asc')->get(['tb_employees.*','tb_departments.dept_code','tb_positions.position_name','tb_employee_shifts.id_shift','tb_group_shifts.shift_code','tb_statuses.start_contract','tb_statuses.finish_contract']);
-        //return $tb_employee;
-        $last_update=DB::table('tb_employees')->max('updated_at');
+        $tb_employee=$tb_employee
+            ->orderBy('finish_contract','asc')
+            ->get([
+                'id', 'NIK', 'employee_name', 'join_date', 'gender',
+                'badgenumber as PIN', 'dept_id', 'leader_name', 'dept_code',
+                'position_name', 'id_level', 'line', 'contract_name',
+                'start_contract', 'finish_contract',
+            ]);
         return view('page/user/m_employee/employees',['menu'=>'employees','tb_employee'=>$tb_employee,'status'=>$status,'menu'=>'employees']);
     }
     function kskDisplay($id,$my_index){

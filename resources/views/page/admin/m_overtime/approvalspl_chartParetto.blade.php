@@ -9,8 +9,8 @@ height:600px !important;
 <div class="chart-container col-md-12 col-xs-12 ">
     <canvas id="canvas" class="d-flex justify-content-center"></canvas>
 </div>
-<script src="{{ asset('/public/assets/js/Chart.min.js') }}"></script>
-	<script src="{{ asset('/public/assets/js/utils.js') }}"></script>
+<script src="{{ asset('/assets/js/Chart.min.js') }}"></script>
+	<script src="{{ asset('/assets/js/utils.js') }}"></script>
 	@section('Scripts')
 	<script>
 	$('#ovtitle').html('Pareto Overtime Periode {{ $periode_teks }}');

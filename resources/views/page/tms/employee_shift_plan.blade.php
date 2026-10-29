@@ -268,7 +268,7 @@
 	</script>
 	<script>
 		$(document).ready(function() {
-		var table = $('#tables').DataTable({
+		var table = $('#table2').DataTable({
 			'paging'      : true,
 			'lengthChange': false,
 			'searching'   : true,

@@ -24,8 +24,8 @@
             @endif
 
             <!-- USER MANAGEMENT & ACCESS -->
-            @if (request()->user()->hasRole('add_user') || request()->user()->hasRole('role') || request()->user()->hasRole('user_role') || request()->user()->hasRole('hr_access'))
-                    <li class="treeview<?php    if (isset($menu) && ($menu == 'user_management' || $menu == 'setup' || $menu == 'whatsapp_wuzapi'))
+            @if (request()->user()->hasRole('add_user') || request()->user()->hasRole('role') || request()->user()->hasRole('user_role') || request()->user()->hasRole('hr_access') || request()->user()->hasRole('root'))
+                        <li class="treeview<?php    if (isset($menu) && ($menu == 'user_management' || $menu == 'setup' || $menu == 'whatsapp_wuzapi' || $menu == 'functionality_test'))
                 echo ' active';?>">
                         <a href="#">
                             <i class="fa fa-gears text-red"></i> <span>Configuration</span>
@@ -38,7 +38,7 @@
                                         <li class="treeview<?php        if (isset($menu) && ($menu == 'user_management'))
                                 echo ' active';?>">
                                             <a href="#">
-                                                <i class="fa fa-gears"></i> <span>User Management</span>
+                                                <i class="fa fa-user"></i> <span>User Management</span>
                                                 <span class="pull-right-container">
                                                     <i class="fa fa-angle-left pull-right"></i>
                                                 </span>
@@ -62,6 +62,7 @@
                             @endif
                             @if(request()->user()->hasRole('root'))
                                 <li><a href="/whatsapp"><i class="fa fa-whatsapp"></i> <span>Whatsapp Test</span></a></li>
+                                <li><a href="/functionality-test"><i class="fa fa-gears"></i> <span>Functionality Test</span></a></li>
                             @endif
                         </ul>
                     </li>

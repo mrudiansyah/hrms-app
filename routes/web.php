@@ -448,6 +448,9 @@ Route::post('/FingerConfirm', [App\Http\Controllers\tms_controller::class, 'conf
 Route::get('/Absency/Finger/{id}/{id1}/{id2}', [App\Http\Controllers\absency_controller::class, 'iclock']);
 Route::get('/Absency/Rate/{id}/{id1}/{id2}', [App\Http\Controllers\absency_controller::class, 'absensiRate']);
 
+Route::post('/TMS/SaveManual',[App\Http\Controllers\tms_controller::class,'saveManual']);
+
+
 Route::get('/Performance/{periode}', [App\Http\Controllers\performance_controller::class, 'index']);
 Route::get('/PerformanceDetail/{idperformance}/{periode}/{triwulan}/{employee_name}/{created_by}', [App\Http\Controllers\performance_controller::class, 'performanceDetail']);
 Route::post('/PerformanceSubmit', [App\Http\Controllers\performance_controller::class, 'performanceSubmit']);
@@ -478,6 +481,8 @@ Route::post('/Compress', [App\Http\Controllers\guest_controller::class, 'compres
 use App\Http\Controllers\WuzapiController;
 Route::get('/whatsapp', [WuzapiController::class, 'index']);
 Route::post('/whatsapp/send', [WuzapiController::class, 'storeWeb'])->middleware('throttle:30,1'); // max 30x per menit
+Route::get('/functionality-test', [App\Http\Controllers\FunctionalityTestController::class, 'kskApprovalReminders'])->middleware('auth');
+Route::post('/functionality-test/{id}/send-reminder', [App\Http\Controllers\FunctionalityTestController::class, 'sendKskReminder'])->middleware(['auth', 'throttle:30,1']);
 
 //Payroll
 Route::get('/Contract/{department}/{periode}/{type}', [App\Http\Controllers\payroll_controller::class, 'index']);

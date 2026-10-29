@@ -3383,11 +3383,22 @@ class tms_controller extends Controller
     }
     function saveManual(Request $data)
     {
+        $data->validate([
+            'checktime' => ['nullable', 'date'],
+            'checktime_draft' => ['nullable', 'date'],
+        ]);
+
+        $checktime = $data->filled('checktime')
+            ? \Illuminate\Support\Carbon::parse($data->input('checktime'))->format('Y-m-d H:i:s')
+            : null;
+        $checktimeDraft = $data->filled('checktime_draft')
+            ? \Illuminate\Support\Carbon::parse($data->input('checktime_draft'))->format('Y-m-d H:i:s')
+            : null;
         $checker = Auth::user()->name;
-        $simpan = tb_checktime::create([
+        $simpan = DB::table('tb_checktimes')->insert([
             'PIN' => $data->PIN,
-            'checktime' => $data->checktime,
-            'checktime_draft' => $data->checktime_draft,
+            'checktime' => $checktime,
+            'checktime_draft' => $checktimeDraft,
             'checker' => $checker,
             'NIK' => $data->NIK,
             'employee_name' => $data->employee_name,
@@ -3395,10 +3406,10 @@ class tms_controller extends Controller
             'status_checktime' => $data->status_checktime
         ]);
         $cek = '';
-        if ($data->checktime_draft != '') {
-            $periode = date('Y-m', strtotime($data->checktime_draft));
-            $tanggal = date('Y-m-d', strtotime($data->checktime_draft));
-            $tb_checktime = DB::table('tb_checktimes')->where('NIK', $data->NIK)->where('checktime_draft', $data->checktime_draft)->get();
+        if ($checktime !== null) {
+            $periode = date('Y-m', strtotime($checktime));
+            $tanggal = date('Y-m-d', strtotime($checktime));
+            $tb_checktime = DB::table('tb_checktimes')->where('NIK', $data->NIK)->where('checktime', $checktime)->get();
             foreach ($tb_checktime as $dt) {
                 $id = $dt->id;
             }
@@ -3406,14 +3417,59 @@ class tms_controller extends Controller
                 'NIK' => $data->NIK,
                 'periode' => $periode,
                 'tanggal' => $tanggal,
-                'checktime_draft' => $data->checktime_draft,
+                'checktime_draft' => $checktime,
                 'created_by' => $checker,
                 'id_checktime' => $id,
                 'id_we' => $data->idworkentry2,
                 'id_column' => $data->idcolumn2
             ]);
             $pesan = 'Gagal Finger';
-            $jam = date('H:i', strtotime($data->checktime_draft));
+            $jam = date('H:i', strtotime($checktime));
+            if ($jam >= '19:00')
+                $code = '520';
+            else
+                $code = '52';
+            $cek = DB::table('tb_work_checktime')->where('id_work_entry', $data->idworkentry2)->where('id_column', $data->idcolumn2)->count();
+            if ($cek == 0) {
+                $simpan = DB::table('tb_work_checktime')->insert([
+                    'id_work_entry' => $data->idworkentry2,
+                    'id_column' => $data->idcolumn2,
+                    'entry_code' => $code,
+                    'remark' => $pesan,
+                    'status' => 1,
+                    'admin' => $checker,
+                    'info' => '',
+                ]);
+            } else {
+                $simpan = DB::table('tb_work_checktime')->where('id_work_entry', $data->idworkentry2)->where('id_column', $data->idcolumn2)->update([
+                    'entry_code' => $code,
+                    'remark' => $pesan,
+                    'status' => 1,
+                    'admin' => $checker,
+                    'info' => '',
+                ]);
+            }
+            $id_employee=DB::table('tb_work_entries')->where('id', $data->idworkentry2)->value('id_employee');
+            $this->tmsUpdateOne($periode, $id_employee, $tanggal);
+        }elseif ($checktimeDraft !== null) {
+            $periode = date('Y-m', strtotime($checktimeDraft));
+            $tanggal = date('Y-m-d', strtotime($checktimeDraft));
+            $tb_checktime = DB::table('tb_checktimes')->where('NIK', $data->NIK)->where('checktime_draft', $checktimeDraft)->get();
+            foreach ($tb_checktime as $dt) {
+                $id = $dt->id;
+            }
+            $add_gagal_finger = DB::table('tb_gagal_finger')->insert([
+                'NIK' => $data->NIK,
+                'periode' => $periode,
+                'tanggal' => $tanggal,
+                'checktime_draft' => $checktimeDraft,
+                'created_by' => $checker,
+                'id_checktime' => $id,
+                'id_we' => $data->idworkentry2,
+                'id_column' => $data->idcolumn2
+            ]);
+            $pesan = 'Gagal Finger';
+            $jam = date('H:i', strtotime($checktimeDraft));
             if ($jam >= '19:00')
                 $code = '520';
             else
@@ -3439,7 +3495,7 @@ class tms_controller extends Controller
                 ]);
             }
         }
-        return "Data : " . $data->checktime_draft . ' Cek:' . $cek . ' IDWE:' . $data->idworkentry2 . ' D:' . $data->idcolumn2;
+        return "Data : " . ($checktimeDraft ?? $checktime) . ' Cek:' . $cek . ' IDWE:' . $data->idworkentry2 . ' D:' . $data->idcolumn2;
     }
     function reconsileAll($tgl)
     {

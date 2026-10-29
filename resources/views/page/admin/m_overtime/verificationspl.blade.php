@@ -252,8 +252,8 @@
 											$jam_akhir=date('H:i',strtotime($dt->finish_act));
 											$finish_act=$tgl_akhir.'T'.$jam_akhir;
 											if($dt->sign_after=='1'||$dt->sign_after=='0'||$dt->sign_after=='3'){?>
-											<button type="button" class="btn btn-primary btn-xs update-modal" data-dateon='{{$dt->date_on}}' data-id_employee='{{$dt->id_employee}}' data-idafter='{{$dt->id}}' data-startact='{{$start_act}}' data-finishact='{{$finish_act}}' data-otcategory='{{$dt->ot_category}}' data-hoursact='{{$dt->hours_act}}' data-hoursconvertion='{{$dt->hours_convertion}}' data-otisoma='{{$dt->minutes_break}}' data-harikerja="{{$dt->hari_kerja}}"><i class="fa fa-edit"></i></button>
-											<?php if($dt->hari_kerja!=7){?><button title="Yes" id="yes-dip{{$no}}" type="button" class="btn btn-success btn-xs yes-dip" data-nilai="{{$no}}" data-detailid="{{$dt->id}}"><i class="fa fa-check"></i></button><?php }?>
+											<button type="button" class="btn btn-primary btn-xs update-modal" data-dateon='{{$dt->date_on}}' data-id_employee='{{$dt->id_employee}}' data-idafter='{{$dt->id}}' data-startact='{{$start_act}}' data-finishact='{{$finish_act}}' data-otcategory='{{$dt->ot_category}}' data-hoursact='{{$dt->hours_act}}' data-hoursconvertion='{{$dt->hours_convertion}}' data-otisoma='{{$dt->minutes_break}}'><i class="fa fa-edit"></i></button>
+											<button title="Yes" id="yes-dip{{$no}}" type="button" class="btn btn-success btn-xs yes-dip" data-nilai="{{$no}}" data-detailid="{{$dt->id}}"><i class="fa fa-check"></i></button>
 											<?php 
 											}?>
 											<button title="No" id="no-dip{{$no}}" type="button" class="btn btn-danger btn-xs no-dip" data-nilai="{{$no}}" data-detailid="{{$dt->id}}"><i class="fa fa-close"></i></button>

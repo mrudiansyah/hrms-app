@@ -1233,13 +1233,8 @@ class admin_overtime extends Controller
             $tb_overtime_detail = DB::table('tb_overtime_details')
                 ->leftjoin('tb_overtimes', 'tb_overtimes.id', '=', 'tb_overtime_details.id_ot')
                 ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_overtime_details.id_employee')
-                ->join('tb_employee_shifts', function ($join) {
-                    $join->on('tb_employee_shifts.id_employee', '=', 'tb_employees.id')
-                        ->where('tb_employee_shifts.status', 1);
-                })
-                ->leftjoin('tb_group_shifts', 'tb_group_shifts.id', '=', 'tb_employee_shifts.id_shift')
                 ->where('tb_overtime_details.id_ot', $id)
-                ->get(['tb_overtime_details.*', 'tb_employees.PIN', 'tb_employees.NIK', 'tb_employees.employee_name', 'tb_overtimes.status_diketahui', 'tb_overtimes.status_dicatat', 'tb_group_shifts.hari_kerja', 'tb_employees.badgenumber']);
+                ->get(['tb_overtime_details.*', 'tb_employees.PIN', 'tb_employees.NIK', 'tb_employees.employee_name', 'tb_overtimes.status_diketahui', 'tb_employees.badgenumber']);
 
             foreach ($tb_overtime_detail as $dt) {
                 if ($dt->ot_category == 2) {
@@ -1257,13 +1252,8 @@ class admin_overtime extends Controller
         $tb_overtime_detail = DB::table('tb_overtime_details')
             ->leftjoin('tb_overtimes', 'tb_overtimes.id', '=', 'tb_overtime_details.id_ot')
             ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_overtime_details.id_employee')
-            ->join('tb_employee_shifts', function ($join) {
-                $join->on('tb_employee_shifts.id_employee', '=', 'tb_employees.id')
-                    ->where('tb_employee_shifts.status', 1);
-            })
-            ->leftjoin('tb_group_shifts', 'tb_group_shifts.id', '=', 'tb_employee_shifts.id_shift')
             ->where('tb_overtime_details.id_ot', $id)
-            ->get(['tb_overtime_details.*', 'tb_employees.PIN', 'tb_employees.NIK', 'tb_employees.employee_name', 'tb_overtimes.status_diketahui', 'tb_overtimes.status_dicatat', 'tb_group_shifts.hari_kerja', 'tb_employees.badgenumber']);
+            ->get(['tb_overtime_details.*', 'tb_employees.PIN', 'tb_employees.NIK', 'tb_employees.employee_name', 'tb_overtimes.status_diketahui', 'tb_overtimes.status_dicatat', 'tb_employees.badgenumber']);
         return view('page/admin/m_overtime/verificationspl', ['tb_overtime_detail' => $tb_overtime_detail, 'idot' => $id, 'menu' => 'overtime', 'submenu' => 'verification2']);
     }
     function verificationUpdateFinger(Request $data)
@@ -1272,17 +1262,12 @@ class admin_overtime extends Controller
         $tb_overtime_detail = DB::table('tb_overtime_details')
             ->leftjoin('tb_overtimes', 'tb_overtimes.id', '=', 'tb_overtime_details.id_ot')
             ->leftjoin('tb_employees', 'tb_employees.id', '=', 'tb_overtime_details.id_employee')
-            ->join('tb_employee_shifts', function ($join) {
-                $join->on('tb_employee_shifts.id_employee', '=', 'tb_employees.id')
-                    ->where('tb_employee_shifts.status', 1);
-            })
-            ->leftjoin('tb_group_shifts', 'tb_group_shifts.id', '=', 'tb_employee_shifts.id_shift')
             ->where('tb_overtime_details.id_ot', $id)
             ->whereNull('tb_overtime_details.in_finger')
             ->whereNull('tb_overtime_details.out_finger')
             //->where('badgenumber','6083')
             ->limit(40)
-            ->get(['tb_overtime_details.*', 'tb_employees.PIN', 'tb_employees.NIK', 'tb_employees.employee_name', 'tb_overtimes.status_diketahui', 'tb_overtimes.status_dicatat', 'tb_group_shifts.hari_kerja', 'tb_employees.badgenumber']);
+            ->get(['tb_overtime_details.*', 'tb_employees.PIN', 'tb_employees.NIK', 'tb_employees.employee_name', 'tb_overtimes.status_diketahui', 'tb_overtimes.status_dicatat', 'tb_employees.badgenumber']);
         $no = 0;
         foreach ($tb_overtime_detail as $dt) {
 

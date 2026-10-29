@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use DateTime;
 use Session;
 use PDF;
@@ -57,55 +58,58 @@ class skd_controller extends Controller
       date_default_timezone_set("Asia/Jakarta");
       $sekarang=date('Y-m-d H:i:s');
       $tanggal=date('Y-m-d');
-      $tujuan_upload = 'public/absensi';
-
-      $namafile=date('ymdhis').'-'.session('PIN');
-
       $file = $data->file('foto');
-      if($file!=''){ 
-        $filename = $file->getClientOriginalName();
-        $valid_ext = array('png','jpeg','jpg','pdf');
-        $file_extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if(in_array($file_extension,$valid_ext)){
-          $imagePath = $file->getPathName();
-          $savedPath = public_path('absensi/' . $filename);
-
-          if (in_array($file_extension, ['png','jpeg','jpg'], true)) {
-            $this->compressImage($imagePath, $savedPath, 20);
-          } else {
-            $file->move(public_path('absensi'), $filename);
-          }
-
-          if (!file_exists($savedPath)) {
-            return redirect()->back()->with(['success' => 'File upload gagal, silakan coba lagi']);
-          }
-
-          $type = strtolower(pathinfo($savedPath, PATHINFO_EXTENSION));
-          $datas = file_get_contents($savedPath);
-          if ($type === 'pdf') {
-            $base64 = 'data:application/pdf;base64,' . base64_encode($datas);
-          } else {
-            $base64 = 'data:image/' . $type . ';base64,' . base64_encode($datas);
-          }
-
-          @unlink($savedPath);
-
-        }else{
-          echo "Invalid file type.";
+      if($file){
+        if (!$file->isValid()) {
+          return redirect()->back()->with(['success' => 'Upload file gagal, silakan coba lagi']);
         }
-        
-        $cek=DB::table('tb_sick')->where('id_employee',session('id_employee'))->where('tanggal',$data->start_leave)->count();
+
+        $valid_ext = array('png','jpeg','jpg','pdf');
+        $file_extension = strtolower($file->getClientOriginalExtension());
+        if (!in_array($file_extension, $valid_ext, true)) {
+          return redirect()->back()->with(['success' => 'Format file tidak valid. Gunakan JPG, JPEG, PNG, atau PDF.']);
+        }
+
+        $filename = bin2hex(random_bytes(16)) . '.' . $file_extension;
+        $storedPath = $file->storeAs('skd', $filename, 'public');
+        $storage = Storage::disk('public');
+
+        if (!$storedPath || !$storage->exists($storedPath) || $storage->size($storedPath) === 0) {
+          if ($storedPath) {
+            $storage->delete($storedPath);
+          }
+          return redirect()->back()->with(['success' => 'File upload gagal, silakan coba lagi']);
+        }
+
+        $cek = DB::table('tb_sick')
+          ->where('id_employee', session('id_employee'))
+          ->whereRaw('CAST([tanggal] AS NVARCHAR(MAX)) = ?', [$data->start_leave])
+          ->count();
         if($cek==0){
-          $simpan=DB::table('tb_sick')->insert([
+          $simpan = DB::table('tb_sick')->insertGetId([
             'id_employee'=>session('id_employee'),
             'NIK'=>session('NIK'),
             'employee_name'=>session('employee_name'),
             'upload_time'=>$sekarang,
-            'skd'=>$base64,
+            'skd'=>$filename,
             'status'=>'0',
             'diagnosa'=>$data->diagnosa,
             'tanggal'=>$data->start_leave,
           ]);
+          $storedFilename = DB::table('tb_sick')
+            ->where('id', $simpan)
+            ->value('skd');
+
+          if ($storedFilename !== $filename) {
+            \Illuminate\Support\Facades\Log::error('SKD upload was inserted without document data.', [
+              'id' => $simpan,
+              'expected_filename' => $filename,
+              'stored_filename' => $storedFilename,
+            ]);
+            DB::table('tb_sick')->where('id', $simpan)->delete();
+            $storage->delete($storedPath);
+            return redirect()->back()->with(['success' => 'Data SKD gagal menyimpan file. Silakan coba upload ulang atau hubungi HR.']);
+          }
           //session(['size'=>'']);
           //session()->flush();
           if($simpan){
@@ -187,6 +191,7 @@ class skd_controller extends Controller
 
           }
         }else{
+          $storage->delete($storedPath);
           return redirect()->back()->with(['success' => 'Double Upload, Anda sudah upload SKD']);
         }
 
@@ -218,16 +223,33 @@ class skd_controller extends Controller
           return false;
       }
 
-      imagejpeg($image, $destination, $quality);
+      $compressed = imagejpeg($image, $destination, $quality);
       imagedestroy($image);
-      return true;
+      return $compressed;
     }
     function image($id){
-      $tb_sick=DB::table('tb_sick')->where('id',$id)->get();
-      foreach($tb_sick as $dt){
-          $photo=$dt->skd;
+      $record = DB::table('tb_sick')->where('id', $id)->first(['skd']);
+      if (!$record || !$record->skd) {
+        abort(404);
       }
-      echo "<div style='width:100%;text-align:center;background:#333;padding:0px;'><img style='height:100%;border:1px solid #333;  background:#fff;' src='".$photo."' ></div>";
+
+      if (str_starts_with($record->skd, 'data:')) {
+        return response("<div style='width:100%;text-align:center;background:#333;padding:0px;'><img style='height:100%;border:1px solid #333;background:#fff;' src='" . e($record->skd) . "'></div>")
+          ->header('Content-Type', 'text/html');
+      }
+
+      $filename = basename($record->skd);
+      if ($filename !== $record->skd) {
+        abort(404);
+      }
+
+      $storage = Storage::disk('public');
+      $path = 'skd/' . $filename;
+      if (!$storage->exists($path)) {
+        abort(404);
+      }
+
+      return $storage->response($path);
   }
   function leaveCount(Request $data){
 

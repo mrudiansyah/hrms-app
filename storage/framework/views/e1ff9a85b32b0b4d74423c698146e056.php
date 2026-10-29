@@ -101,7 +101,10 @@
 											<td><?php echo e($dt->leave_count); ?></td>
 											<td><?php echo e($dt->reason); ?></td>
 											<td>
-												<a href="/SKD/Image/<?php echo e($dt->id); ?>" class="btn btn-info btn-xs" target="_blank"><i class="fa fa-image"></i></a>
+												<a href="/SKD/Image/<?php echo e($dt->id); ?>" class="btn btn-info btn-xs" target="_blank" title="Lihat dokumen SKD"><i class="fa fa-image"></i></a>
+												<!-- <?php if(!str_starts_with($dt->skd ?? '', 'data:')): ?>
+													<div title="<?php echo e($dt->skd); ?>" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?php echo e($dt->skd); ?></div>
+												<?php endif; ?> -->
 												<div class="pull-right">
 													<?php $hide=1;if (request()->user()->hasRole('hr_access')&&$hide==0){?>
 														<button title="Approve" type="button" class="update-modal btn btn-primary btn-xs" data-idskd="<?php echo e($dt->id); ?>" data-idemployee="<?php echo e($dt->id_employee); ?>" data-idleader="<?php echo e($dt->leader_id); ?>"><i class="fa fa-check-square-o"></i></button>
@@ -145,7 +148,10 @@
 											<td><?php echo e($dt->NIK); ?></td>
 											<td><?php echo e($dt->employee_name); ?></td>
 											<td>
-												<a href="/SKD/Image/<?php echo e($dt->id); ?>" target="_blank"><i class="fa fa-image"></i></a>
+												<a href="/SKD/Image/<?php echo e($dt->id); ?>" target="_blank" title="Lihat dokumen SKD"><i class="fa fa-image"></i></a>
+												<?php if(!str_starts_with($dt->skd ?? '', 'data:')): ?>
+													<div title="<?php echo e($dt->skd); ?>" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?php echo e($dt->skd); ?></div>
+												<?php endif; ?>
 												<div class="pull-right">
 													<?php if (request()->user()->hasRole('allowance')&&$dt->status=='2') {?>
 														<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-deleteid="<?php echo e($dt->id); ?>" data-deletename="<?php echo e($dt->employee_name); ?>"><i class="fa fa-trash"></i></button>

@@ -1119,14 +1119,20 @@ class leave_controller extends Controller
     function skd($awal,$akhir){
         date_default_timezone_set("Asia/Jakarta");
 
-        
         if($awal==0){
-            $periode=date('Y-m');
-            $periodeBefore=date('Y-m-d',strtotime('-1 days',strtotime($periode.'-01')));
-            $bln=date('Y-m',strtotime($periodeBefore.'-01'));
-            $awal=date('Y-m-d',strtotime($bln.'-25'));
-            $akhir=date('Y-m-d',strtotime($periode.'-24'));
+            $currentMonth = new DateTime(date('Y-m-01'));
+            if ((int) date('d') >= 25) {
+                $startMonth = clone $currentMonth;
+                $endMonth = (clone $currentMonth)->modify('+1 month');
+            } else {
+                $startMonth = (clone $currentMonth)->modify('-1 month');
+                $endMonth = $currentMonth;
+            }
+
+            $awal = $startMonth->format('Y-m-') . '25';
+            $akhir = $endMonth->format('Y-m-') . '24';
         }
+        $akhirExclusive = (new DateTime($akhir))->modify('+1 day')->format('Y-m-d');
 
         $email=Auth::user()->email;
         $user = DB::table('tb_emails')->where('email_address',$email)->first();
@@ -1149,7 +1155,8 @@ class leave_controller extends Controller
                 $join->on(DB::raw('TRY_CONVERT(int, [tb_leaves].[id_doc])'), '=', 'tb_sick.id');
             })
             ->whereIn('tb_employees.dept_id', $deptIds)
-            ->whereBetween('upload_time', [$awal, $akhir])
+            ->where('tb_sick.upload_time', '>=', $awal)
+            ->where('tb_sick.upload_time', '<', $akhirExclusive)
             ->orderBy('upload_time','desc')
             ->orderBy('tb_sick.status','asc')
             ->orderBy('tb_sick.id','asc')

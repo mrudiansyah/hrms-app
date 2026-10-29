@@ -101,7 +101,10 @@
 											<td>{{$dt->leave_count}}</td>
 											<td>{{$dt->reason}}</td>
 											<td>
-												<a href="/SKD/Image/{{$dt->id}}" class="btn btn-info btn-xs" target="_blank"><i class="fa fa-image"></i></a>
+												<a href="/SKD/Image/{{$dt->id}}" class="btn btn-info btn-xs" target="_blank" title="Lihat dokumen SKD"><i class="fa fa-image"></i></a>
+												<!-- @if (!str_starts_with($dt->skd ?? '', 'data:'))
+													<div title="{{$dt->skd}}" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{$dt->skd}}</div>
+												@endif -->
 												<div class="pull-right">
 													<?php $hide=1;if (request()->user()->hasRole('hr_access')&&$hide==0){?>
 														<button title="Approve" type="button" class="update-modal btn btn-primary btn-xs" data-idskd="{{$dt->id}}" data-idemployee="{{$dt->id_employee}}" data-idleader="{{$dt->leader_id}}"><i class="fa fa-check-square-o"></i></button>
@@ -145,7 +148,10 @@
 											<td>{{$dt->NIK}}</td>
 											<td>{{$dt->employee_name}}</td>
 											<td>
-												<a href="/SKD/Image/{{$dt->id}}" target="_blank"><i class="fa fa-image"></i></a>
+												<a href="/SKD/Image/{{$dt->id}}" target="_blank" title="Lihat dokumen SKD"><i class="fa fa-image"></i></a>
+												@if (!str_starts_with($dt->skd ?? '', 'data:'))
+													<div title="{{$dt->skd}}" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{$dt->skd}}</div>
+												@endif
 												<div class="pull-right">
 													<?php if (request()->user()->hasRole('allowance')&&$dt->status=='2') {?>
 														<button title="Delete" type="button" class="delete-modal btn btn-danger btn-xs" data-deleteid="{{$dt->id}}" data-deletename="{{$dt->employee_name}}"><i class="fa fa-trash"></i></button>

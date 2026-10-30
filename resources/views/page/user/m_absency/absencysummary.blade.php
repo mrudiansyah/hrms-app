@@ -84,20 +84,8 @@
 													<td><?php $banyak=$dt->setengah_minutes/240;echo number_format($banyak,0);?></td>
 													<td><?php echo number_format($dt->keluar_minutes,0);?></td>
 													<td>
-														<?php
-															$host= mysqli_connect("192.168.1.4","ems","123456","db_ems");
-															$query="select * from tb_leaves where id_employee='".$dt->id_employee."' and ((start_leave>='".$Tgl_awal."' and start_leave<='".$Tgl_akhir."')or(finish_leave>='".$Tgl_awal."' and finish_leave<='".$Tgl_akhir."')) and (category='annual' or category='special') and status_legalized=1";
-															$qry=mysqli_query($host,$query)or die(mysqli_error($host));
-															$c=0;
-															$t=$dt->id_employee.': ';
-															while($dt2=mysqli_fetch_array($qry)){
-																$c=$c+$dt2['leave_count'];
-																$t=$t.' ('.$dt2['leave_count'].' on '.$dt2['start_leave'].' ~ '.$dt2['finish_leave'].')';
-															}
-															//$sum=$off+$tl+$ot;
-														?>
 														<?php echo number_format($dt->cuti,0);?>
-														<div class="pull-right" title="{{$t}}"><?php //if($c!=$dt->cuti)echo "<i class='label label-warning'>Gap ".$c."</i>";?></div>
+														<div class="pull-right" title="{{ $leave_tooltips->get($dt->id_employee, $dt->id_employee.': ') }}"></div>
 													</td>
 													<td><?php echo number_format($dt->sakit,0);?></td>
 													<td><?php echo number_format($dt->izin,0);?></td>
@@ -245,4 +233,3 @@
   	</script>
 
 @endsection
-

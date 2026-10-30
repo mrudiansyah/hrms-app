@@ -8,6 +8,7 @@
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 
     <title><?php echo e(config('app.name', 'Laravel')); ?></title>
+    <link rel="icon" type="image/svg+xml" href="<?php echo e(asset('/gambar/hr-icon.svg')); ?>">
 
     <!-- Scripts -->
     <script src="<?php echo e(asset('/public/js/app.js')); ?>" defer></script>

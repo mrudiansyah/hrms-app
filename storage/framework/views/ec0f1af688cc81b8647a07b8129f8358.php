@@ -69,7 +69,7 @@
 						<i class="fa fa-user"></i>
 						<h3 class="box-title">Data Tables</h3>
 						<div class="box-tools pull-right">
-							<!-- <a href='/Admin/Employee/Create'><button type="button" class="btn btn-primary btn-md"><i class="fa fa-plus"></i> &nbsp;Add New</button></a> -->
+							<a href='/Admin/Employee/Create'><button type="button" class="btn btn-primary btn-md"><i class="fa fa-plus"></i> &nbsp;Add New</button></a>
 							<a href='/Admin/EmployeeBPJS'><button type="button" class="btn btn-success btn-md"><i class="fa fa-user-plus"></i> &nbsp;BPJS</button></a>
 							<a href='/Admin/Employee/Domiciles'><button type="button" class="btn btn-warning btn-md"><i class="fa fa-map-marker"></i> &nbsp;Domiciles</button></a>
 							<a href='/Admin/Employee/PSAB'><button type="button" class="btn btn-default btn-md"><i class="fa fa-user"></i> &nbsp;PSAB</button></a>

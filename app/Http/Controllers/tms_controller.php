@@ -1499,17 +1499,15 @@ class tms_controller extends Controller
         }
 
         if ($dept == 0) {
+            $departmentIds = $tb_admin->pluck('dept_id')->unique()->values();
+            $visibleDepartmentIds = $departmentIds->prepend(0)->unique()->values();
             $tb_absen = DB::table('tb_absensi_rate_kumulatif')
-                ->where([['tb_absensi_rate_kumulatif.periode', $periode], ['tb_absensi_rate_kumulatif.dept_id', '0']]);
-            foreach ($tb_admin as $dt) {
-                $tb_absen = $tb_absen->orwhere([['tb_absensi_rate_kumulatif.periode', $periode], ['tb_absensi_rate_kumulatif.dept_id', $dt->dept_id]]);
-            }
+                ->where('tb_absensi_rate_kumulatif.periode', $periode)
+                ->whereIn('tb_absensi_rate_kumulatif.dept_id', $visibleDepartmentIds);
             $tb_absen = $tb_absen->orderby('absensi_rate', 'asc')->orderby('hari_kerja', 'asc')->get();
             $tb_absen2 = DB::table('tb_absensi_rate_kumulatif')
-                ->where('tb_absensi_rate_kumulatif.periode', $periode);
-            foreach ($tb_admin as $dt) {
-                $tb_absen2 = $tb_absen2->where('tb_absensi_rate_kumulatif.dept_id', '<>', $dt->dept_id);
-            }
+                ->where('tb_absensi_rate_kumulatif.periode', $periode)
+                ->whereNotIn('tb_absensi_rate_kumulatif.dept_id', $visibleDepartmentIds);
             $tb_absen2 = $tb_absen2->orderby('absensi_rate', 'asc')->orderby('hari_kerja', 'asc')->get();
             //return $tb_absen;
             return view('page/user/m_absency/absencysummaries', ['periode' => $periode, 'thn' => $thn, 'bln' => $bln, 'tb_absen' => $tb_absen, 'tb_absen2' => $tb_absen2, 'cekstatus' => '', 'menu' => 'tms']);
@@ -1531,7 +1529,37 @@ class tms_controller extends Controller
                     $tb_absen = $tb_absen->where('dept_id', $dept);
                 }
                 $tb_absen = $tb_absen->where('tb_absensi_rate.periode', $periode)->where('hari_kerja', '5')->orderby('employee_name', 'asc')->get();
-                return view('page/user/m_absency/absencysummary', ['Tgl_awal' => $Tglawal, 'Tgl_akhir' => $Tglakhir, 'dept_id' => $dept, 'dept_name' => $dept_name, 'periode' => $periode, 'thn' => $thn, 'bln' => $bln, 'tb_absen' => $tb_absen, 'hari_kerja' => '5', 'menu' => 'tms']);
+                $employeeIds = $tb_absen->pluck('id_employee')->unique();
+                $leaveTooltips = collect();
+                if ($employeeIds->isNotEmpty()) {
+                    $leaveTooltips = DB::table('tb_leaves')
+                        ->whereIn('id_employee', $employeeIds)
+                        ->where('start_leave', '<=', $Tglakhir)
+                        ->where('finish_leave', '>=', $Tglawal)
+                        ->whereIn('category', ['annual', 'special'])
+                        ->where('status_legalized', 1)
+                        ->get(['id_employee', 'leave_count', 'start_leave', 'finish_leave'])
+                        ->groupBy('id_employee')
+                        ->map(function ($leaves, $idEmployee) {
+                            return $leaves->reduce(function ($tooltip, $leave) {
+                                return $tooltip . ' (' . $leave->leave_count . ' on ' . $leave->start_leave . ' ~ ' . $leave->finish_leave . ')';
+                            }, $idEmployee . ': ');
+                        });
+                }
+
+                return view('page/user/m_absency/absencysummary', [
+                    'Tgl_awal' => $Tglawal,
+                    'Tgl_akhir' => $Tglakhir,
+                    'dept_id' => $dept,
+                    'dept_name' => $dept_name,
+                    'periode' => $periode,
+                    'thn' => $thn,
+                    'bln' => $bln,
+                    'tb_absen' => $tb_absen,
+                    'leave_tooltips' => $leaveTooltips,
+                    'hari_kerja' => '5',
+                    'menu' => 'tms',
+                ]);
             } else {
                 return redirect()->back();
             }

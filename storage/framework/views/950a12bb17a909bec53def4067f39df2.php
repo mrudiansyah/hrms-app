@@ -225,7 +225,7 @@
     <div class="row">
       <div class="col-md-3">
         <div class="overview-panel">
-          <div class="overview-panel-heading"><h3><i class="fa fa-map-marker overview-title-icon icon-green" aria-hidden="true"></i>Karawang vs Outside</h3><p>Based on recorded active addresses</p></div>
+          <div class="overview-panel-heading"><h3><i class="fa fa-map-marker overview-title-icon icon-green" aria-hidden="true"></i>Karawang vs Outside</h3><p>All core employees; unrecorded addresses shown separately</p></div>
           <div class="overview-panel-body">
             <div class="overview-chart"><canvas id="locationChart"></canvas></div>
             <?php if($addressTotal === 0): ?>
@@ -249,7 +249,7 @@
         <div class="overview-panel">
           <div class="overview-panel-heading">
             <h3><i class="fa fa-calendar overview-title-icon icon-cyan" aria-hidden="true"></i>Length of Service</h3>
-            <p>Active employees by service-length range · average <?php echo e($averageServiceYears); ?> years</p>
+            <p>Core employees by service-length range · average <?php echo e($averageServiceYears); ?> years</p>
           </div>
           <div class="overview-panel-body"><div class="overview-chart"><canvas id="serviceChart"></canvas></div></div>
         </div>
@@ -261,7 +261,7 @@
         <div class="overview-panel">
           <div class="overview-panel-heading">
             <h3><i class="fa fa-users overview-title-icon icon-purple" aria-hidden="true"></i>Employee Generations</h3>
-            <p>X:1965–1980 · Y:1981–1996 · Z:1997–2012 · Alpha:2013–<?php echo e($today->year); ?></p>
+            <p>Boomers, Gen X, Gen Y, Gen Z, Alpha · missing or out-of-range birth dates included</p>
           </div>
           <div class="overview-panel-body"><div class="overview-chart"><canvas id="generationChart"></canvas></div></div>
         </div>
@@ -281,7 +281,7 @@
         <div class="overview-panel">
           <div class="overview-panel-heading">
             <h3><i class="fa fa-venus-mars overview-title-icon icon-blue" aria-hidden="true"></i>Gender</h3>
-            <p>Active employee distribution</p>
+            <p>Core employee distribution</p>
           </div>
           <div class="overview-panel-body"><div class="overview-chart"><canvas id="genderChart"></canvas></div></div>
         </div>
@@ -291,13 +291,13 @@
     <div class="row">
       <div class="col-md-6">
         <div class="overview-panel">
-          <div class="overview-panel-heading"><h3><i class="fa fa-map overview-title-icon icon-green" aria-hidden="true"></i>Address Distribution</h3><p>Top 10 regencies/cities · active employees</p></div>
+          <div class="overview-panel-heading"><h3><i class="fa fa-map overview-title-icon icon-green" aria-hidden="true"></i>Address Distribution</h3><p>Top 10 regencies/cities + remaining and unrecorded addresses</p></div>
           <div class="overview-panel-body"><div class="overview-chart chart-tall"><canvas id="addressChart"></canvas></div></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="overview-panel">
-          <div class="overview-panel-heading"><h3><i class="fa fa-sitemap overview-title-icon icon-blue" aria-hidden="true"></i>Level Distribution</h3><p>Top 10 positions by employee count · all departments</p></div>
+          <div class="overview-panel-heading"><h3><i class="fa fa-sitemap overview-title-icon icon-blue" aria-hidden="true"></i>Level Distribution</h3><p>Top 10 positions + remaining and unrecorded levels</p></div>
           <div class="overview-panel-body"><div class="overview-chart chart-tall"><canvas id="positionChart"></canvas></div></div>
         </div>
       </div>
@@ -371,7 +371,8 @@
         'Kurang dari 1 tahun': 'Under 1 year',
         '1–5 tahun': '1–5 years',
         '6–10 tahun': '6–10 years',
-        'Lebih dari 10 tahun': 'Over 10 years'
+        'Lebih dari 10 tahun': 'Over 10 years',
+        'Tidak tersedia': 'Not available'
       };
       return translations[label] || label;
     }
@@ -391,7 +392,8 @@
       address: <?php echo json_encode($addressDistribution, 15, 512) ?>,
       location: [
         { label: 'Karawang', total: <?php echo e($karawangCount); ?> },
-        { label: 'Outside', total: <?php echo e($nonKarawangCount); ?> }
+        { label: 'Outside', total: <?php echo e($nonKarawangCount); ?> },
+        { label: 'Belum diisi', total: <?php echo e($unrecordedAddressCount); ?> }
       ]
     };
     var canViewChartDetails = <?php echo json_encode(request()->user()->hasRole('hr_access'), 15, 512) ?>;
@@ -405,7 +407,7 @@
       religion: 'Religion',
       education: 'Education',
       marital: 'Marital Status',
-      position: 'Position',
+      position: 'Level Distribution',
       address: 'Address Distribution',
       location: 'Karawang vs. Outside Karawang'
     };

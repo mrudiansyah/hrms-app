@@ -63,7 +63,8 @@ class DashboardPreviewController extends Controller
         $contractCount = $countActiveContract('Kontrak');
         $internCount = $countActiveContract('Magang', true);
         $saiCount = $permanentCount + $contractCount;
-        $coreEmployeeCount = $saiCount + $internCount;
+        $coreEmployees = $this->coreEmployeeQuery();
+        $coreEmployeeCount = (clone $coreEmployees)->count();
         $internIdealCount = (int) round($saiCount * 0.2);
         $otherCount = $countActiveContract(['SAB', 'Other']);
         $psabCount = (clone $activeEmployees)->where('position_id', '23')->count();
@@ -208,20 +209,22 @@ class DashboardPreviewController extends Controller
             });
 
         $generationRanges = $this->generationRanges($today->year);
-        $generationCounts = array_fill_keys(array_keys($generationRanges), 0);
-        foreach ($employeesWithBirthDate as $employee) {
-            $birthDate = Carbon::parse($employee->tanggal_lahir);
-            if ($birthDate->greaterThan($today)) {
-                continue;
-            }
-
-            foreach ($generationRanges as $generation => [$startYear, $endYear]) {
-                if ($birthDate->year >= $startYear && $birthDate->year <= $endYear) {
-                    $generationCounts[$generation]++;
-                    break;
-                }
-            }
-        }
+        $generationCounts = array_fill_keys(array_merge(array_keys($generationRanges), ['Tidak tersedia']), 0);
+        $birthDates = DB::table('tb_employee_detail')
+            ->select('id_employee')
+            ->selectRaw('MAX(tanggal_lahir) as tanggal_lahir')
+            ->groupBy('id_employee');
+        (clone $coreEmployees)
+            ->leftJoinSub($birthDates, 'employee_birth_dates', function ($join) {
+                $join->on('employee_birth_dates.id_employee', '=', 'tb_employees.id');
+            })
+            ->select('tb_employees.id as employee_id', 'employee_birth_dates.tanggal_lahir')
+            ->get()
+            ->unique('employee_id')
+            ->each(function ($employee) use (&$generationCounts, $generationRanges, $today) {
+                $generation = $this->employeeGeneration($employee->tanggal_lahir, $generationRanges, $today);
+                $generationCounts[$generation]++;
+            });
         $generationDistribution = collect($generationCounts)
             ->map(function ($total, $label) {
                 return ['label' => $label, 'total' => $total];
@@ -233,17 +236,25 @@ class DashboardPreviewController extends Controller
             '1–5 tahun' => 0,
             '6–10 tahun' => 0,
             'Lebih dari 10 tahun' => 0,
+            'Tidak tersedia' => 0,
         ];
         $totalServiceDays = 0;
         $employeesWithJoinDate = 0;
 
-        (clone $activeEmployees)
-            ->whereNotNull('join_date')
-            ->pluck('join_date')
-            ->each(function ($joinDate) use (&$serviceTime, &$totalServiceDays, &$employeesWithJoinDate, $today) {
+        (clone $coreEmployees)
+            ->select('tb_employees.id', 'tb_employees.join_date')
+            ->get()
+            ->each(function ($employee) use (&$serviceTime, &$totalServiceDays, &$employeesWithJoinDate, $today) {
+                $joinDate = $employee->join_date;
+                if (!$joinDate || strtoupper(trim((string) $joinDate)) === 'NULL') {
+                    $serviceTime['Tidak tersedia']++;
+                    return;
+                }
+
                 $date = Carbon::parse($joinDate);
 
                 if ($date->greaterThan($today)) {
+                    $serviceTime['Tidak tersedia']++;
                     return;
                 }
 
@@ -262,12 +273,21 @@ class DashboardPreviewController extends Controller
                 }
             });
 
-        $distribution = function ($column, $joinDetail = false) {
-            $query = DB::table('tb_employees')
-                ->when($joinDetail, function ($query) {
-                    $query->leftJoin('tb_employee_detail', 'tb_employee_detail.id_employee', '=', 'tb_employees.id');
-                })
-                ->where('tb_employees.status', '1');
+        $employeeDetails = DB::table('tb_employee_detail')
+            ->select('id_employee')
+            ->selectRaw('MAX(agama) as agama, MAX(kode_status) as kode_status')
+            ->groupBy('id_employee');
+        $distribution = function ($column, $joinDetail = false) use ($coreEmployees, $employeeDetails) {
+            $query = (clone $coreEmployees)
+                ->when($joinDetail, function ($query) use ($employeeDetails) {
+                    $query->leftJoinSub($employeeDetails, 'employee_details', function ($join) {
+                        $join->on('employee_details.id_employee', '=', 'tb_employees.id');
+                    });
+                });
+
+            if ($joinDetail) {
+                $column = str_replace('tb_employee_detail.', 'employee_details.', $column);
+            }
 
             $expression = "COALESCE(NULLIF(LTRIM(RTRIM({$column})), ''), 'Belum diisi')";
 
@@ -280,51 +300,57 @@ class DashboardPreviewController extends Controller
 
         $genderDistribution = $distribution('tb_employees.gender');
         $religionDistribution = $distribution('tb_employee_detail.agama', true);
-        $educationDistribution = DB::table('tb_employees')
-            ->leftJoin('tb_educations', function ($join) {
-                $join->on('tb_educations.id_employee', '=', 'tb_employees.id')
-                    ->where('tb_educations.is_top', '1');
+        $topEducation = DB::table('tb_educations')
+            ->select('id_employee')
+            ->selectRaw('MAX(level_education) as level_education')
+            ->where('is_top', '1')
+            ->groupBy('id_employee');
+        $educationDistribution = (clone $coreEmployees)
+            ->leftJoinSub($topEducation, 'top_education', function ($join) {
+                $join->on('top_education.id_employee', '=', 'tb_employees.id');
             })
-            ->where('tb_employees.status', '1')
-            ->selectRaw("COALESCE(NULLIF(LTRIM(RTRIM(tb_educations.level_education)), ''), 'Belum diisi') as label, COUNT(DISTINCT tb_employees.id) as total")
-            ->groupByRaw("COALESCE(NULLIF(LTRIM(RTRIM(tb_educations.level_education)), ''), 'Belum diisi')")
+            ->selectRaw("COALESCE(NULLIF(LTRIM(RTRIM(top_education.level_education)), ''), 'Belum diisi') as label, COUNT(DISTINCT tb_employees.id) as total")
+            ->groupByRaw("COALESCE(NULLIF(LTRIM(RTRIM(top_education.level_education)), ''), 'Belum diisi')")
             ->orderByDesc('total')
             ->get();
         $maritalStatusDistribution = $distribution('tb_employee_detail.kode_status', true);
 
-        $positionDistribution = DB::table('tb_employees')
+        $positionDistribution = (clone $coreEmployees)
             ->leftJoin('tb_positions', 'tb_positions.id', '=', 'tb_employees.position_id')
-            ->where('tb_employees.status', '1')
             ->selectRaw("COALESCE(NULLIF(LTRIM(RTRIM(tb_positions.position_name)), ''), 'Belum diisi') as label, COUNT(DISTINCT tb_employees.id) as total")
             ->groupByRaw("COALESCE(NULLIF(LTRIM(RTRIM(tb_positions.position_name)), ''), 'Belum diisi')")
             ->orderByDesc('total')
-            ->limit(10)
-            ->get();
+            ->orderBy('label');
+        $positionDistribution = $this->topDistributionWithOthers($positionDistribution);
 
-        $addressBase = DB::table('tb_addresses')
-            ->join('tb_employees', 'tb_employees.id', '=', 'tb_addresses.id_employee')
-            ->where('tb_employees.status', '1')
-            ->where('tb_addresses.status', '1');
+        $activeAddresses = DB::table('tb_addresses')
+            ->select('id_employee')
+            ->selectRaw('MAX(kabupaten) as kabupaten')
+            ->where('status', '1')
+            ->groupBy('id_employee');
+        $addressBase = (clone $coreEmployees)
+            ->leftJoinSub($activeAddresses, 'active_addresses', function ($join) {
+                $join->on('active_addresses.id_employee', '=', 'tb_employees.id');
+            });
 
         $addressDistribution = (clone $addressBase)
-            ->selectRaw("COALESCE(NULLIF(LTRIM(RTRIM(tb_addresses.kabupaten)), ''), 'Belum diisi') as label, COUNT(DISTINCT tb_employees.id) as total")
-            ->groupByRaw("COALESCE(NULLIF(LTRIM(RTRIM(tb_addresses.kabupaten)), ''), 'Belum diisi')")
+            ->selectRaw("COALESCE(NULLIF(LTRIM(RTRIM(active_addresses.kabupaten)), ''), 'Belum diisi') as label, COUNT(DISTINCT tb_employees.id) as total")
+            ->groupByRaw("COALESCE(NULLIF(LTRIM(RTRIM(active_addresses.kabupaten)), ''), 'Belum diisi')")
             ->orderByDesc('total')
-            ->limit(10)
-            ->get();
+            ->orderBy('label');
+        $addressDistribution = $this->topDistributionWithOthers($addressDistribution);
 
         $addressSummary = (clone $addressBase)
-            ->whereNotNull('tb_addresses.kabupaten')
-            ->whereRaw("LTRIM(RTRIM(tb_addresses.kabupaten)) <> ''")
             ->selectRaw(
-                "COUNT(DISTINCT CASE WHEN UPPER(LTRIM(RTRIM(tb_addresses.kabupaten))) = ? THEN tb_employees.id END) as karawang, COUNT(DISTINCT tb_employees.id) as total",
+                "COUNT(DISTINCT CASE WHEN UPPER(LTRIM(RTRIM(active_addresses.kabupaten))) = ? THEN tb_employees.id END) as karawang, COUNT(DISTINCT CASE WHEN active_addresses.kabupaten IS NULL OR LTRIM(RTRIM(active_addresses.kabupaten)) = '' THEN tb_employees.id END) as unrecorded",
                 ['KAB. KARAWANG']
             )
             ->first();
 
         $karawangCount = (int) $addressSummary->karawang;
-        $nonKarawangCount = max(0, (int) $addressSummary->total - $karawangCount);
-        $addressTotal = $karawangCount + $nonKarawangCount;
+        $unrecordedAddressCount = (int) $addressSummary->unrecorded;
+        $nonKarawangCount = max(0, $coreEmployeeCount - $karawangCount - $unrecordedAddressCount);
+        $addressTotal = $coreEmployeeCount;
 
         return view('dashboard.preview', [
             'today' => $today,
@@ -364,6 +390,7 @@ class DashboardPreviewController extends Controller
             'addressDistribution' => $addressDistribution,
             'karawangCount' => $karawangCount,
             'nonKarawangCount' => $nonKarawangCount,
+            'unrecordedAddressCount' => $unrecordedAddressCount,
             'addressTotal' => $addressTotal,
             'karawangPercentage' => $addressTotal > 0 ? round($karawangCount / $addressTotal * 100, 1) : 0,
             'nonKarawangPercentage' => $addressTotal > 0 ? round($nonKarawangCount / $addressTotal * 100, 1) : 0,
@@ -389,6 +416,9 @@ class DashboardPreviewController extends Controller
             ->leftJoin('tb_departments', 'tb_departments.id', '=', 'tb_employees.dept_id')
             ->leftJoin('tb_positions', 'tb_positions.id', '=', 'tb_employees.position_id')
             ->where('tb_employees.status', '1');
+        if (!in_array($filters['chart'], ['retirement_projection', 'contract_projection'], true)) {
+            $this->applyCoreEmployeeFilter($query);
+        }
 
         $query->select([
             'tb_employees.id as employee_id',
@@ -406,30 +436,43 @@ class DashboardPreviewController extends Controller
 
             case 'religion':
             case 'marital':
-                $query->leftJoin('tb_employee_detail', 'tb_employee_detail.id_employee', '=', 'tb_employees.id');
+                $employeeDetails = DB::table('tb_employee_detail')
+                    ->select('id_employee')
+                    ->selectRaw('MAX(agama) as agama, MAX(kode_status) as kode_status')
+                    ->groupBy('id_employee');
+                $query->leftJoinSub($employeeDetails, 'employee_details', function ($join) {
+                    $join->on('employee_details.id_employee', '=', 'tb_employees.id');
+                });
                 $column = [
-                    'religion' => 'tb_employee_detail.agama',
-                    'marital' => 'tb_employee_detail.kode_status',
+                    'religion' => 'employee_details.agama',
+                    'marital' => 'employee_details.kode_status',
                 ][$filters['chart']];
                 $this->whereNormalizedValue($query, $column, $filters['label']);
                 break;
 
             case 'education':
-                $query->leftJoin('tb_educations', function ($join) {
-                    $join->on('tb_educations.id_employee', '=', 'tb_employees.id')
-                        ->where('tb_educations.is_top', '1');
+                $topEducation = DB::table('tb_educations')
+                    ->select('id_employee')
+                    ->selectRaw('MAX(level_education) as level_education')
+                    ->where('is_top', '1')
+                    ->groupBy('id_employee');
+                $query->leftJoinSub($topEducation, 'top_education', function ($join) {
+                    $join->on('top_education.id_employee', '=', 'tb_employees.id');
                 });
-                $this->whereNormalizedValue($query, 'tb_educations.level_education', $filters['label']);
+                $this->whereNormalizedValue($query, 'top_education.level_education', $filters['label']);
                 break;
 
             case 'service':
-                $query->whereNotNull('tb_employees.join_date');
                 $employees = $query->get();
                 $matchingEmployees = $employees->filter(function ($employee) use ($filters) {
+                    if (!$employee->join_date || strtoupper(trim((string) $employee->join_date)) === 'NULL') {
+                        return $filters['label'] === 'Tidak tersedia';
+                    }
+
                     $joinDate = Carbon::parse($employee->join_date);
 
                     if ($joinDate->isFuture()) {
-                        return false;
+                        return $filters['label'] === 'Tidak tersedia';
                     }
 
                     $days = $joinDate->diffInDays(Carbon::today());
@@ -443,39 +486,82 @@ class DashboardPreviewController extends Controller
                 return response()->json($this->paginateEmployeeCollection($matchingEmployees, $page));
 
             case 'position':
-                $this->whereNormalizedValue($query, 'tb_positions.position_name', $filters['label']);
+                if ($filters['label'] === '__other__') {
+                    $expression = "COALESCE(NULLIF(LTRIM(RTRIM(tb_positions.position_name)), ''), 'Belum diisi')";
+                    $query->whereNotIn(DB::raw($expression), $this->topPositionLabels());
+                } else {
+                    $this->whereNormalizedValue($query, 'tb_positions.position_name', $filters['label']);
+                }
                 break;
 
             case 'generation':
                 $generationRanges = $this->generationRanges(Carbon::today()->year);
-                abort_unless(array_key_exists($filters['label'], $generationRanges), 422);
-                [$startYear, $endYear] = $generationRanges[$filters['label']];
-                $query
-                    ->join('tb_employee_detail', 'tb_employee_detail.id_employee', '=', 'tb_employees.id')
-                    ->whereBetween('tb_employee_detail.tanggal_lahir', [
+                abort_unless(
+                    array_key_exists($filters['label'], $generationRanges) || $filters['label'] === 'Tidak tersedia',
+                    422
+                );
+                $birthDates = DB::table('tb_employee_detail')
+                    ->select('id_employee')
+                    ->selectRaw('MAX(tanggal_lahir) as tanggal_lahir')
+                    ->groupBy('id_employee');
+                $query->leftJoinSub($birthDates, 'employee_birth_dates', function ($join) {
+                    $join->on('employee_birth_dates.id_employee', '=', 'tb_employees.id');
+                });
+                if ($filters['label'] === 'Tidak tersedia') {
+                    $query->where(function ($query) use ($generationRanges) {
+                        $query->whereNull('employee_birth_dates.tanggal_lahir')
+                            ->orWhereRaw("LTRIM(RTRIM(employee_birth_dates.tanggal_lahir)) = ''")
+                            ->orWhere('employee_birth_dates.tanggal_lahir', '>', Carbon::today()->toDateString())
+                            ->orWhere('employee_birth_dates.tanggal_lahir', '<', Carbon::create($generationRanges['Boomers'][0], 1, 1)->toDateString());
+                    });
+                } else {
+                    [$startYear, $endYear] = $generationRanges[$filters['label']];
+                    $query->whereBetween('employee_birth_dates.tanggal_lahir', [
                         Carbon::create($startYear, 1, 1)->toDateString(),
                         Carbon::create($endYear, 12, 31)->min(Carbon::today())->toDateString(),
                     ]);
+                }
                 break;
 
             case 'address':
-                $query
-                    ->join('tb_addresses', 'tb_addresses.id_employee', '=', 'tb_employees.id')
-                    ->where('tb_addresses.status', '1');
-                $this->whereNormalizedValue($query, 'tb_addresses.kabupaten', $filters['label']);
+                $activeAddresses = DB::table('tb_addresses')
+                    ->select('id_employee')
+                    ->selectRaw('MAX(kabupaten) as kabupaten')
+                    ->where('status', '1')
+                    ->groupBy('id_employee');
+                $query->leftJoinSub($activeAddresses, 'active_addresses', function ($join) {
+                    $join->on('active_addresses.id_employee', '=', 'tb_employees.id');
+                });
+                if ($filters['label'] === '__other__') {
+                    $expression = "COALESCE(NULLIF(LTRIM(RTRIM(active_addresses.kabupaten)), ''), 'Belum diisi')";
+                    $query->whereNotIn(DB::raw($expression), $this->topAddressLabels());
+                } else {
+                    $this->whereNormalizedValue($query, 'active_addresses.kabupaten', $filters['label']);
+                }
                 break;
 
             case 'location':
-                $query
-                    ->join('tb_addresses', 'tb_addresses.id_employee', '=', 'tb_employees.id')
-                    ->where('tb_addresses.status', '1')
-                    ->whereNotNull('tb_addresses.kabupaten')
-                    ->whereRaw("LTRIM(RTRIM(tb_addresses.kabupaten)) <> ''");
+                $activeAddresses = DB::table('tb_addresses')
+                    ->select('id_employee')
+                    ->selectRaw('MAX(kabupaten) as kabupaten')
+                    ->where('status', '1')
+                    ->groupBy('id_employee');
+                $query->leftJoinSub($activeAddresses, 'active_addresses', function ($join) {
+                    $join->on('active_addresses.id_employee', '=', 'tb_employees.id');
+                });
 
                 if ($filters['label'] === 'Karawang') {
-                    $query->whereRaw("UPPER(LTRIM(RTRIM(tb_addresses.kabupaten))) = 'KAB. KARAWANG'");
+                    $query->whereRaw("UPPER(LTRIM(RTRIM(active_addresses.kabupaten))) = 'KAB. KARAWANG'");
+                } elseif ($filters['label'] === 'Outside') {
+                    $query->whereNotNull('active_addresses.kabupaten')
+                        ->whereRaw("LTRIM(RTRIM(active_addresses.kabupaten)) <> ''")
+                        ->whereRaw("UPPER(LTRIM(RTRIM(active_addresses.kabupaten))) <> 'KAB. KARAWANG'");
                 } else {
-                    $query->whereRaw("UPPER(LTRIM(RTRIM(tb_addresses.kabupaten))) <> 'KAB. KARAWANG'");
+                    abort_unless($filters['label'] === 'Belum diisi', 422);
+                    $query->where(function ($query) {
+                        $query->whereNull('active_addresses.kabupaten')
+                            ->orWhereRaw("LTRIM(RTRIM(active_addresses.kabupaten)) = ''");
+                    });
                 }
                 break;
 
@@ -538,6 +624,89 @@ class DashboardPreviewController extends Controller
         $query->whereRaw("LTRIM(RTRIM({$column})) = ?", [$value]);
     }
 
+    private function coreEmployeeQuery()
+    {
+        return $this->applyCoreEmployeeFilter(
+            DB::table('tb_employees')->where('tb_employees.status', '1')
+        );
+    }
+
+    private function applyCoreEmployeeFilter($query)
+    {
+        return $query->where(function ($query) {
+            $query->whereExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('tb_statuses')
+                    ->whereColumn('tb_statuses.id_employee', 'tb_employees.id')
+                    ->where('tb_statuses.active', '1')
+                    ->whereIn('tb_statuses.contract_name', ['Permanen', 'Kontrak']);
+            })->orWhere(function ($query) {
+                $query->where('tb_employees.position_id', '<>', '37')
+                    ->whereExists(function ($query) {
+                        $query->selectRaw('1')
+                            ->from('tb_statuses')
+                            ->whereColumn('tb_statuses.id_employee', 'tb_employees.id')
+                            ->where('tb_statuses.active', '1')
+                            ->where('tb_statuses.contract_name', 'Magang');
+                    });
+            });
+        });
+    }
+
+    private function topDistributionWithOthers($query)
+    {
+        $rows = $query->get();
+        if ($rows->count() <= 10) {
+            return $rows;
+        }
+
+        $topRows = $rows->take(10)->values();
+        $topRows->push((object) [
+            'label' => 'Lainnya',
+            'total' => $rows->slice(10)->sum('total'),
+            'detailLabel' => '__other__',
+        ]);
+
+        return $topRows;
+    }
+
+    private function topPositionLabels()
+    {
+        $expression = "COALESCE(NULLIF(LTRIM(RTRIM(tb_positions.position_name)), ''), 'Belum diisi')";
+
+        return (clone $this->coreEmployeeQuery())
+            ->leftJoin('tb_positions', 'tb_positions.id', '=', 'tb_employees.position_id')
+            ->selectRaw("{$expression} as label, COUNT(DISTINCT tb_employees.id) as total")
+            ->groupByRaw($expression)
+            ->orderByDesc('total')
+            ->orderBy('label')
+            ->limit(10)
+            ->pluck('label')
+            ->all();
+    }
+
+    private function topAddressLabels()
+    {
+        $expression = "COALESCE(NULLIF(LTRIM(RTRIM(active_addresses.kabupaten)), ''), 'Belum diisi')";
+        $activeAddresses = DB::table('tb_addresses')
+            ->select('id_employee')
+            ->selectRaw('MAX(kabupaten) as kabupaten')
+            ->where('status', '1')
+            ->groupBy('id_employee');
+
+        return (clone $this->coreEmployeeQuery())
+            ->leftJoinSub($activeAddresses, 'active_addresses', function ($join) {
+                $join->on('active_addresses.id_employee', '=', 'tb_employees.id');
+            })
+            ->selectRaw("{$expression} as label, COUNT(DISTINCT tb_employees.id) as total")
+            ->groupByRaw($expression)
+            ->orderByDesc('total')
+            ->orderBy('label')
+            ->limit(10)
+            ->pluck('label')
+            ->all();
+    }
+
     private function generationRanges($currentYear)
     {
         return [
@@ -547,6 +716,26 @@ class DashboardPreviewController extends Controller
             'Gen Z' => [1997, 2012],
             'Alpha' => [2013, $currentYear],
         ];
+    }
+
+    private function employeeGeneration($birthDate, $generationRanges, Carbon $today)
+    {
+        if (!$birthDate || strtoupper(trim((string) $birthDate)) === 'NULL') {
+            return 'Tidak tersedia';
+        }
+
+        $birthDate = Carbon::parse($birthDate);
+        if ($birthDate->greaterThan($today)) {
+            return 'Tidak tersedia';
+        }
+
+        foreach ($generationRanges as $generation => [$startYear, $endYear]) {
+            if ($birthDate->year >= $startYear && $birthDate->year <= $endYear) {
+                return $generation;
+            }
+        }
+
+        return 'Tidak tersedia';
     }
 
     private function paginateEmployeeCollection($employees, $page)

@@ -320,11 +320,11 @@ class leave_controller extends Controller
             'reason'=>'required',
         ]);
         if($data->category=='SKD'){
-            $status='1';
-            if($approve2=='0')$status2='0';
-            else $status2='1';
+            $status=1;
+            if($approve2==0)$status2=0;
+            else $status2=1;
         }
-        else {$status='0';$status2='0';}
+        else {$status=0;$status2=0;}
         
         $namaFile='';
         $file = $data->file('overlap_doc');

@@ -94,7 +94,7 @@
 									<td style="text-align:center;color:blue;">
 										<?php $pos=$periode."-06";?>
 										<?php if($bulan_skr>$pos): ?>
-											<a href="/PerformanceDetail/<?php echo e($dt->idperformance); ?>/<?php echo e($periode); ?>/2/<?php echo e($dt->employee_name); ?>/<?php echo e($created_by); ?>"><?php echo e($T2); ?></a>
+											<a href="/PerformanceDetail/<?php echo e($dt->idperformance); ?>/<?php echo e($periode); ?>/2/<?php echo e($dt->employee_name); ?>/<?php echo e($created_by); ?>"><?php echo e(number_format($T2, 2)); ?></a>
 										<?php endif; ?>
 										<!-- <a href="/PerformanceDetail/<?php echo e($dt->idperformance); ?>/<?php echo e($periode); ?>/2/<?php echo e($dt->employee_name); ?>/<?php echo e($created_by); ?>"><?php echo e($T2); ?></a> -->
 									</td>
@@ -107,12 +107,12 @@
 									<td style="text-align:center;color:blue;">
 										<?php $pos=$periode."-12";?>
 										<?php if($bulan_skr>=$pos): ?>
-											<a href="/PerformanceDetail/<?php echo e($dt->idperformance); ?>/<?php echo e($periode); ?>/4/<?php echo e($dt->employee_name); ?>/<?php echo e($created_by); ?>"><?php echo e($T4); ?></a>
+											<a href="/PerformanceDetail/<?php echo e($dt->idperformance); ?>/<?php echo e($periode); ?>/4/<?php echo e($dt->employee_name); ?>/<?php echo e($created_by); ?>"><?php echo e(number_format($T4, 2)); ?></a>
 										<?php endif; ?>
 										<!-- <a href="/PerformanceDetail/<?php echo e($dt->idperformance); ?>/<?php echo e($periode); ?>/4/<?php echo e($dt->employee_name); ?>/<?php echo e($created_by); ?>"><?php echo e($T4); ?></a> -->
 									</td>
 									<td style="text-align:center;color:blue;">
-										<?php echo e($dt->average); ?>
+										<?php echo e(number_format($dt->average, 2)); ?>
 
 									</td>
 									<td>

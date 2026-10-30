@@ -93,7 +93,7 @@
 									<td style="text-align:center;color:blue;">
 										<?php $pos=$periode."-06";?>
 										@if($bulan_skr>$pos)
-											<a href="/PerformanceDetail/{{$dt->idperformance}}/{{$periode}}/2/{{$dt->employee_name}}/{{$created_by}}">{{$T2}}</a>
+											<a href="/PerformanceDetail/{{$dt->idperformance}}/{{$periode}}/2/{{$dt->employee_name}}/{{$created_by}}">{{number_format($T2, 2)}}</a>
 										@endif
 										<!-- <a href="/PerformanceDetail/{{$dt->idperformance}}/{{$periode}}/2/{{$dt->employee_name}}/{{$created_by}}">{{$T2}}</a> -->
 									</td>
@@ -106,12 +106,12 @@
 									<td style="text-align:center;color:blue;">
 										<?php $pos=$periode."-12";?>
 										@if($bulan_skr>=$pos)
-											<a href="/PerformanceDetail/{{$dt->idperformance}}/{{$periode}}/4/{{$dt->employee_name}}/{{$created_by}}">{{$T4}}</a>
+											<a href="/PerformanceDetail/{{$dt->idperformance}}/{{$periode}}/4/{{$dt->employee_name}}/{{$created_by}}">{{number_format($T4, 2)}}</a>
 										@endif
 										<!-- <a href="/PerformanceDetail/{{$dt->idperformance}}/{{$periode}}/4/{{$dt->employee_name}}/{{$created_by}}">{{$T4}}</a> -->
 									</td>
 									<td style="text-align:center;color:blue;">
-										{{$dt->average}}
+										{{number_format($dt->average, 2)}}
 									</td>
 									<td>
 										<?php

@@ -91,13 +91,12 @@
 										</div>
 										<div class="form-group">
 											<label>PIN</label>
-											
-											<select name="PIN" class="selectpicker form-control" data-live-search="true">
-												<option value="<?php echo e(old('PIN')); ?>"><?php echo e(old('PIN')); ?></option>
-                                                <?php $__currentLoopData = $tb_iclock; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt1): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-														<option value='<?php echo e($dt1->badgenumber); ?>'><?php echo e($dt1->userid); ?>: <?php echo e($dt1->name); ?> (<?php echo e($dt1->badgenumber); ?>)</option>
-                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-											</select>
+											<input type="text" name="PIN" class="form-control" list="employee-pins" value="<?php echo e(old('PIN')); ?>" placeholder="Enter or select a PIN" required>
+											<datalist id="employee-pins">
+												<?php $__currentLoopData = $tb_iclock; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt1): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+													<option value="<?php echo e($dt1->badgenumber); ?>" label="<?php echo e($dt1->userid); ?>: <?php echo e($dt1->name); ?>"></option>
+												<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+											</datalist>
 											
 											<?php if($errors->has('PIN')): ?>
 												<div class="box-body text-danger">PIN harus dipilih</div>

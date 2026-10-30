@@ -90,13 +90,12 @@
 										</div>
 										<div class="form-group">
 											<label>PIN</label>
-											
-											<select name="PIN" class="selectpicker form-control" data-live-search="true">
-												<option value="{{old('PIN')}}">{{old('PIN')}}</option>
-                                                @foreach($tb_iclock as $dt1)
-														<option value='{{ $dt1->badgenumber }}'>{{ $dt1->userid }}: {{ $dt1->name }} ({{ $dt1->badgenumber }})</option>
-                                                @endforeach
-											</select>
+											<input type="text" name="PIN" class="form-control" list="employee-pins" value="{{ old('PIN') }}" placeholder="Enter or select a PIN" required>
+											<datalist id="employee-pins">
+												@foreach($tb_iclock as $dt1)
+													<option value="{{ $dt1->badgenumber }}" label="{{ $dt1->userid }}: {{ $dt1->name }}"></option>
+												@endforeach
+											</datalist>
 											
 											@if($errors->has('PIN'))
 												<div class="box-body text-danger">PIN harus dipilih</div>

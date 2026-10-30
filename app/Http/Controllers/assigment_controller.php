@@ -223,6 +223,7 @@ class assigment_controller extends Controller
         $tb_assigment_new=DB::table('tb_overtime_spv')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
         ->where('legalized_status','0')
+        ->where('isDelete','0')
         // ->where('hours_act','0')
         ->Where(function($query) use($id_employee){
             $query->where('assigned',$id_employee)
@@ -241,6 +242,7 @@ class assigment_controller extends Controller
         }
 
        $qty_new=DB::table('tb_overtime_spv')->where('legalized_status','0')
+        ->where('isDelete','0')
         ->Where(function($query) use($id_employee){
             $query->where('assigned',$id_employee)
             ->orWhere('conducted',$id_employee)
@@ -253,6 +255,7 @@ class assigment_controller extends Controller
        $tb_assigment=DB::table('tb_overtime_spv')
        ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
        ->where('legalized_status','1')
+       ->where('isDelete','0')
        ->where('ot_date','>=',$awal)
        ->where('ot_date','<=',$akhir)
        ->Where(function($query) use($id_employee){

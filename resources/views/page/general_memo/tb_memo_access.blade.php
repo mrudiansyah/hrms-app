@@ -72,17 +72,17 @@
 										</div>
 										<div class="form-group">
 											<label>Tanggal Permohonan</label>
-											<input type="datetime-local" value="{{date('Y-m-d H:i:s',strtotime($dt->created_at))}}" name="tgl_permohonan" id="tgl_permohonan" class="form-control" disabled>
+											<input type="datetime-local" value="{{date('Y-m-d\TH:i:s',strtotime($dt->created_at))}}" name="tgl_permohonan" id="tgl_permohonan" class="form-control" disabled>
 										</div>
 									</div>
 									<div class="col-xs-12 col-md-12 col-lg-6">
 										<div class="form-group">
 											<label>Tanggal Mulai</label>
-											<input type="datetime-local" value="{{date('Y-m-d H:i:s',strtotime($dt->start))}}" name="tgl_mulai" id="tgl_mulai" class="form-control" disabled>
+											<input type="datetime-local" value="{{date('Y-m-d\TH:i:s',strtotime($dt->start))}}" name="tgl_mulai" id="tgl_mulai" class="form-control" disabled>
 										</div>
 										<div class="form-group">
 											<label>Tanggal Selesai</label>
-											<input type="datetime-local" min="{{date('Y-m-d H:i:s',strtotime($dt->start))}}" value="{{date('Y-m-d H:i:s',strtotime($dt->end))}}" name="tgl_selesai" id="tgl_selesai" class="form-control" <?php if($data['status_draft']==0&&$data['progress']!=3)echo "disabled";?>>
+											<input type="datetime-local" min="{{date('Y-m-d\TH:i:s',strtotime($dt->start))}}" value="{{date('Y-m-d\TH:i:s',strtotime($dt->end))}}" name="tgl_selesai" id="tgl_selesai" class="form-control" <?php if($data['status_draft']==0&&$data['progress']!=3)echo "disabled";?>>
 										</div>
 										<div class="form-group">
 											<label>Jenis Akses</label>

@@ -77,10 +77,12 @@ class performance_controller extends Controller
                     ->where('tb_performance.periode', '=', $periode);
             })
             ->leftjoin('tb_performance_recap', 'tb_performance_recap.id_performance', '=', 'tb_performance.id');
-        $tb_employee = $tb_employee->where([['tb_employees.leader_id', $id_user], ['tb_employees.status', '1'], ['tb_employees.join_date', '<=', $last_date], ['tb_employees.position_id', '<>', '37'], ['tb_employees.position_id', '<>', '23'], ['tb_employees.position_id', '<>', '12'], ['tb_employees.position_id', '<>', '13'], ['tb_employees.position_id', '<>', '14'], ['tb_employees.position_id', '<>', '15'], ['tb_employees.position_id', '<>', '16']]);
-        foreach ($tb_buyut as $dt2) {
-            $tb_employee = $tb_employee->orwhere([['tb_employees.leader_id', $dt2->id], ['tb_employees.status', '1'], ['tb_employees.join_date', '<=', $last_date], ['tb_employees.position_id', '<>', '37'], ['tb_employees.position_id', '<>', '23'], ['tb_employees.position_id', '<>', '12'], ['tb_employees.position_id', '<>', '13'], ['tb_employees.position_id', '<>', '14'], ['tb_employees.position_id', '<>', '15'], ['tb_employees.position_id', '<>', '16']]);
-        }
+        $leaderIds = $tb_buyut->pluck('id')->prepend($id_user)->filter()->unique()->values();
+        $tb_employee = $tb_employee
+            ->whereIn('tb_employees.leader_id', $leaderIds)
+            ->where('tb_employees.status', '1')
+            ->whereNotIn('tb_employees.position_id', ['37', '23', '12', '13', '14', '15', '16'])
+            ->whereRaw('TRY_CONVERT(date, tb_employees.join_date, 23) <= CONVERT(date, ?, 23)', [$last_date]);
         $tb_employee = $tb_employee->orderby('tb_employees.employee_name', 'asc')->get(['tb_employees.*', 'tb_performance.atasan_langsung as atasan_langsung', 'tb_employees1.employee_name as leader_name', 'tb_departments.dept_code', 'tb_departments.dept_name', 'tb_positions.position_index', 'tb_positions.position_name', 'tb_performance.id as idperformance', 'tb_performance.masa_kerja_member', 'tb_performance_recap.triwulan1', 'tb_performance_recap.triwulan2', 'tb_performance_recap.triwulan3', 'tb_performance_recap.triwulan4', 'tb_performance_recap.average', 'tb_performance_recap.grade', 'tb_performance.target', 'tb_employees1.leader_id as id_leader2', 'tb_performance.status_penilai_1', 'tb_performance.status_penilai_2']);
         //return $tb_employee;
         $run = 0;

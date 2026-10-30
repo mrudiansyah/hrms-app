@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use App\Imports\MemoOTImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\Import_tb_memo_ot;
@@ -323,6 +324,22 @@ class general_memo extends Controller
         return $legal_num;
     }
     function confirmMemo(Request $data){
+        $data->validate([
+            'id_memo' => 'required|integer|exists:tb_memo,id',
+            'status' => 'required|in:0,1',
+            'end_date' => 'nullable|date',
+        ]);
+
+        $isAccessMemo = DB::table('tb_memo')
+            ->where('id', $data->id_memo)
+            ->where('id_category', 2)
+            ->exists();
+        if ($data->status == '0' && $isAccessMemo) {
+            $data->validate([
+                'end_date' => 'required|date',
+            ]);
+        }
+
         $now=date('Y-m-d H:i:s');
         $update_memo=DB::table('tb_memo')->where('id',$data->id_memo)->update([
             'is_draft'=>$data->status,
@@ -347,12 +364,12 @@ class general_memo extends Controller
                         'e_spl'=>$data->spl,
                         'e_leave'=>$data->leave,
                         'alasan'=>$data->alasan,
-                        'end'=>$data->end_date
+                        'end'=>Carbon::parse($data->end_date)->format('Y-m-d\TH:i:s')
                     ]);
                     $table3=DB::table('tb_memo_access')->where('id_memo',$data->id_memo)->get();
                     foreach($table3 as $dt3){
-                        $start=$dt3->start;
-                        $end=$dt3->end;
+                        $start=Carbon::parse($dt3->start)->format('Y-m-d\TH:i:s');
+                        $end=Carbon::parse($dt3->end)->format('Y-m-d\TH:i:s');
                         $created_by=$dt3->created_by;
                     }
 

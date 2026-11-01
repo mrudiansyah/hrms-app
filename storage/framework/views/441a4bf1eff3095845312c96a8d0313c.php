@@ -133,7 +133,6 @@
                     $grand_uang_makan_tl += $uang_makan_tl;
                     $grand_total_bayar += $total_bayar;
                 ?>
-                <?php if($otsOnDate->isNotEmpty() || $isEndOfWeek): ?>
                 <tr>
                     <td class="<?php echo e($isEndOfWeek ? 'bg-red' : ''); ?>"><?php echo e(str_pad($no++, 2, '0', STR_PAD_LEFT)); ?></td>
                     <td class="<?php echo e($isEndOfWeek ? 'bg-red' : ''); ?>"><?php echo e($hari); ?></td>
@@ -148,7 +147,6 @@
                     <td><?php echo e($uang_lembur || $uang_makan_tl ? number_format($uang_makan_tl, 0, '.', ',') : ($otsOnDate->isNotEmpty() ? '0' : '')); ?></td>
                     <td><?php echo e($total_bayar > 0 ? number_format($total_bayar, 0, '.', ',') : ''); ?></td>
                 </tr>
-                <?php endif; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
             <tr>

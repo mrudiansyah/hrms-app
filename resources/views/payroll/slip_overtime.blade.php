@@ -132,7 +132,6 @@
                     $grand_uang_makan_tl += $uang_makan_tl;
                     $grand_total_bayar += $total_bayar;
                 @endphp
-                @if($otsOnDate->isNotEmpty() || $isEndOfWeek)
                 <tr>
                     <td class="{{ $isEndOfWeek ? 'bg-red' : '' }}">{{ str_pad($no++, 2, '0', STR_PAD_LEFT) }}</td>
                     <td class="{{ $isEndOfWeek ? 'bg-red' : '' }}">{{ $hari }}</td>
@@ -147,7 +146,6 @@
                     <td>{{ $uang_lembur || $uang_makan_tl ? number_format($uang_makan_tl, 0, '.', ',') : ($otsOnDate->isNotEmpty() ? '0' : '') }}</td>
                     <td>{{ $total_bayar > 0 ? number_format($total_bayar, 0, '.', ',') : '' }}</td>
                 </tr>
-                @endif
             @endforeach
 
             <tr>

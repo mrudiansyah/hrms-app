@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slip Assignment</title>
+    <title>Slip Overtime</title>
     <style>
         @page { margin: 20px 50px; }
         body { font-family: sans-serif; font-size: 7.8px; line-height: 1.0; }
@@ -23,7 +23,7 @@
 </head>
 <body>
     <div class="header">
-        SLIP ASSIGNMENT PT SAI<br>
+        SLIP UPAH LEMBUR PT SAI<br>
         PERIODE <?php echo e(date('d F', strtotime($start))); ?> S/D <?php echo e(date('d F Y', strtotime($end))); ?>
 
     </div>
@@ -82,29 +82,41 @@
                     $hari = $hari_id[$hari_en] ?? strtoupper($hari_en);
                     
                     $isEndOfWeek = in_array($hari, ['SABTU', 'MINGGU']);
-                    $ot = $tabel->get($date);
-                    $meal = $meals->get($date);
+
+                    // Ambil semua row OT di tanggal ini (bisa >1 row)
+                    $otsOnDate = $tabel->where('date_on', $date);
+                    $ot = $otsOnDate->first(); // untuk jam awal/akhir (ambil pertama)
+                    $meal = $meals->where('date_on', $date)->first();
                     
                     $slpj = $employee->slpj ?? 0;
                     
                     $jam_awal = '';
                     $jam_akhir = '';
-                    $total_jam = '';
-                    $konversi = '';
+                    $total_jam = 0;
+                    $konversi = 0;
                     $uang_lembur = 0;
                     $uang_makan_ot = 0;
                     $uang_makan_tl = 0;
 
-                    if ($ot) {
-                        $jam_awal = $ot->start_act ? date('H:i', strtotime($ot->start_act)) : '';
-                        $jam_akhir = $ot->finish_act ? date('H:i', strtotime($ot->finish_act)) : '';
-                        $total_jam = $ot->hours_act;
-                        $konversi = $ot->hours_act;
+                    if ($otsOnDate->isNotEmpty()) {
+                        // Kumpulkan semua jam awal & akhir dari setiap row
+                        $jam_awal_arr  = [];
+                        $jam_akhir_arr = [];
+                        foreach ($otsOnDate as $otRow) {
+                            $jam_awal_arr[]  = $otRow->start_act  ? date('H:i', strtotime($otRow->start_act))  : '-';
+                            $jam_akhir_arr[] = $otRow->finish_act ? date('H:i', strtotime($otRow->finish_act)) : '-';
+                        }
+                        $jam_awal  = implode('<br>', $jam_awal_arr);
+                        $jam_akhir = implode('<br>', $jam_akhir_arr);
+
+                        // Jumlahkan hours_act & hours_convertion dari semua row
+                        $total_jam = $otsOnDate->sum('hours_act');
+                        $konversi  = $otsOnDate->sum('hours_convertion');
                         
                         if(($employee->position_id ?? 0) == 18) {
                             $uang_lembur = $amt_driver;
                         } else {
-                            $uang_lembur = $ot->amount;
+                            $uang_lembur = $slpj * $konversi;
                         }
                     }
 
@@ -126,13 +138,13 @@
                     <td class="<?php echo e($isEndOfWeek ? 'bg-red' : ''); ?>"><?php echo e($hari); ?></td>
                     <td><?php echo e($date != '' ? date('d-m-Y', strtotime($date)) : ''); ?></td>
                     <td><?php echo e($slpj > 0 ? number_format($slpj, 0, '.', ',') : ''); ?></td>
-                    <td><?php echo e($jam_awal); ?></td>
-                    <td><?php echo e($jam_akhir); ?></td>
-                    <td><?php echo e($total_jam ?: ''); ?></td>
-                    <td><?php echo e($konversi ?: ''); ?></td>
+                    <td><?php echo $jam_awal; ?></td>
+                    <td><?php echo $jam_akhir; ?></td>
+                    <td><?php echo e($total_jam > 0 ? $total_jam : ''); ?></td>
+                    <td><?php echo e($konversi > 0 ? $konversi : ''); ?></td>
                     <td><?php echo e($uang_lembur > 0 ? number_format($uang_lembur, 0, '.', ',') : ''); ?></td>
-                    <td><?php echo e($uang_lembur || $uang_makan_ot ? number_format($uang_makan_ot, 0, '.', ',') : ($ot ? '0' : '')); ?></td>
-                    <td><?php echo e($uang_lembur || $uang_makan_tl ? number_format($uang_makan_tl, 0, '.', ',') : ($ot ? '0' : '')); ?></td>
+                    <td><?php echo e($uang_lembur || $uang_makan_ot ? number_format($uang_makan_ot, 0, '.', ',') : ($otsOnDate->isNotEmpty() ? '0' : '')); ?></td>
+                    <td><?php echo e($uang_lembur || $uang_makan_tl ? number_format($uang_makan_tl, 0, '.', ',') : ($otsOnDate->isNotEmpty() ? '0' : '')); ?></td>
                     <td><?php echo e($total_bayar > 0 ? number_format($total_bayar, 0, '.', ',') : ''); ?></td>
                 </tr>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -144,7 +156,7 @@
                 <td><?php echo e(number_format($grand_uang_lembur, 0, '.', ',')); ?></td>
                 <td><?php echo e(number_format($grand_uang_makan_ot, 0, '.', ',')); ?></td>
                 <td><?php echo e(number_format($grand_uang_makan_tl, 0, '.', ',')); ?></td>
-                <td><?php echo e(number_format($grand_total_bayar + ($summary->rapel_amount ?? 0), 0, '.', ',')); ?></td>
+                <td><?php echo e(number_format($grand_total_bayar, 0, '.', ',')); ?></td>
             </tr>
         </tbody>
     </table>
@@ -192,4 +204,4 @@
         </table>
     </div>
 </body>
-</html><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/payroll/slip_assignment.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/payroll/slip_overtime.blade.php ENDPATH**/ ?>

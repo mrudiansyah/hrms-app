@@ -605,60 +605,60 @@ $request->validate([
         $total_tax_amount = $tabel->sum('tax_amount');
         return $total_tax_amount;
     }
-    public function slip_overtime($start,$end,$id_employee){
-        if (request()->user()->hasRole('payroll')){
-            $tabel = DB::table('tb_overtime_details')
-                ->where('date_on','>=',$start)
-                ->where('date_on','<=',$end)
-                ->where('id_employee',$id_employee)
-                ->where('status','6')
-                ->where('captured_at','<>',null)
-                ->orderBy('date_on', 'asc')
-                ->get();
+    // public function slip_overtime($start,$end,$id_employee){
+    //     if (request()->user()->hasRole('payroll')){
+    //         $tabel = DB::table('tb_overtime_details')
+    //             ->where('date_on','>=',$start)
+    //             ->where('date_on','<=',$end)
+    //             ->where('id_employee',$id_employee)
+    //             ->where('status','6')
+    //             ->where('captured_at','<>',null)
+    //             ->orderBy('date_on', 'asc')
+    //             ->get();
 
-            $employee = DB::table('tb_employees as b')
-                ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
-                ->leftJoin('tb_salaries as d', function($join) {
-                    $join->on('d.id_employee', '=', 'b.id')
-                        ->where('d.status', 1);
-                })
-                ->where('b.id', $id_employee)
-                ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
-                ->first();
+    //         $employee = DB::table('tb_employees as b')
+    //             ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
+    //             ->leftJoin('tb_salaries as d', function($join) {
+    //                 $join->on('d.id_employee', '=', 'b.id')
+    //                     ->where('d.status', 1);
+    //             })
+    //             ->where('b.id', $id_employee)
+    //             ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
+    //             ->first();
 
-            $summary = DB::table('tb_ot_summary')
-                ->where('id_employee', $id_employee)
-                ->where('start_date', $start)
-                ->where('end_date', $end)
-                ->first();
+    //         $summary = DB::table('tb_ot_summary')
+    //             ->where('id_employee', $id_employee)
+    //             ->where('start_date', $start)
+    //             ->where('end_date', $end)
+    //             ->first();
 
-            $meals = DB::table('tb_meals')
-                ->where('id_employee', $id_employee)
-                ->where('date_on', '>=', $start)
-                ->where('date_on', '<=', $end)
-                ->where('is_deleted', 0)
-                ->get()
-                ->keyBy('date_on');
+    //         $meals = DB::table('tb_meals')
+    //             ->where('id_employee', $id_employee)
+    //             ->where('date_on', '>=', $start)
+    //             ->where('date_on', '<=', $end)
+    //             ->where('is_deleted', 0)
+    //             ->get()
+    //             ->keyBy('date_on');
 
-            $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
+    //         $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
 
-            $dates = [];
-            $current = strtotime($start);
-            $last = strtotime($end);
-            while ($current <= $last) {
-                $dates[] = date('Y-m-d', $current);
-                $current = strtotime('+1 day', $current);
-            }
+    //         $dates = [];
+    //         $current = strtotime($start);
+    //         $last = strtotime($end);
+    //         while ($current <= $last) {
+    //             $dates[] = date('Y-m-d', $current);
+    //             $current = strtotime('+1 day', $current);
+    //         }
 
-            $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
+    //         $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
 
-            $FileName='SLIP_OT_'.($employee->NIK ?? 'UNDEF').'.PDF';
-            $pdf = PDF::loadview('payroll.slip_overtime', $data)->setPaper('A5', 'landscape');
-            return $pdf->stream($FileName);
-        }else{
-            return abort(403,'Anda tidak punya akses');
-        }
-    }
+    //         $FileName='SLIP_OT_'.($employee->NIK ?? 'UNDEF').'.PDF';
+    //         $pdf = PDF::loadview('payroll.slip_overtime', $data)->setPaper('A5', 'landscape');
+    //         return $pdf->stream($FileName);
+    //     }else{
+    //         return abort(403,'Anda tidak punya akses');
+    //     }
+    // }
     public function capture_assignment(Request $request, $start = null, $end = null)
     {
         $start = $start ?? $request->start;
@@ -1822,6 +1822,118 @@ $request->validate([
     
         // total masalah (kalau mau salah satu saja sudah cukup, pakai > 0)
         return $duplicateCount + $slpjZeroCount + $statusZeroCount;
+    }
+    public function slip_overtime($start,$end,$id_employee){
+        if (request()->user()->hasRole('payroll')){
+            $tabel = DB::table('tb_overtime_details')
+                ->where('date_on','>=',$start)
+                ->where('date_on','<=',$end)
+                ->where('id_employee',$id_employee)
+                ->where('status','6')
+                ->where('captured_at','<>',null)
+                ->orderBy('date_on', 'asc')
+                ->get();
+
+            $employee = DB::table('tb_employees as b')
+                ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
+                ->leftJoin('tb_salaries as d', function($join) {
+                    $join->on('d.id_employee', '=', 'b.id')
+                        ->where('d.status', 1);
+                })
+                ->where('b.id', $id_employee)
+                ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
+                ->first();
+
+            $summary = DB::table('tb_ot_summary')
+                ->where('id_employee', $id_employee)
+                ->where('start_date', $start)
+                ->where('end_date', $end)
+                ->first();
+
+            $meals = DB::table('tb_meals')
+                ->where('id_employee', $id_employee)
+                ->where('date_on', '>=', $start)
+                ->where('date_on', '<=', $end)
+                ->where('is_deleted', 0)
+                ->get()
+                ->keyBy('date_on');
+
+            $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
+
+            $dates = [];
+            $current = strtotime($start);
+            $last = strtotime($end);
+            while ($current <= $last) {
+                $dates[] = date('Y-m-d', $current);
+                $current = strtotime('+1 day', $current);
+            }
+
+            $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
+
+            $FileName='SLIP_OT_'.($employee->NIK ?? 'UNDEF').'.PDF';
+            $pdf = PDF::loadview('payroll.slip_overtime', $data)->setPaper('A5', 'landscape');
+            return $pdf->stream($FileName);
+        }else{
+            return abort(403,'Anda tidak punya akses');
+        }
+    }
+    public function slip_overtime_personal($start,$end,$id_employee){
+        $email=Auth::user()->email;
+        $id=DB::table('tb_emails')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        ->where('email_address',$email)->value('tb_employees.id');
+        if($id_employee!=$id){
+            return abort(403,'Anda tidak punya akses');
+        }
+        $tabel = DB::table('tb_overtime_details')
+            ->where('date_on','>=',$start)
+            ->where('date_on','<=',$end)
+            ->where('id_employee',$id_employee)
+            ->where('status','6')
+            ->where('captured_at','<>',null)
+            ->orderBy('date_on', 'asc')
+            ->get()
+            ->keyBy('date_on');
+
+        $employee = DB::table('tb_employees as b')
+            ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')
+            ->leftJoin('tb_salaries as d', function($join) {
+                $join->on('d.id_employee', '=', 'b.id')
+                     ->where('d.status', 1);
+            })
+            ->where('b.id', $id_employee)
+            ->select('b.employee_name', 'b.NIK', 'c.dept_name', 'd.slpj', 'b.position_id', 'c.dept_code')
+            ->first();
+
+        $summary = DB::table('tb_ot_summary')
+            ->where('id_employee', $id_employee)
+            ->where('start_date', $start)
+            ->where('end_date', $end)
+            ->first();
+
+        $meals = DB::table('tb_meals')
+            ->where('id_employee', $id_employee)
+            ->where('date_on', '>=', $start)
+            ->where('date_on', '<=', $end)
+            ->where('is_deleted', 0)
+            ->get()
+            ->keyBy('date_on');
+
+        $amt_driver = DB::table('tb_salary_component')->where('id', '39')->value('amount') ?? 0;
+
+        $dates = [];
+        $current = strtotime($start);
+        $last = strtotime($end);
+        while ($current <= $last) {
+            $dates[] = date('Y-m-d', $current);
+            $current = strtotime('+1 day', $current);
+        }
+
+        $data = compact('start', 'end', 'id_employee', 'employee', 'summary', 'tabel', 'meals', 'dates', 'amt_driver');
+
+        $FileName='SLIP_OT_'.($employee->NIK ?? 'UNDEF').'.PDF';
+        $pdf = PDF::loadview('payroll.slip_overtime', $data)->setPaper('A5', 'landscape');
+        return $pdf->stream($FileName);
     }
     public function slip_assignment($start,$end,$id_employee){
         $email=Auth::user()->email;

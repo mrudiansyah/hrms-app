@@ -121,6 +121,8 @@ Route::post('/Simpan/FreeTest', [App\Http\Controllers\ess_controller::class, 'si
 Route::get('/PostTest/{id_participant}', [App\Http\Controllers\ess_controller::class, 'post_test']);
 Route::post('/Simpan/PostTest', [App\Http\Controllers\ess_controller::class, 'simpan_post_test']);
 
+Route::get('/payroll/slip/overtime/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_overtime']);
+Route::get('/payroll/slip/assignment/{start}/{end}/{id_employee}', [App\Http\Controllers\PayrollController::class, 'slip_assignment']);
 
 //ESS End
 

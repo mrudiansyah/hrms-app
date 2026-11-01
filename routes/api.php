@@ -4,6 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SensorDataController;
 use App\Http\Controllers\WhatsappController;
+use App\Http\Controllers\Api\MobileAuthController;
+use App\Http\Controllers\Api\MobileAttendanceController;
+use App\Http\Controllers\Api\MobileSlipController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,4 +35,23 @@ Route::prefix('hcmis')->group(function () {
     Route::post('/employees/store', [\App\Http\Controllers\HcmisController::class, 'employeesStore']);
     Route::put('/employees/update', [\App\Http\Controllers\HcmisController::class, 'employeesUpdate']);
     Route::delete('/employees/delete', [\App\Http\Controllers\HcmisController::class, 'employeesDelete']);
+});
+
+Route::prefix('mobile')->group(function () {
+    Route::post('/login', [MobileAuthController::class, 'login'])->middleware('throttle:5,1');
+
+    Route::middleware('mobile.token')->group(function () {
+        Route::get('/profile', [MobileAuthController::class, 'profile']);
+        Route::post('/logout', [MobileAuthController::class, 'logout']);
+        Route::get('/attendance', [MobileAttendanceController::class, 'index']);
+        Route::post('/attendance', [MobileAttendanceController::class, 'store'])->middleware('throttle:10,1');
+        Route::get('/slips/salary', [MobileSlipController::class, 'salary']);
+        Route::get('/slips/overtime', [MobileSlipController::class, 'overtime']);
+        Route::get('/slips/salary/{source}/{id}/pdf', [MobileSlipController::class, 'salaryPdf'])
+            ->where('source', 'current|previous')
+            ->whereNumber('id');
+        Route::get('/slips/overtime/{source}/{id}/pdf', [MobileSlipController::class, 'overtimePdf'])
+            ->where('source', 'current|previous')
+            ->whereNumber('id');
+    });
 });

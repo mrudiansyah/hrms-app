@@ -63,5 +63,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'hcmis.auth' => \App\Http\Middleware\ApiCustomAuth::class,
+        'mobile.token' => \App\Http\Middleware\AuthenticateMobileToken::class,
     ];
 }

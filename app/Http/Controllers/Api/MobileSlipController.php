@@ -274,14 +274,85 @@ class MobileSlipController extends Controller
                 return response()->json(['message' => 'Slip tidak ditemukan atau belum dipublikasikan.'], 404);
             }
 
-            $earnings = (float) ($slip->ot_amount ?? 0) + (float) ($slip->meal_amount ?? 0);
-            $deductions = (float) ($slip->pph21_amount ?? 0);
-            $rapel = (float) ($slip->rapel_amount ?? 0);
-            $received = (float) ($slip->net_amount ?? 0);
-            $category = (string) $slip->kategori;
-            $startDate = (string) $slip->start_date;
-            $endDate = (string) $slip->end_date;
-            $period = (string) $slip->periode;
+            $startDate = Carbon::parse($slip->start_date)->toDateString();
+            $endDate = Carbon::parse($slip->end_date)->toDateString();
+            $employeeDetails = DB::table('tb_employees as b')
+                ->leftJoin('tb_departments as c', 'c.id', '=', 'b.dept_id')
+                ->leftJoin('tb_salaries as d', function ($join) {
+                    $join->on('d.id_employee', '=', 'b.id')
+                        ->where('d.status', 1);
+                })
+                ->where('b.id', $employee->id)
+                ->first([
+                    'b.employee_name',
+                    'b.NIK',
+                    'c.dept_name',
+                    'c.dept_code',
+                    'd.slpj',
+                    'b.position_id',
+                ]);
+
+            if (!$employeeDetails) {
+                return response()->json(['message' => 'Data karyawan untuk akun ini tidak ditemukan.'], 404);
+            }
+
+            if ($slip->kategori === 'Assignment') {
+                $details = DB::table('tb_overtime_spv')
+                    ->whereBetween('ot_date', [$startDate, $endDate])
+                    ->where('id_employee', $employee->id)
+                    ->where('isVerified', '1')
+                    ->whereNotNull('captured_at')
+                    ->orderBy('ot_date')
+                    ->get()
+                    ->keyBy('ot_date');
+                $view = 'payroll.slip_assignment';
+                $filePrefix = 'SLIP_ASSIGNMENT';
+            } elseif ($slip->kategori === 'Overtime') {
+                $details = DB::table('tb_overtime_details')
+                    ->whereBetween('date_on', [$startDate, $endDate])
+                    ->where('id_employee', $employee->id)
+                    ->where('status', '6')
+                    ->whereNotNull('captured_at')
+                    ->orderBy('date_on')
+                    ->get();
+                $view = 'payroll.slip_overtime';
+                $filePrefix = 'SLIP_OT';
+            } else {
+                return response()->json(['message' => 'Format PDF untuk kategori slip ini belum tersedia.'], 422);
+            }
+
+            $meals = DB::table('tb_meals')
+                ->where('id_employee', $employee->id)
+                ->whereBetween('date_on', [$startDate, $endDate])
+                ->where('is_deleted', 0)
+                ->get()
+                ->keyBy('date_on');
+
+            $dates = [];
+            $date = Carbon::parse($startDate);
+            $lastDate = Carbon::parse($endDate);
+            while ($date->lte($lastDate)) {
+                $dates[] = $date->toDateString();
+                $date->addDay();
+            }
+
+            $amountPerDriver = DB::table('tb_salary_component')
+                ->where('id', '39')
+                ->value('amount') ?? 0;
+            $fileName = $filePrefix . '_' . ($employeeDetails->NIK ?? 'UNDEF') . '.PDF';
+
+            return Pdf::loadView($view, [
+                'start' => $startDate,
+                'end' => $endDate,
+                'id_employee' => $employee->id,
+                'employee' => $employeeDetails,
+                'summary' => $slip,
+                'tabel' => $details,
+                'meals' => $meals,
+                'dates' => $dates,
+                'amt_driver' => $amountPerDriver,
+            ])->setPaper('A5', 'landscape')
+                ->download($fileName);
         } else {
             $slip = DB::table('tb_summary_overtime')
                 ->leftJoin('tb_rapel_khusus', 'tb_rapel_khusus.id_summary', '=', 'tb_summary_overtime.id')

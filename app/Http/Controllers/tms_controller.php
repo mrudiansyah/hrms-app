@@ -494,6 +494,7 @@ class tms_controller extends Controller
         $employee = $tb_work_entries->first();
         $nama_karyawan = $employee->nama_karyawan ?? '';
         $badge = str_pad((string) ($employee->PIN ?? ''), 9, '0', STR_PAD_LEFT);
+        //return $badge;
         $work_time_ids = [];
         $dates = [];
         for ($i = 1; $i <= 31; $i++) {

@@ -5,7 +5,7 @@ Route::get('/', function () {
     return redirect('/Dashboard');
 });
 
-Auth::routes(['verify' => true]);
+Auth::routes(['register' => false, 'verify' => true]);
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/home', function () {

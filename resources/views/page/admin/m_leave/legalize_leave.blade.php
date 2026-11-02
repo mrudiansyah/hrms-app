@@ -100,7 +100,9 @@
 									<?php $no=0;?>
 										@foreach($tb_leave_new as $dt)
 										<tr>
-											<td><?php $no++;echo $no;?></td>
+											<td>
+												<?php $no++;echo $no;?>
+											</td>
 											<td>{{$dt->doc_date}}</td>
 											<td><?php echo ucfirst($dt->category);?></td>
 											<td>{{$dt->NIK}}</td>
@@ -136,7 +138,6 @@
 									<thead>
 										<tr>
 											<th style="width:30px;">NO</th>
-											<th>APPLIED</th>
 											<th>CATEGORY</th>
 											<th>NIK</th>
 											<th>EMPLOYEE</th>
@@ -155,7 +156,6 @@
 										@foreach($tb_leave_proccess as $dt)
 										<tr>
 											<td><?php $no++;echo $no;?></td>
-											<td>{{$dt->doc_date}}</td>
 											<td><?php echo ucfirst($dt->category);?></td>
 											<td>{{$dt->NIK}}</td>
 											<td>{{$dt->employee_name}}</td>
@@ -185,10 +185,10 @@
 											</td>
 											<td>
 												<div class="pull-right">
-												<?php if(($dt->status_approved2=='1')||($dt->approved2=='0'&&$dt->status_approved=='1')||($dt->approved2==NULL&&$dt->status_approved=='1')||$dt->approved==0){?>
-													@if($id_employee==$dt->legalized||$dt->legalized=='122')
-														<button title="Approve" type="button" class="approve-modal btn btn-success btn-xs" data-approveid="{{$dt->id}}" data-approvename="{{$dt->employee_name}}" data-approvestatus="1"><i class="fa fa-check-square-o"></i></button>
-													@endif
+													<?php if(($dt->status_approved2=='1')||($dt->approved2=='0'&&$dt->status_approved=='1')||($dt->approved2==NULL&&$dt->status_approved=='1')||$dt->approved==0){?>
+														@if($id_employee==$dt->legalized||$dt->legalized=='122')
+															<button title="Approve" type="button" class="approve-modal btn btn-success btn-xs" data-approveid="{{$dt->id}}" data-approvename="{{$dt->employee_name}}" data-approvestatus="1"><i class="fa fa-check-square-o"></i></button>
+														@endif
 													<?php }else if((request()->user()->hasRole('hr_access')) &&($dt->approved2 == 879 || $dt->approved == 879)){  ?>
 														<!-- <button title="Approve" type="button" class="approve-modal btn btn-success btn-xs" data-approveid="{{$dt->id}}" data-approvename="{{$dt->employee_name}}" data-approvestatus="1"><i class="fa fa-check-square-o"></i></button> -->
 													<?php

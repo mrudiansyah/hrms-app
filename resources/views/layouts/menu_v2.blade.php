@@ -251,31 +251,31 @@
                             @endif
                             <!-- IMPROVEMENT -->
                             @if (request()->user()->hasRole('improvement'))
-                                        <li class="treeview<?php        if (isset($menu) && ($menu == 'improvement' || $menu == 'qcc' || $menu == 'gqcc'))
-                                echo ' active';?>">
+                                <li class="treeview<?php if (isset($menu) && ($menu == 'improvement' || $menu == 'qcc' || $menu == 'gqcc')) echo ' active';?>">
+                                    <a href="#">
+                                        <i class="fa fa-star"></i> <span>Improvement & QCC</span>
+                                        <span class="pull-right-container">
+                                            <i class="fa fa-angle-left pull-right"></i>
+                                        </span>
+                                    </a>
+                                    <ul class="treeview-menu">
+                                        <li class="treeview<?php if (isset($menu) && ($menu == 'qcc')) echo ' active';?>">
                                             <a href="#">
-                                                <i class="fa fa-star"></i> <span>Improvement & QCC</span>
+                                                <i class="fa fa-gears text-green"></i> <span>QCC Management</span>
                                                 <span class="pull-right-container">
                                                     <i class="fa fa-angle-left pull-right"></i>
                                                 </span>
                                             </a>
                                             <ul class="treeview-menu">
-                                                <li class="treeview<?php        if (isset($menu) && ($menu == 'qcc'))
-                                echo ' active';?>">
-                                                    <a href="#">
-                                                        <i class="fa fa-gears text-green"></i> <span>QCC</span>
-                                                        <span class="pull-right-container">
-                                                            <i class="fa fa-angle-left pull-right"></i>
-                                                        </span>
-                                                    </a>
-                                                    <ul class="treeview-menu">
-                                                        <li><a href="/qcc_team"><i class="fa fa-users"></i> Teams</a></li>
-                                                        <li><a href="/qcc_schedule"><i class="fa fa-calendar"></i> Schedule</a></li>
-                                                        <li><a href="/qcc_activity"><i class="fa fa-tasks"></i> Activity</a></li>
-                                                    </ul>
-                                                </li>
+                                                <li><a href="/qcc_step"><i class="fa fa-users"></i> Master Steps</a></li>
+                                                <li><a href="/qcc_perriode"><i class="fa fa-users"></i> QCC Periode</a></li>
+                                                <li><a href="/qcc_schedule"><i class="fa fa-calendar"></i> Schedule</a></li>
+                                                <!-- <li><a href="/qcc_team"><i class="fa fa-users"></i> Teams</a></li>
+                                                <li><a href="/qcc_activity"><i class="fa fa-tasks"></i> Activity</a></li> -->
                                             </ul>
                                         </li>
+                                    </ul>
+                                </li>
                             @endif
 
                         </ul>

@@ -48,6 +48,17 @@ Route::resource('master_area', MasterAreaController::class);
 Route::resource('working_area', WorkingAreaController::class);
 Route::resource('outside', OutsideAssignmentController::class);
 
+Route::get('/qcc_step', [App\Http\Controllers\QccManagementController::class, 'steps']);
+Route::post('/qcc_step', [App\Http\Controllers\QccManagementController::class, 'storeStep']);
+Route::put('/qcc_step/{id}', [App\Http\Controllers\QccManagementController::class, 'updateStep']);
+Route::delete('/qcc_step/{id}', [App\Http\Controllers\QccManagementController::class, 'destroyStep']);
+Route::get('/qcc_perriode', [App\Http\Controllers\QccManagementController::class, 'periods']);
+Route::post('/qcc_perriode', [App\Http\Controllers\QccManagementController::class, 'storePeriod']);
+Route::put('/qcc_perriode/{id}', [App\Http\Controllers\QccManagementController::class, 'updatePeriod']);
+Route::delete('/qcc_perriode/{id}', [App\Http\Controllers\QccManagementController::class, 'destroyPeriod']);
+Route::get('/qcc_schedule', [App\Http\Controllers\QccManagementController::class, 'schedule']);
+Route::put('/qcc_schedule/{id}', [App\Http\Controllers\QccManagementController::class, 'updateSchedule']);
+
 use App\Http\Controllers\SecurityController;
 Route::get('/scurity/assigment', [SecurityController::class, 'assignment']);
 Route::post('/scurity/update-assignment', [SecurityController::class, 'updateAssignment']);

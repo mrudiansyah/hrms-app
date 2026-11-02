@@ -33,7 +33,6 @@
 							<th>Cost Center</th>
 							<th>Segment</th>
 							<th>Position</th>
-							<th>Shift</th>
 							<th>Direct leader</th>
 						</tr>
 					</thead>
@@ -50,7 +49,6 @@
 								<td>{{$dt->cc_code}}</td>
 								<td>{{$dt->segment_name}}</td>
 								<td>{{$dt->position_name}}</td>
-								<td><?php if($dt->id_shift>0)echo $dt->shift_code;else echo "Un Set";?></td>
 								<td>
 									{{$dt->leader_name}}
 									<div class="pull-right">

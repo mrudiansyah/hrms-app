@@ -831,7 +831,10 @@ class training_controller extends Controller
             'file' => 'required|mimes:csv,xls,xlsx',
         ]);
 
-        $rows = Excel::toArray([], $request->file('file'))[0] ?? [];
+        $rows = Excel::toArray(
+            new class implements \Maatwebsite\Excel\Concerns\Import {},
+            $request->file('file')
+        )[0] ?? [];
         $admin = Auth::user()->name;
         $questions = [];
 

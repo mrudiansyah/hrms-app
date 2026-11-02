@@ -144,9 +144,6 @@
 										</td>
 										<td>
 											{{$dt->post_test}}
-											<?php if ($dt->progress == '1') echo "<i class='fa fa-angle-double-up' style='color:green;'></i>";?>
-											<?php if ($dt->progress == '-1') echo "<i class='fa fa-angle-double-down' style='color:red;'></i>";?>
-											<?php if ($dt->progress == '0') echo "<i class='fa fa-frown-o' style='color:blue;'></i>";?>
 										</td>
 										<td>{{$dt->passing_grade}}</td>
 										<td>

@@ -207,6 +207,7 @@ class employee_controller extends Controller
             $leader_name = $dt3->employee_name;
         }
         $tb_employee_leave = DB::table('tb_employee_leaves')->where([['id_employee', $id], ['extend', '>=', $Tgl], ['status', '1'], ['start', '<=', $today], ['end', '>=', $today]])->get();
+        $tb_leaves = collect();
         foreach ($tb_employee_leave as $dt) {
             $start = $dt->start;
             $end = $dt->end;

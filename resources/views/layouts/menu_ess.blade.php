@@ -32,6 +32,7 @@
                     <li><a href="/SlipOT"><i class="fa fa-circle-o"></i> <span>Slip Overtime</span></a></li>
                 </ul>
             </li>
+            <li><a href="/SKD"><i class="fa fa-upload"></i> <span>UploadSKD</span></a></li>
             @if(isset($ess_leave) && $ess_leave == 1)
                 <li><a href="/Leave"><i class="fa fa-edit"></i> <span>Cuti Tahunan</span></a></li>
             @endif

@@ -58,6 +58,19 @@ Route::put('/qcc_perriode/{id}', [App\Http\Controllers\QccManagementController::
 Route::delete('/qcc_perriode/{id}', [App\Http\Controllers\QccManagementController::class, 'destroyPeriod']);
 Route::get('/qcc_schedule', [App\Http\Controllers\QccManagementController::class, 'schedule']);
 Route::put('/qcc_schedule/{id}', [App\Http\Controllers\QccManagementController::class, 'updateSchedule']);
+Route::get('/qcc_team', [App\Http\Controllers\QccTeamController::class, 'index']);
+Route::get('/qcc_team/periode', [App\Http\Controllers\QccTeamController::class, 'periodTeams']);
+Route::post('/qcc_team', [App\Http\Controllers\QccTeamController::class, 'storeTeam']);
+Route::put('/qcc_team/{id}', [App\Http\Controllers\QccTeamController::class, 'updateTeam']);
+Route::delete('/qcc_team/{id}', [App\Http\Controllers\QccTeamController::class, 'destroyTeam']);
+Route::post('/qcc_team_periode/toggle', [App\Http\Controllers\QccTeamController::class, 'toggleTeamPeriod']);
+Route::post('/qcc_team_periode/{teamPeriodId}/member', [App\Http\Controllers\QccTeamController::class, 'storeMember']);
+Route::put('/qcc_team_member/{id}', [App\Http\Controllers\QccTeamController::class, 'updateMember']);
+Route::delete('/qcc_team_member/{id}', [App\Http\Controllers\QccTeamController::class, 'destroyMember']);
+Route::get('/qcc_activity', [App\Http\Controllers\QccActivityController::class, 'index']);
+Route::post('/qcc_activity/{teamPeriodId}/open', [App\Http\Controllers\QccActivityController::class, 'open']);
+Route::get('/qcc_activity/{teamPeriodId}', [App\Http\Controllers\QccActivityController::class, 'show']);
+Route::put('/qcc_activity_actual/{id}', [App\Http\Controllers\QccActivityController::class, 'updateActual']);
 
 use App\Http\Controllers\SecurityController;
 Route::get('/scurity/assigment', [SecurityController::class, 'assignment']);

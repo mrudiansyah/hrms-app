@@ -3,7 +3,7 @@
 <?php $__env->startSection('Contents'); ?>
 <div class="content-wrapper">
     <section class="content-header">
-        <h1>QCC Management <small>Master Steps</small></h1>
+        <h1>QCC <small>Master Steps</small></h1>
     </section>
     <section class="content">
         <?php echo $__env->make('qcc._navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

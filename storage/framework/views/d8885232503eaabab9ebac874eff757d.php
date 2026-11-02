@@ -3,7 +3,7 @@
 <?php $__env->startSection('Contents'); ?>
 <div class="content-wrapper">
     <section class="content-header">
-        <h1>QCC Management <small>Schedule</small></h1>
+        <h1>QCC <small>Schedule</small></h1>
     </section>
     <section class="content">
         <?php echo $__env->make('qcc._navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -44,7 +44,7 @@
 
                         – <?php echo e(\Illuminate\Support\Carbon::parse($selectedPeriod->periode_finish)->format('d M Y')); ?>
 
-                        · W1 dimulai dari tanggal awal periode. Ubah tanggal start/finish untuk mengatur warna minggu; overlap antar-step diperbolehkan.
+                        · W1 dimulai dari tanggal awal periode. Bar hijau menandai minggu aktif; overlap antar-step diperbolehkan.
                     </p>
                 </div>
                 <div class="box-body">
@@ -57,16 +57,13 @@
                             <table class="table table-bordered table-condensed">
                                 <thead>
                                     <tr>
-                                        <th rowspan="3" class="qcc-fixed">ID Step</th>
-                                        <th rowspan="3" class="qcc-fixed qcc-description">Step Description</th>
-                                        <th rowspan="3" class="qcc-fixed qcc-date">Start</th>
-                                        <th rowspan="3" class="qcc-fixed qcc-date">Finish</th>
-                                        <th rowspan="3" class="qcc-action">Aksi</th>
-                                        <th colspan="<?php echo e(count($weeks)); ?>" class="text-center qcc-month-label">Month</th>
-                                    </tr>
-                                    <tr>
+                                        <th rowspan="2" class="qcc-fixed">ID Step</th>
+                                        <th rowspan="2" class="qcc-fixed qcc-description">Step Description</th>
+                                        <th rowspan="2" class="qcc-fixed qcc-date">Start</th>
+                                        <th rowspan="2" class="qcc-fixed qcc-date">Finish</th>
+                                        <th rowspan="2" class="qcc-action">Aksi</th>
                                         <?php $__currentLoopData = $monthGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $month): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <th colspan="<?php echo e($month['count']); ?>" class="text-center qcc-month-label">
+                                            <th colspan="<?php echo e($month['count']); ?>" class="text-center">
                                                 <?php echo e($month['label']); ?>
 
                                             </th>
@@ -110,8 +107,15 @@
                                             </td>
                                             <?php $__currentLoopData = $weeks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $week): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <?php ($active = $planStart <= $week['finish'] && $planFinish >= $week['start']); ?>
-                                                <td class="qcc-week <?php echo e($active ? 'qcc-active' : ''); ?>"
-                                                    title="<?php echo e($active ? $schedule->step_description : ''); ?>"></td>
+                                                <?php ($previousActive = !$loop->first && $planStart <= $weeks[$loop->index - 1]['finish'] && $planFinish >= $weeks[$loop->index - 1]['start']); ?>
+                                                <?php ($nextActive = !$loop->last && $planStart <= $weeks[$loop->index + 1]['finish'] && $planFinish >= $weeks[$loop->index + 1]['start']); ?>
+                                                <td class="qcc-week text-center"
+                                                    title="<?php echo e($active ? $schedule->step_description : ''); ?>">
+                                                    <?php if($active): ?>
+                                                        <span class="qcc-week-bar <?php echo e($previousActive ? '' : 'qcc-week-bar-start'); ?> <?php echo e($nextActive ? '' : 'qcc-week-bar-end'); ?>"
+                                                            role="img" aria-label="Schedule aktif"></span>
+                                                    <?php endif; ?>
+                                                </td>
                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </tr>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -126,15 +130,40 @@
 </div>
 <style>
     .qcc-navigation .btn { margin-right: 6px; }
-    .qcc-timeline { overflow-x: auto; }
-    .qcc-timeline table { min-width: max-content; }
+    .qcc-timeline {
+        overflow-x: auto;
+        border: 1px solid #b8c9dc;
+        border-radius: 4px;
+    }
+    .qcc-timeline table {
+        min-width: max-content;
+        margin-bottom: 0;
+        background: #fff;
+    }
     .qcc-timeline th, .qcc-timeline td { vertical-align: middle !important; }
+    .qcc-timeline .table-bordered { border-color: #d4dfeb; }
+    .qcc-timeline .table-bordered > thead > tr > th {
+        color: #24415f !important;
+        border-color: #c5d6e8 !important;
+        background-color: #e8f1fa !important;
+        background-image: linear-gradient(180deg, #f3f8fd 0%, #e2edf8 100%) !important;
+        text-shadow: none;
+    }
     .qcc-fixed { min-width: 90px; }
     .qcc-description { min-width: 220px; }
     .qcc-date { min-width: 140px; }
     .qcc-week { min-width: 48px; }
-    .qcc-month-label { min-width: 48px; background: #e8eef5; }
-    .qcc-active { background-color: #49a56a !important; }
+    .qcc-timeline .table-bordered > thead > tr > th.qcc-month-label {
+        color: #214f5b !important;
+        border-color: #c1dcdf !important;
+        background-color: #e3f1f2 !important;
+        background-image: linear-gradient(180deg, #f0f8f8 0%, #dceeee 100%) !important;
+    }
+    .qcc-timeline .table-bordered > tbody > tr > td { border-color: #d7e2ee; }
+    .qcc-timeline .table-bordered > tbody > tr:hover > td { background-color: #f3f8fc; }
+    .qcc-week-bar { position: relative; z-index: 1; display: block; width: calc(100% + 16px); height: 8px; margin-left: -8px; background-color: #4b83bd; }
+    .qcc-week-bar-start { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+    .qcc-week-bar-end { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
     .qcc-action { min-width: 58px; text-align: center; }
 </style>
 <?php $__env->stopSection(); ?>

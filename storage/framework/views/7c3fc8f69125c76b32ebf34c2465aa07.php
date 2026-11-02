@@ -174,9 +174,8 @@
             <?php endif; ?>
 
             <!-- DEVELOPMENT & TRAINING -->
-            <?php if(request()->user()->hasRole('training') || request()->user()->hasRole('competence') || request()->user()->hasRole('hr_access') || request()->user()->hasRole('performance') || request()->user()->hasRole('leader')): ?>
-                    <li class="treeview<?php    if (isset($menu) && ($menu == 'training' || $menu == 'training_activity' || $menu == 'training_tools' || $menu == 'training_actual' || $menu == 'competence' || $menu == 'master' || $menu == 'aktual' || $menu == 'performanceAll' || $menu == 'performanceHR'))
-                echo ' active';?>">
+            <?php if(request()->user()->hasRole('training') || request()->user()->hasRole('competence') || request()->user()->hasRole('hr_access') || request()->user()->hasRole('performance') || request()->user()->hasRole('leader')|| request()->user()->hasRole('improvement') || request()->user()->hasRole('info_employee')): ?>
+                    <li class="treeview<?php    if (isset($menu) && ($menu == 'training' || $menu == 'training_activity' || $menu == 'training_tools' || $menu == 'training_actual' || $menu == 'competence' || $menu == 'master' || $menu == 'aktual' || $menu == 'performanceAll' || $menu == 'performanceHR'|| $menu == 'improvement'|| $menu == 'qcc')) echo ' active';?>">
                         <a href="#">
                             <i class="fa fa-graduation-cap text-green"></i> <span>Development</span>
                             <span class="pull-right-container">
@@ -253,7 +252,7 @@
                             <?php if(request()->user()->hasRole('improvement')): ?>
                                 <li class="treeview<?php if (isset($menu) && ($menu == 'improvement' || $menu == 'qcc' || $menu == 'gqcc')) echo ' active';?>">
                                     <a href="#">
-                                        <i class="fa fa-star"></i> <span>Improvement & QCC</span>
+                                        <i class="fa fa-star"></i> <span>Improvements</span>
                                         <span class="pull-right-container">
                                             <i class="fa fa-angle-left pull-right"></i>
                                         </span>
@@ -261,17 +260,15 @@
                                     <ul class="treeview-menu">
                                         <li class="treeview<?php if (isset($menu) && ($menu == 'qcc')) echo ' active';?>">
                                             <a href="#">
-                                                <i class="fa fa-gears text-green"></i> <span>QCC Management</span>
+                                                <i class="fa fa-gears text-green"></i> <span>QCC</span>
                                                 <span class="pull-right-container">
                                                     <i class="fa fa-angle-left pull-right"></i>
                                                 </span>
                                             </a>
                                             <ul class="treeview-menu">
-                                                <li><a href="/qcc_step"><i class="fa fa-users"></i> Master Steps</a></li>
-                                                <li><a href="/qcc_perriode"><i class="fa fa-users"></i> QCC Periode</a></li>
                                                 <li><a href="/qcc_schedule"><i class="fa fa-calendar"></i> Schedule</a></li>
-                                                <!-- <li><a href="/qcc_team"><i class="fa fa-users"></i> Teams</a></li>
-                                                <li><a href="/qcc_activity"><i class="fa fa-tasks"></i> Activity</a></li> -->
+                                                <li><a href="/qcc_team/periode"><i class="fa fa-users"></i> Teams</a></li>
+                                                <li><a href="/qcc_activity"><i class="fa fa-tasks"></i> Activity</a></li>
                                             </ul>
                                         </li>
                                     </ul>

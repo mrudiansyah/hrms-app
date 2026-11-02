@@ -3,7 +3,7 @@
 @section('Contents')
 <div class="content-wrapper">
     <section class="content-header">
-        <h1>QCC Management <small>Master Steps</small></h1>
+        <h1>QCC <small>Master Steps</small></h1>
     </section>
     <section class="content">
         @include('qcc._navigation')

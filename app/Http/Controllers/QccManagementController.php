@@ -190,7 +190,10 @@ class QccManagementController extends Controller
     {
         $this->authorizeImprovement();
         $menu = 'qcc';
-        $periods = DB::table('tb_qcc_periode')->orderByDesc('periode_start')->get();
+        $periods = DB::table('tb_qcc_periode')
+            ->orderByDesc('periode_start')
+            ->orderByDesc('id')
+            ->get();
         $selectedPeriod = null;
         $schedules = collect();
         $weeks = [];
@@ -204,7 +207,11 @@ class QccManagementController extends Controller
             if (!$selectedPeriod) {
                 abort(404, 'Periode QCC tidak ditemukan.');
             }
+        } else {
+            $selectedPeriod = $periods->first();
+        }
 
+        if ($selectedPeriod) {
             $schedules = DB::table('tb_qcc_periode_schedule')
                 ->join('tb_qcc_step', 'tb_qcc_step.id', '=', 'tb_qcc_periode_schedule.id_qcc_step')
                 ->where('tb_qcc_periode_schedule.id_qcc_periode', $selectedPeriod->id)

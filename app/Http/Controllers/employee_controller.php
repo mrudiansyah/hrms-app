@@ -143,8 +143,35 @@ class employee_controller extends Controller
             }
             $checkin_act = '-';
             $checkout_act = '-';
-            $checkin_acts = DB::table('tb_iclock')->where('badgenumber', $dt->badgenumber)->where('checktime', '>=', $ncdateindown)->where('checktime', '<=', $ncdateinup)->value('checktime');
-            $checkout_acts = DB::table('tb_iclock')->where('badgenumber', $dt->badgenumber)->where('checktime', '>=', $ncdateoutdown)->where('checktime', '<=', $ncdateoutup)->value('checktime');
+            $badgeNumber = str_pad((string) $dt->badgenumber, 9, '0', STR_PAD_LEFT);
+            $checkin_acts = DB::table('tb_iclock')
+                ->where('badgenumber', $badgeNumber)
+                ->where('checktime', '>=', $ncdateindown)
+                ->where('checktime', '<=', $ncdateinup)
+                ->orderBy('checktime', 'asc')
+                ->value('checktime');
+            if ($checkin_acts === null) {
+                $checkin_acts = DB::table('tb_checktimes')
+                    ->where('NIK', $dt->NIK)
+                    ->where('checktime', '>=', $ncdateindown)
+                    ->where('checktime', '<=', $ncdateinup)
+                    ->orderBy('checktime', 'asc')
+                    ->value('checktime');
+            }
+            $checkout_acts = DB::table('tb_iclock')
+                ->where('badgenumber', $badgeNumber)
+                ->where('checktime', '>=', $ncdateoutdown)
+                ->where('checktime', '<=', $ncdateoutup)
+                ->orderBy('checktime', 'desc')
+                ->value('checktime');
+            if ($checkout_acts === null) {
+                $checkout_acts = DB::table('tb_checktimes')
+                    ->where('NIK', $dt->NIK)
+                    ->where('checktime', '>=', $ncdateoutdown)
+                    ->where('checktime', '<=', $ncdateoutup)
+                    ->orderBy('checktime', 'desc')
+                    ->value('checktime');
+            }
             if ($checkin_acts != '')
                 $checkin_act = date('H:i', strtotime($checkin_acts));
             if ($checkout_acts != '')
@@ -1265,9 +1292,9 @@ class employee_controller extends Controller
         $cek1=DB::table('tb_emails')->where('email_address',$email)->get();
         foreach($cek1 as $dt){$id_user=$dt->id_employee;}
         $date_contract=$data->date_contract.'-24';
-        $qty_ksk_detail_status=DB::connection('mysql')->table('tb_ksk_detail_status')->where('id_ksk_detail',$data->id_ksk_detail)->where('id_employee',$id_user)->count();
+        $qty_ksk_detail_status=DB::table('tb_ksk_detail_status')->where('id_ksk_detail',$data->id_ksk_detail)->where('id_employee',$id_user)->count();
         //Entry Detail Status
-            $simpan_status=DB::connection('mysql')->table('tb_ksk_detail_status')->insert([
+            $simpan_status=DB::table('tb_ksk_detail_status')->insert([
                 'id_ksk_detail'=>$data->id_ksk_detail,
                 'id_employee'=>$id_user,
                 'judge'=>$data->judge,
@@ -1279,7 +1306,7 @@ class employee_controller extends Controller
             ]);
             if($simpan_status){
                 if($data->statusupdate==1){
-                    $update_detail=DB::connection('mysql')->table('tb_ksk_detail')->where('id',$data->id_ksk_detail)->update([
+                    $update_detail=DB::table('tb_ksk_detail')->where('id',$data->id_ksk_detail)->update([
                         'judge'=>$data->judge,
                         'next_contract'=>$data->next_contract,
                         'days'=>$data->days,
@@ -1588,7 +1615,7 @@ class employee_controller extends Controller
         ->orderby('no_ksk','asc')->get();
 
         $judul="KSK ".$periode;
-        $tb_email=DB::connection('mysql')->table('tb_emails')
+        $tb_email=DB::table('tb_emails')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
         ->where('id_employee',$dt->direct_id)->get(['tb_employees.*','tb_emails.email_address']);
         foreach($tb_email as $dt2){
@@ -1839,7 +1866,7 @@ class employee_controller extends Controller
         return redirect()->back()->with(['success' => 'Gagal']);;
     }
     function notificationKSK($id){
-        $tb_ksk=DB::connection('mysql')->table('tb_ksk')
+        $tb_ksk=DB::table('tb_ksk')
         ->leftjoin('tb_departments','tb_departments.id','=','tb_ksk.dept_id')
         ->where('tb_ksk.id',$id)
         ->get(['tb_ksk.*','tb_departments.dept_name']);

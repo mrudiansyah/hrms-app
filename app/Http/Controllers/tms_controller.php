@@ -1132,7 +1132,6 @@ class tms_controller extends Controller
         $day = date('d', strtotime($tanggal));
         $kolom = "D" . $day;
         $subjudul = date('d F Y', strtotime($tanggal));
-
         if ($department == 0) {
             $tb_work_entry = DB::table('tb_work_entries')
                 ->leftjoin('tb_work_contract', 'tb_work_contract.id_employee', '=', 'tb_work_entries.id_employee')

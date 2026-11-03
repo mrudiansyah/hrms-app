@@ -103,8 +103,9 @@ class ess_controller extends Controller
             }
             $checkin_act = '-';
             $checkout_act = '-';
-            $checkin_acts = DB::table('tb_iclock')->where('badgenumber', $dt->badgenumber)->where('checktime', '>=', $ncdateindown)->where('checktime', '<=', $ncdateinup)->value('checktime');
-            $checkout_acts = DB::table('tb_iclock')->where('badgenumber', $dt->badgenumber)->where('checktime', '>=', $ncdateoutdown)->where('checktime', '<=', $ncdateoutup)->value('checktime');
+            $badge = str_pad($dt->badgenumber, 9, '0', STR_PAD_LEFT);
+            $checkin_acts = DB::table('tb_iclock')->where('badgenumber', $badge)->where('checktime', '>=', $ncdateindown)->where('checktime', '<=', $ncdateinup)->value('checktime');
+            $checkout_acts = DB::table('tb_iclock')->where('badgenumber', $badge)->where('checktime', '>=', $ncdateoutdown)->where('checktime', '<=', $ncdateoutup)->value('checktime');
             if ($checkin_acts != '')
                 $checkin_act = date('H:i', strtotime($checkin_acts));
             if ($checkout_acts != '')

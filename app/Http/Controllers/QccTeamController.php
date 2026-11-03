@@ -34,7 +34,9 @@ class QccTeamController extends Controller
 
     public function periodTeams(Request $request)
     {
-        $this->authorizeImprovement();
+        $user = Auth::user();
+        $isCommittee = $user->hasRole('committee');
+        $canManageTeams = $user->hasRole('improvement');
 
         $periods = DB::table('tb_qcc_periode')
             ->orderByDesc('periode_start')
@@ -63,6 +65,8 @@ class QccTeamController extends Controller
         } else {
             $selectedPeriod = $periods->first();
         }
+        $canManageMembers = $selectedPeriod
+            && ((int) $selectedPeriod->isLocked === 0 || $isCommittee);
 
         if ($selectedPeriod) {
             $teamPeriods = DB::table('tb_qcc_periode_team')
@@ -96,6 +100,9 @@ class QccTeamController extends Controller
             'positions',
             'employees',
             'members',
+            'isCommittee',
+            'canManageTeams',
+            'canManageMembers',
         ));
     }
 
@@ -192,9 +199,7 @@ class QccTeamController extends Controller
 
     public function storeMember(Request $request, int $teamPeriodId)
     {
-        $this->authorizeImprovement();
-        $teamPeriod = DB::table('tb_qcc_periode_team')->where('id', $teamPeriodId)->first();
-        abort_unless($teamPeriod, 404);
+        $teamPeriod = $this->authorizeMemberManagement($teamPeriodId);
 
         $data = $request->validate([
             'id_employee' => [
@@ -208,7 +213,7 @@ class QccTeamController extends Controller
         ]);
         $now = now();
 
-        DB::table('tb_qcc_periode_team_member')->insert([
+        $memberId = DB::table('tb_qcc_periode_team_member')->insertGetId([
             ...$data,
             'id_qcc_team_periode' => $teamPeriodId,
             'created_at' => $now,
@@ -216,15 +221,33 @@ class QccTeamController extends Controller
             'updated_by' => Auth::user()->name,
         ]);
 
+        if ($request->expectsJson()) {
+            $member = DB::table('tb_qcc_periode_team_member')
+                ->leftJoin('tb_employees', 'tb_employees.id', '=', 'tb_qcc_periode_team_member.id_employee')
+                ->leftJoin('tb_position_team', 'tb_position_team.id', '=', 'tb_qcc_periode_team_member.id_position_team')
+                ->where('tb_qcc_periode_team_member.id', $memberId)
+                ->first([
+                    'tb_qcc_periode_team_member.id',
+                    'tb_employees.NIK',
+                    'tb_employees.employee_name',
+                    'tb_position_team.position_name',
+                ]);
+
+            return response()->json([
+                'message' => 'Anggota berhasil ditambahkan.',
+                'member' => $member,
+            ]);
+        }
+
         return $this->redirectToPeriod($teamPeriod->id_qcc_periode)
             ->with('success', 'Anggota berhasil ditambahkan.');
     }
 
     public function updateMember(Request $request, int $id)
     {
-        $this->authorizeImprovement();
         $member = DB::table('tb_qcc_periode_team_member')->where('id', $id)->first();
         abort_unless($member, 404);
+        $this->authorizeMemberManagement((int) $member->id_qcc_team_periode);
 
         $data = $request->validate([
             'id_employee' => [
@@ -255,9 +278,9 @@ class QccTeamController extends Controller
 
     public function destroyMember(int $id)
     {
-        $this->authorizeImprovement();
         $member = DB::table('tb_qcc_periode_team_member')->where('id', $id)->first();
         abort_unless($member, 404);
+        $teamPeriod = $this->authorizeMemberManagement((int) $member->id_qcc_team_periode);
         $periodeId = DB::table('tb_qcc_periode_team')
             ->where('id', $member->id_qcc_team_periode)
             ->value('id_qcc_periode');
@@ -272,6 +295,26 @@ class QccTeamController extends Controller
         abort_unless($periodeId, 404);
 
         return redirect('/qcc_team/periode?periode_id=' . $periodeId);
+    }
+
+    private function authorizeMemberManagement(int $teamPeriodId): object
+    {
+        $teamPeriod = DB::table('tb_qcc_periode_team')
+            ->join('tb_qcc_periode', 'tb_qcc_periode.id', '=', 'tb_qcc_periode_team.id_qcc_periode')
+            ->where('tb_qcc_periode_team.id', $teamPeriodId)
+            ->first([
+                'tb_qcc_periode_team.id',
+                'tb_qcc_periode_team.id_qcc_periode',
+                'tb_qcc_periode.isLocked',
+            ]);
+        abort_unless($teamPeriod, 404, 'Team pada periode QCC tidak ditemukan.');
+        abort_unless(
+            (int) $teamPeriod->isLocked === 0 || Auth::user()->hasRole('committee'),
+            403,
+            'Periode terkunci. Hanya committee yang dapat mengelola anggota team.',
+        );
+
+        return $teamPeriod;
     }
 
     private function authorizeImprovement(): void

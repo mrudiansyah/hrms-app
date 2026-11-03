@@ -19,7 +19,7 @@
                 <table class="table table-bordered table-hover">
                     <thead>
                         <tr class="bg-gray">
-                            <th style="width:100px;">Urutan</th>
+                            <th style="width:110px;">Urutan</th>
                             <th>Deskripsi Step</th>
                             <th style="width:180px;">Diperbarui</th>
                             <th style="width:180px;">Aksi</th>
@@ -30,41 +30,55 @@
                             <?php ($formId = 'update-step-' . $step->id); ?>
                             <tr>
                                 <td>
-                                    <select class="form-control" name="step_sequance" form="<?php echo e($formId); ?>" required>
-                                        <?php $__currentLoopData = range(1, 8); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sequence): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($sequence); ?>" <?php echo e((int) $step->step_sequance === $sequence ? 'selected' : ''); ?>>
-                                                Step <?php echo e($sequence); ?>
+                                    <?php if($isCommittee): ?>
+                                        <select class="form-control" name="step_sequance" form="<?php echo e($formId); ?>" required>
+                                            <?php $__currentLoopData = range(1, 8); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sequence): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($sequence); ?>" <?php echo e((int) $step->step_sequance === $sequence ? 'selected' : ''); ?>>
+                                                    Step <?php echo e($sequence); ?>
 
-                                            </option>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </select>
+                                                </option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    <?php else: ?>
+                                        Step <?php echo e($step->step_sequance); ?>
+
+                                    <?php endif; ?>
                                 </td>
                                 <td>
-                                    <input class="form-control" name="step_description" form="<?php echo e($formId); ?>"
-                                        value="<?php echo e($step->step_description); ?>" maxlength="255" required>
+                                    <?php if($isCommittee): ?>
+                                        <input class="form-control" name="step_description" form="<?php echo e($formId); ?>"
+                                            value="<?php echo e($step->step_description); ?>" maxlength="255" required>
+                                    <?php else: ?>
+                                        <?php echo e($step->step_description); ?>
+
+                                    <?php endif; ?>
                                 </td>
                                 <td><?php echo e($step->updated_by ?? '-'); ?></td>
                                 <td>
-                                    <form id="<?php echo e($formId); ?>" action="<?php echo e(url('/qcc_step/' . $step->id)); ?>" method="POST" style="display:inline;">
-                                        <?php echo csrf_field(); ?>
-                                        <?php echo method_field('PUT'); ?>
-                                        <button class="btn btn-primary btn-sm" type="submit" title="Simpan">
-                                            <i class="fa fa-save"></i> Simpan
-                                        </button>
-                                    </form>
-                                    <form action="<?php echo e(url('/qcc_step/' . $step->id)); ?>" method="POST" style="display:inline;"
-                                        onsubmit="return confirm('Hapus master step ini?')">
-                                        <?php echo csrf_field(); ?>
-                                        <?php echo method_field('DELETE'); ?>
-                                        <button class="btn btn-danger btn-sm" type="submit" title="Hapus">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <?php if($isCommittee): ?>
+                                        <form id="<?php echo e($formId); ?>" action="<?php echo e(url('/qcc_step/' . $step->id)); ?>" method="POST" style="display:inline;">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('PUT'); ?>
+                                            <button class="btn btn-primary btn-sm" type="submit" title="Simpan">
+                                                <i class="fa fa-save"></i> Simpan
+                                            </button>
+                                        </form>
+                                        <form action="<?php echo e(url('/qcc_step/' . $step->id)); ?>" method="POST" style="display:inline;"
+                                            onsubmit="return confirm('Hapus master step ini?')">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+                                            <button class="btn btn-danger btn-sm" type="submit" title="Hapus">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                        <?php if($steps->count() < 8): ?>
+                        <?php if($isCommittee && $steps->count() < 8): ?>
                             <tr>
                                 <?php ($createFormId = 'create-qcc-step'); ?>
                                 <td>

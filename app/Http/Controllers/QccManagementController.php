@@ -18,18 +18,18 @@ class QccManagementController extends Controller
 
     public function steps()
     {
-        $this->authorizeImprovement();
+        $isCommittee = Auth::user()->hasRole('committee');
         $menu = 'qcc';
         $steps = DB::table('tb_qcc_step')
             ->orderBy('step_sequance')
             ->get();
 
-        return view('qcc.steps', compact('menu', 'steps'));
+        return view('qcc.steps', compact('menu', 'steps', 'isCommittee'));
     }
 
     public function storeStep(Request $request)
     {
-        $this->authorizeImprovement();
+        $this->authorizeCommittee();
         $data = $request->validate([
             'step_sequance' => ['required', 'integer', 'between:1,8', Rule::unique('tb_qcc_step', 'step_sequance')],
             'step_description' => ['required', 'string', 'max:255'],
@@ -48,7 +48,7 @@ class QccManagementController extends Controller
 
     public function updateStep(Request $request, int $id)
     {
-        $this->authorizeImprovement();
+        $this->authorizeCommittee();
         $data = $request->validate([
             'step_sequance' => ['required', 'integer', 'between:1,8', Rule::unique('tb_qcc_step', 'step_sequance')->ignore($id)],
             'step_description' => ['required', 'string', 'max:255'],
@@ -75,7 +75,7 @@ class QccManagementController extends Controller
 
     public function destroyStep(int $id)
     {
-        $this->authorizeImprovement();
+        $this->authorizeCommittee();
 
         if (DB::table('tb_qcc_periode_schedule')->where('id_qcc_step', $id)->exists()) {
             return redirect('/qcc_step')->with('error', 'Step sudah digunakan pada schedule dan tidak dapat dihapus.');
@@ -88,7 +88,7 @@ class QccManagementController extends Controller
 
     public function periods()
     {
-        $this->authorizeImprovement();
+        $isCommittee = Auth::user()->hasRole('committee');
         $menu = 'qcc';
         $periods = DB::table('tb_qcc_periode')
             ->orderByDesc('periode_start')
@@ -98,12 +98,12 @@ class QccManagementController extends Controller
             ->groupBy('id_qcc_periode')
             ->pluck('schedule_count', 'id_qcc_periode');
 
-        return view('qcc.periods', compact('menu', 'periods', 'scheduleCounts'));
+        return view('qcc.periods', compact('menu', 'periods', 'scheduleCounts', 'isCommittee'));
     }
 
     public function storePeriod(Request $request, QccScheduleGenerator $generator)
     {
-        $this->authorizeImprovement();
+        $this->authorizeCommittee();
         $data = $request->validate([
             'sugested_thema' => ['required', 'string', 'max:255'],
             'periode_start' => ['required', 'date'],
@@ -121,6 +121,7 @@ class QccManagementController extends Controller
             $now = now();
             $periodId = DB::table('tb_qcc_periode')->insertGetId([
                 ...$data,
+                'isLocked' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
                 'updated_by' => Auth::user()->name,
@@ -142,7 +143,7 @@ class QccManagementController extends Controller
 
     public function updatePeriod(Request $request, int $id)
     {
-        $this->authorizeImprovement();
+        $this->authorizeCommittee();
         $data = $request->validate([
             'sugested_thema' => ['required', 'string', 'max:255'],
             'periode_start' => ['required', 'date'],
@@ -177,7 +178,7 @@ class QccManagementController extends Controller
 
     public function destroyPeriod(int $id)
     {
-        $this->authorizeImprovement();
+        $this->authorizeCommittee();
         DB::transaction(function () use ($id) {
             DB::table('tb_qcc_periode_schedule')->where('id_qcc_periode', $id)->delete();
             DB::table('tb_qcc_periode')->where('id', $id)->delete();
@@ -186,9 +187,33 @@ class QccManagementController extends Controller
         return redirect('/qcc_perriode')->with('success', 'Periode dan schedule terkait berhasil dihapus.');
     }
 
+    public function togglePeriodLock(int $id)
+    {
+        $this->authorizeCommittee();
+
+        DB::transaction(function () use ($id) {
+            $period = DB::table('tb_qcc_periode')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first(['id', 'isLocked']);
+            abort_unless($period, 404, 'Periode QCC tidak ditemukan.');
+            $isLocked = (int) $period->isLocked === 1;
+
+            DB::table('tb_qcc_periode')
+                ->where('id', $id)
+                ->update([
+                    'isLocked' => $isLocked ? 0 : 1,
+                    'updated_at' => now(),
+                    'updated_by' => Auth::user()->name,
+                ]);
+        });
+
+        return redirect('/qcc_perriode')->with('success', 'Status lock periode berhasil diperbarui.');
+    }
+
     public function schedule(Request $request)
     {
-        $this->authorizeImprovement();
+        $isCommittee = Auth::user()->hasRole('committee');
         $menu = 'qcc';
         $periods = DB::table('tb_qcc_periode')
             ->orderByDesc('periode_start')
@@ -260,12 +285,13 @@ class QccManagementController extends Controller
             'schedules',
             'weeks',
             'monthGroups',
+            'isCommittee',
         ));
     }
 
     public function updateSchedule(Request $request, int $id)
     {
-        $this->authorizeImprovement();
+        $this->authorizeCommittee();
         $schedule = DB::table('tb_qcc_periode_schedule')
             ->where('id', $id)
             ->first();
@@ -291,8 +317,8 @@ class QccManagementController extends Controller
             ->with('success', 'Tanggal schedule berhasil diperbarui.');
     }
 
-    private function authorizeImprovement(): void
+    private function authorizeCommittee(): void
     {
-        abort_unless(Auth::user()?->hasRole('improvement'), 403, 'Anda tidak punya akses.');
+        abort_unless(Auth::user()?->hasRole('committee'), 403, 'Anda tidak punya akses.');
     }
 }

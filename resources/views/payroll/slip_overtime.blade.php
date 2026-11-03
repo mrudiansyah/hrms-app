@@ -83,9 +83,13 @@
                     $isEndOfWeek = in_array($hari, ['SABTU', 'MINGGU']);
 
                     // Ambil semua row OT di tanggal ini (bisa >1 row)
-                    $otsOnDate = $tabel->where('date_on', $date);
+                    $otsOnDate = $tabel->filter(function ($row) use ($date) {
+                        return date('Y-m-d', strtotime($row->date_on)) === $date;
+                    });
                     $ot = $otsOnDate->first(); // untuk jam awal/akhir (ambil pertama)
-                    $meal = $meals->where('date_on', $date)->first();
+                    $meal = $meals->first(function ($row) use ($date) {
+                        return date('Y-m-d', strtotime($row->date_on)) === $date;
+                    });
                     
                     $slpj = $employee->slpj ?? 0;
                     

@@ -6,8 +6,6 @@
         <h1>QCC <small>Activity</small></h1>
     </section>
     <section class="content">
-        <?php echo $__env->make('qcc._navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-        <div style="height:15px;"></div>
         <?php echo $__env->make('qcc._messages', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <div class="box box-primary">
@@ -15,13 +13,14 @@
                 <a class="btn btn-default btn-sm pull-right" href="<?php echo e(url('/qcc_activity')); ?>">
                     <i class="fa fa-arrow-left"></i> Kembali ke Daftar
                 </a>
-                <h3 class="box-title"><?php echo e($teamPeriod->group_name); ?> <small>— <?php echo e($period->sugested_thema); ?></small></h3>
+                <h3 class="box-title"><?php echo e($teamPeriod->group_name); ?> <small>— <?php echo e($teamPeriod->theme_team); ?></small></h3>
                 <p class="text-muted" style="margin:8px 0 0;">
+                    Master Schedule
                     <?php echo e(\Illuminate\Support\Carbon::parse($period->periode_start)->format('d M Y')); ?>
 
                     – <?php echo e(\Illuminate\Support\Carbon::parse($period->periode_finish)->format('d M Y')); ?>
 
-                    · Setiap step memiliki baris Plan dan Actual.
+                    · SIlahkan update activity secara berkala.
                 </p>
             </div>
             <div class="box-body">
@@ -34,10 +33,9 @@
                                 <tr>
                                     <th rowspan="2" class="qcc-step-number">Step</th>
                                     <th rowspan="2" class="qcc-step-description">Deskripsi</th>
-                                    <th rowspan="2" class="qcc-row-type">Jenis</th>
+                                    <th rowspan="2" class="qcc-row-type">P/A</th>
                                     <th rowspan="2" class="qcc-date-column">Start</th>
                                     <th rowspan="2" class="qcc-date-column">Finish</th>
-                                    <th rowspan="2" class="qcc-action-column">Aksi</th>
                                     <?php $__currentLoopData = $monthGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $month): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <th colspan="<?php echo e($month['count']); ?>" class="text-center qcc-month-label"><?php echo e($month['label']); ?></th>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -49,20 +47,21 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <?php ($stepsUnlocked = true); ?>
                                 <?php $__currentLoopData = $schedules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $schedule): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <?php ($actual = $actuals->get($schedule->id)); ?>
                                     <?php ($planStart = \Illuminate\Support\Carbon::parse($schedule->plan_start)->toDateString()); ?>
                                     <?php ($planFinish = \Illuminate\Support\Carbon::parse($schedule->plan_finish)->toDateString()); ?>
                                     <?php ($actualStart = $actual && $actual->actual_start ? \Illuminate\Support\Carbon::parse($actual->actual_start)->toDateString() : null); ?>
                                     <?php ($actualFinish = $actual && $actual->actual_finish ? \Illuminate\Support\Carbon::parse($actual->actual_finish)->toDateString() : null); ?>
+                                    <?php ($stepUpdated = $actual && ($actualStart || $actualFinish || $actual->resume_meeting || $actual->report_improvement)); ?>
                                     <?php ($modalId = 'edit-actual-' . ($actual->id ?? $schedule->id)); ?>
                                     <tr class="qcc-plan-row">
                                         <td rowspan="2" class="text-center qcc-step-number-cell"><?php echo e($schedule->step_sequance); ?></td>
                                         <td rowspan="2" class="qcc-step-description-cell"><?php echo e($schedule->step_description); ?></td>
-                                        <td><span class="label label-primary">Plan</span></td>
+                                        <td>P</td>
                                         <td><?php echo e(\Illuminate\Support\Carbon::parse($schedule->plan_start)->format('d/m/Y')); ?></td>
                                         <td><?php echo e(\Illuminate\Support\Carbon::parse($schedule->plan_finish)->format('d/m/Y')); ?></td>
-                                        <td class="text-center text-muted">-</td>
                                         <?php $__currentLoopData = $weeks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $week): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <?php ($active = $planStart <= $week['finish'] && $planFinish >= $week['start']); ?>
                                             <?php ($previousActive = !$loop->first && $planStart <= $weeks[$loop->index - 1]['finish'] && $planFinish >= $weeks[$loop->index - 1]['start']); ?>
@@ -75,18 +74,24 @@
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </tr>
                                     <tr class="qcc-actual-row">
-                                        <td><span class="label label-success">Actual</span></td>
+                                        <td>
+                                            A
+                                            <div class="pull-right">
+                                                <?php if($actual && $stepsUnlocked): ?>
+                                                    <button class="btn btn-default btn-xs" type="button" data-toggle="modal" data-target="#<?php echo e($modalId); ?>">
+                                                        <i class="fa fa-edit" title="Update Acticity"></i>
+                                                    </button>
+                                                <?php elseif($actual): ?>
+                                                    <button class="btn btn-default btn-xs" type="button" disabled title="Isi data Actual pada step sebelumnya terlebih dahulu">
+                                                        <i class="fa fa-lock" aria-hidden="true"></i>
+                                                    </button>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
                                         <td><?php echo e($actualStart ? \Illuminate\Support\Carbon::parse($actualStart)->format('d/m/Y') : '-'); ?></td>
                                         <td><?php echo e($actualFinish ? \Illuminate\Support\Carbon::parse($actualFinish)->format('d/m/Y') : '-'); ?></td>
-                                        <td class="text-center">
-                                            <?php if($actual): ?>
-                                                <button class="btn btn-success btn-xs" type="button" data-toggle="modal" data-target="#<?php echo e($modalId); ?>">
-                                                    <i class="fa fa-pencil"></i> Input Actual
-                                                </button>
-                                            <?php else: ?>
-                                                <span class="text-muted">-</span>
-                                            <?php endif; ?>
-                                        </td>
                                         <?php $__currentLoopData = $weeks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $week): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <?php ($active = $actualStart && $actualFinish && $actualStart <= $week['finish'] && $actualFinish >= $week['start']); ?>
                                             <?php ($previousActive = $active && !$loop->first && $actualStart <= $weeks[$loop->index - 1]['finish'] && $actualFinish >= $weeks[$loop->index - 1]['start']); ?>
@@ -98,6 +103,7 @@
                                             </td>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </tr>
+                                    <?php ($stepsUnlocked = $stepsUnlocked && $stepUpdated); ?>
 
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </tbody>
@@ -112,7 +118,7 @@
                             <div class="modal fade" id="<?php echo e($modalId); ?>" tabindex="-1" role="dialog" aria-labelledby="<?php echo e($modalId); ?>-title">
                                 <div class="modal-dialog modal-lg" role="document">
                                     <div class="modal-content">
-                                        <form action="<?php echo e(url('/qcc_activity_actual/'.$actual->id)); ?>" method="POST">
+                                        <form action="<?php echo e(url('/qcc_activity_actual/'.$actual->id)); ?>" method="POST" enctype="multipart/form-data">
                                             <?php echo csrf_field(); ?>
                                             <?php echo method_field('PUT'); ?>
                                             <div class="modal-header">
@@ -136,11 +142,27 @@
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="resume_meeting_<?php echo e($actual->id); ?>">Resume Meeting</label>
-                                                    <textarea class="form-control" id="resume_meeting_<?php echo e($actual->id); ?>" name="resume_meeting" rows="4" maxlength="5000"><?php echo e($actual->resume_meeting); ?></textarea>
+                                                    <?php if($actual->resume_meeting): ?>
+                                                        <?php if(\Illuminate\Support\Str::startsWith($actual->resume_meeting, 'qcc/activity/') || preg_match('/^[A-Za-z0-9]{16}\.(?:jpg|jpeg|png|webp|pdf)$/i', $actual->resume_meeting)): ?>
+                                                            <p><a href="<?php echo e(url('/qcc_activity_actual/'.$actual->id.'/file/resume_meeting')); ?>" target="_blank" rel="noopener"><i class="fa fa-paperclip"></i> Lihat file Resume Meeting</a></p>
+                                                        <?php else: ?>
+                                                            <p class="text-muted">Catatan sebelumnya: <?php echo e($actual->resume_meeting); ?></p>
+                                                        <?php endif; ?>
+                                                    <?php endif; ?>
+                                                    <input class="form-control" type="file" id="resume_meeting_<?php echo e($actual->id); ?>" name="resume_meeting" accept=".jpg,.jpeg,.png,.webp,.pdf">
+                                                    <p class="help-block">Format JPG, PNG, WEBP, atau PDF; maksimal 10 MB. Upload baru akan mengganti file sebelumnya.</p>
                                                 </div>
                                                 <div class="form-group" style="margin-bottom:0;">
                                                     <label for="report_improvement_<?php echo e($actual->id); ?>">Report Improvement</label>
-                                                    <textarea class="form-control" id="report_improvement_<?php echo e($actual->id); ?>" name="report_improvement" rows="4" maxlength="5000"><?php echo e($actual->report_improvement); ?></textarea>
+                                                    <?php if($actual->report_improvement): ?>
+                                                        <?php if(\Illuminate\Support\Str::startsWith($actual->report_improvement, 'qcc/activity/') || preg_match('/^[A-Za-z0-9]{16}\.(?:jpg|jpeg|png|webp|pdf)$/i', $actual->report_improvement)): ?>
+                                                            <p><a href="<?php echo e(url('/qcc_activity_actual/'.$actual->id.'/file/report_improvement')); ?>" target="_blank" rel="noopener"><i class="fa fa-paperclip"></i> Lihat file Report Improvement</a></p>
+                                                        <?php else: ?>
+                                                            <p class="text-muted">Catatan sebelumnya: <?php echo e($actual->report_improvement); ?></p>
+                                                        <?php endif; ?>
+                                                    <?php endif; ?>
+                                                    <input class="form-control" type="file" id="report_improvement_<?php echo e($actual->id); ?>" name="report_improvement" accept=".jpg,.jpeg,.png,.webp,.pdf">
+                                                    <p class="help-block">Format JPG, PNG, WEBP, atau PDF; maksimal 10 MB. Upload baru akan mengganti file sebelumnya.</p>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -177,7 +199,7 @@
     }
     .qcc-step-number { min-width: 55px; }
     .qcc-step-description { min-width: 220px; }
-    .qcc-row-type { min-width: 75px; }
+    .qcc-row-type { min-width: 50px; }
     .qcc-date-column { min-width: 100px; }
     .qcc-action-column { min-width: 115px; }
     .qcc-step-number-cell { font-weight: bold; }

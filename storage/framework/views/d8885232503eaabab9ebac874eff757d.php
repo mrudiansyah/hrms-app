@@ -44,7 +44,7 @@
 
                         – <?php echo e(\Illuminate\Support\Carbon::parse($selectedPeriod->periode_finish)->format('d M Y')); ?>
 
-                        · W1 dimulai dari tanggal awal periode. Bar hijau menandai minggu aktif; overlap antar-step diperbolehkan.
+                        
                     </p>
                 </div>
                 <div class="box-body">
@@ -87,23 +87,37 @@
                                             <td class="text-center"><?php echo e($schedule->step_sequance); ?></td>
                                             <td class="qcc-description"><?php echo e($schedule->step_description); ?></td>
                                             <td>
-                                                <input class="form-control input-sm" type="date" name="plan_start"
-                                                    form="<?php echo e($formId); ?>" value="<?php echo e($planStart); ?>" required>
+                                                <?php if($isCommittee): ?>
+                                                    <input class="form-control input-sm" type="date" name="plan_start"
+                                                        form="<?php echo e($formId); ?>" value="<?php echo e($planStart); ?>" required>
+                                                <?php else: ?>
+                                                    <?php echo e(\Illuminate\Support\Carbon::parse($planStart)->format('d/m/Y')); ?>
+
+                                                <?php endif; ?>
                                             </td>
                                             <td>
-                                                <input class="form-control input-sm" type="date" name="plan_finish"
-                                                    form="<?php echo e($formId); ?>" value="<?php echo e($planFinish); ?>" required>
+                                                <?php if($isCommittee): ?>
+                                                    <input class="form-control input-sm" type="date" name="plan_finish"
+                                                        form="<?php echo e($formId); ?>" value="<?php echo e($planFinish); ?>" required>
+                                                <?php else: ?>
+                                                    <?php echo e(\Illuminate\Support\Carbon::parse($planFinish)->format('d/m/Y')); ?>
+
+                                                <?php endif; ?>
                                             </td>
                                             <td class="qcc-action">
-                                                <form id="<?php echo e($formId); ?>" action="<?php echo e(url('/qcc_schedule/' . $schedule->id)); ?>"
-                                                    method="POST">
-                                                    <?php echo csrf_field(); ?>
-                                                    <?php echo method_field('PUT'); ?>
-                                                    <button class="btn btn-primary btn-xs" type="submit" title="Simpan tanggal">
-                                                        <i class="fa fa-save"></i>
-                                                    </button>
-                                                    <input type="hidden" name="periode_id" value="<?php echo e($selectedPeriod->id); ?>">
-                                                </form>
+                                                <?php if($isCommittee): ?>
+                                                    <form id="<?php echo e($formId); ?>" action="<?php echo e(url('/qcc_schedule/' . $schedule->id)); ?>"
+                                                        method="POST">
+                                                        <?php echo csrf_field(); ?>
+                                                        <?php echo method_field('PUT'); ?>
+                                                        <button class="btn btn-primary btn-xs" type="submit" title="Simpan tanggal">
+                                                            <i class="fa fa-save"></i>
+                                                        </button>
+                                                        <input type="hidden" name="periode_id" value="<?php echo e($selectedPeriod->id); ?>">
+                                                    </form>
+                                                <?php else: ?>
+                                                    <span class="text-muted">-</span>
+                                                <?php endif; ?>
                                             </td>
                                             <?php $__currentLoopData = $weeks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $week): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <?php ($active = $planStart <= $week['finish'] && $planFinish >= $week['start']); ?>

@@ -56,6 +56,7 @@ Route::get('/qcc_perriode', [App\Http\Controllers\QccManagementController::class
 Route::post('/qcc_perriode', [App\Http\Controllers\QccManagementController::class, 'storePeriod']);
 Route::put('/qcc_perriode/{id}', [App\Http\Controllers\QccManagementController::class, 'updatePeriod']);
 Route::delete('/qcc_perriode/{id}', [App\Http\Controllers\QccManagementController::class, 'destroyPeriod']);
+Route::post('/qcc_perriode/{id}/toggle-lock', [App\Http\Controllers\QccManagementController::class, 'togglePeriodLock']);
 Route::get('/qcc_schedule', [App\Http\Controllers\QccManagementController::class, 'schedule']);
 Route::put('/qcc_schedule/{id}', [App\Http\Controllers\QccManagementController::class, 'updateSchedule']);
 Route::get('/qcc_team', [App\Http\Controllers\QccTeamController::class, 'index']);
@@ -69,8 +70,10 @@ Route::put('/qcc_team_member/{id}', [App\Http\Controllers\QccTeamController::cla
 Route::delete('/qcc_team_member/{id}', [App\Http\Controllers\QccTeamController::class, 'destroyMember']);
 Route::get('/qcc_activity', [App\Http\Controllers\QccActivityController::class, 'index']);
 Route::post('/qcc_activity/{teamPeriodId}/open', [App\Http\Controllers\QccActivityController::class, 'open']);
+Route::put('/qcc_activity/{teamPeriodId}/theme', [App\Http\Controllers\QccActivityController::class, 'updateTeamTheme']);
 Route::get('/qcc_activity/{teamPeriodId}', [App\Http\Controllers\QccActivityController::class, 'show']);
 Route::put('/qcc_activity_actual/{id}', [App\Http\Controllers\QccActivityController::class, 'updateActual']);
+Route::get('/qcc_activity_actual/{id}/file/{field}', [App\Http\Controllers\QccActivityController::class, 'showActualFile']);
 
 use App\Http\Controllers\SecurityController;
 Route::get('/scurity/assigment', [SecurityController::class, 'assignment']);

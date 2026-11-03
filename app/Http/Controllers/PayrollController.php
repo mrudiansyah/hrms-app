@@ -1894,6 +1894,7 @@ $request->validate([
             ->orderBy('date_on', 'asc')
             ->get()
             ->keyBy('date_on');
+            
 
         $employee = DB::table('tb_employees as b')
             ->leftJoin('tb_departments as c', 'c.id', 'b.dept_id')

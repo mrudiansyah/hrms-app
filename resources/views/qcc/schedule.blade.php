@@ -41,7 +41,7 @@
                     <p class="text-muted">
                         {{ \Illuminate\Support\Carbon::parse($selectedPeriod->periode_start)->format('d M Y') }}
                         – {{ \Illuminate\Support\Carbon::parse($selectedPeriod->periode_finish)->format('d M Y') }}
-                        · W1 dimulai dari tanggal awal periode. Bar hijau menandai minggu aktif; overlap antar-step diperbolehkan.
+                        
                     </p>
                 </div>
                 <div class="box-body">
@@ -82,23 +82,35 @@
                                             <td class="text-center">{{ $schedule->step_sequance }}</td>
                                             <td class="qcc-description">{{ $schedule->step_description }}</td>
                                             <td>
-                                                <input class="form-control input-sm" type="date" name="plan_start"
-                                                    form="{{ $formId }}" value="{{ $planStart }}" required>
+                                                @if($isCommittee)
+                                                    <input class="form-control input-sm" type="date" name="plan_start"
+                                                        form="{{ $formId }}" value="{{ $planStart }}" required>
+                                                @else
+                                                    {{ \Illuminate\Support\Carbon::parse($planStart)->format('d/m/Y') }}
+                                                @endif
                                             </td>
                                             <td>
-                                                <input class="form-control input-sm" type="date" name="plan_finish"
-                                                    form="{{ $formId }}" value="{{ $planFinish }}" required>
+                                                @if($isCommittee)
+                                                    <input class="form-control input-sm" type="date" name="plan_finish"
+                                                        form="{{ $formId }}" value="{{ $planFinish }}" required>
+                                                @else
+                                                    {{ \Illuminate\Support\Carbon::parse($planFinish)->format('d/m/Y') }}
+                                                @endif
                                             </td>
                                             <td class="qcc-action">
-                                                <form id="{{ $formId }}" action="{{ url('/qcc_schedule/' . $schedule->id) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button class="btn btn-primary btn-xs" type="submit" title="Simpan tanggal">
-                                                        <i class="fa fa-save"></i>
-                                                    </button>
-                                                    <input type="hidden" name="periode_id" value="{{ $selectedPeriod->id }}">
-                                                </form>
+                                                @if($isCommittee)
+                                                    <form id="{{ $formId }}" action="{{ url('/qcc_schedule/' . $schedule->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button class="btn btn-primary btn-xs" type="submit" title="Simpan tanggal">
+                                                            <i class="fa fa-save"></i>
+                                                        </button>
+                                                        <input type="hidden" name="periode_id" value="{{ $selectedPeriod->id }}">
+                                                    </form>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
                                             </td>
                                             @foreach($weeks as $week)
                                                 @php($active = $planStart <= $week['finish'] && $planFinish >= $week['start'])

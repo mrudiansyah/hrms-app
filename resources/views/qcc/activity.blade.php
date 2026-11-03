@@ -6,8 +6,6 @@
         <h1>QCC <small>Activity</small></h1>
     </section>
     <section class="content">
-        @include('qcc._navigation')
-        <div style="height:15px;"></div>
         @include('qcc._messages')
 
         <div class="box box-primary">
@@ -15,11 +13,12 @@
                 <a class="btn btn-default btn-sm pull-right" href="{{ url('/qcc_activity') }}">
                     <i class="fa fa-arrow-left"></i> Kembali ke Daftar
                 </a>
-                <h3 class="box-title">{{ $teamPeriod->group_name }} <small>— {{ $period->sugested_thema }}</small></h3>
+                <h3 class="box-title">{{ $teamPeriod->group_name }} <small>— {{ $teamPeriod->theme_team }}</small></h3>
                 <p class="text-muted" style="margin:8px 0 0;">
+                    Master Schedule
                     {{ \Illuminate\Support\Carbon::parse($period->periode_start)->format('d M Y') }}
                     – {{ \Illuminate\Support\Carbon::parse($period->periode_finish)->format('d M Y') }}
-                    · Setiap step memiliki baris Plan dan Actual.
+                    · SIlahkan update activity secara berkala.
                 </p>
             </div>
             <div class="box-body">
@@ -32,10 +31,9 @@
                                 <tr>
                                     <th rowspan="2" class="qcc-step-number">Step</th>
                                     <th rowspan="2" class="qcc-step-description">Deskripsi</th>
-                                    <th rowspan="2" class="qcc-row-type">Jenis</th>
+                                    <th rowspan="2" class="qcc-row-type">P/A</th>
                                     <th rowspan="2" class="qcc-date-column">Start</th>
                                     <th rowspan="2" class="qcc-date-column">Finish</th>
-                                    <th rowspan="2" class="qcc-action-column">Aksi</th>
                                     @foreach($monthGroups as $month)
                                         <th colspan="{{ $month['count'] }}" class="text-center qcc-month-label">{{ $month['label'] }}</th>
                                     @endforeach
@@ -47,20 +45,21 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @php($stepsUnlocked = true)
                                 @foreach($schedules as $schedule)
                                     @php($actual = $actuals->get($schedule->id))
                                     @php($planStart = \Illuminate\Support\Carbon::parse($schedule->plan_start)->toDateString())
                                     @php($planFinish = \Illuminate\Support\Carbon::parse($schedule->plan_finish)->toDateString())
                                     @php($actualStart = $actual && $actual->actual_start ? \Illuminate\Support\Carbon::parse($actual->actual_start)->toDateString() : null)
                                     @php($actualFinish = $actual && $actual->actual_finish ? \Illuminate\Support\Carbon::parse($actual->actual_finish)->toDateString() : null)
+                                    @php($stepUpdated = $actual && ($actualStart || $actualFinish || $actual->resume_meeting || $actual->report_improvement))
                                     @php($modalId = 'edit-actual-' . ($actual->id ?? $schedule->id))
                                     <tr class="qcc-plan-row">
                                         <td rowspan="2" class="text-center qcc-step-number-cell">{{ $schedule->step_sequance }}</td>
                                         <td rowspan="2" class="qcc-step-description-cell">{{ $schedule->step_description }}</td>
-                                        <td><span class="label label-primary">Plan</span></td>
+                                        <td>P</td>
                                         <td>{{ \Illuminate\Support\Carbon::parse($schedule->plan_start)->format('d/m/Y') }}</td>
                                         <td>{{ \Illuminate\Support\Carbon::parse($schedule->plan_finish)->format('d/m/Y') }}</td>
-                                        <td class="text-center text-muted">-</td>
                                         @foreach($weeks as $week)
                                             @php($active = $planStart <= $week['finish'] && $planFinish >= $week['start'])
                                             @php($previousActive = !$loop->first && $planStart <= $weeks[$loop->index - 1]['finish'] && $planFinish >= $weeks[$loop->index - 1]['start'])
@@ -73,18 +72,24 @@
                                         @endforeach
                                     </tr>
                                     <tr class="qcc-actual-row">
-                                        <td><span class="label label-success">Actual</span></td>
+                                        <td>
+                                            A
+                                            <div class="pull-right">
+                                                @if($actual && $stepsUnlocked)
+                                                    <button class="btn btn-default btn-xs" type="button" data-toggle="modal" data-target="#{{ $modalId }}">
+                                                        <i class="fa fa-edit" title="Update Acticity"></i>
+                                                    </button>
+                                                @elseif($actual)
+                                                    <button class="btn btn-default btn-xs" type="button" disabled title="Isi data Actual pada step sebelumnya terlebih dahulu">
+                                                        <i class="fa fa-lock" aria-hidden="true"></i>
+                                                    </button>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </div>
+                                        </td>
                                         <td>{{ $actualStart ? \Illuminate\Support\Carbon::parse($actualStart)->format('d/m/Y') : '-' }}</td>
                                         <td>{{ $actualFinish ? \Illuminate\Support\Carbon::parse($actualFinish)->format('d/m/Y') : '-' }}</td>
-                                        <td class="text-center">
-                                            @if($actual)
-                                                <button class="btn btn-success btn-xs" type="button" data-toggle="modal" data-target="#{{ $modalId }}">
-                                                    <i class="fa fa-pencil"></i> Input Actual
-                                                </button>
-                                            @else
-                                                <span class="text-muted">-</span>
-                                            @endif
-                                        </td>
                                         @foreach($weeks as $week)
                                             @php($active = $actualStart && $actualFinish && $actualStart <= $week['finish'] && $actualFinish >= $week['start'])
                                             @php($previousActive = $active && !$loop->first && $actualStart <= $weeks[$loop->index - 1]['finish'] && $actualFinish >= $weeks[$loop->index - 1]['start'])
@@ -96,6 +101,7 @@
                                             </td>
                                         @endforeach
                                     </tr>
+                                    @php($stepsUnlocked = $stepsUnlocked && $stepUpdated)
 
                                 @endforeach
                             </tbody>
@@ -110,7 +116,7 @@
                             <div class="modal fade" id="{{ $modalId }}" tabindex="-1" role="dialog" aria-labelledby="{{ $modalId }}-title">
                                 <div class="modal-dialog modal-lg" role="document">
                                     <div class="modal-content">
-                                        <form action="{{ url('/qcc_activity_actual/'.$actual->id) }}" method="POST">
+                                        <form action="{{ url('/qcc_activity_actual/'.$actual->id) }}" method="POST" enctype="multipart/form-data">
                                             @csrf
                                             @method('PUT')
                                             <div class="modal-header">
@@ -134,11 +140,27 @@
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="resume_meeting_{{ $actual->id }}">Resume Meeting</label>
-                                                    <textarea class="form-control" id="resume_meeting_{{ $actual->id }}" name="resume_meeting" rows="4" maxlength="5000">{{ $actual->resume_meeting }}</textarea>
+                                                    @if($actual->resume_meeting)
+                                                        @if(\Illuminate\Support\Str::startsWith($actual->resume_meeting, 'qcc/activity/') || preg_match('/^[A-Za-z0-9]{16}\.(?:jpg|jpeg|png|webp|pdf)$/i', $actual->resume_meeting))
+                                                            <p><a href="{{ url('/qcc_activity_actual/'.$actual->id.'/file/resume_meeting') }}" target="_blank" rel="noopener"><i class="fa fa-paperclip"></i> Lihat file Resume Meeting</a></p>
+                                                        @else
+                                                            <p class="text-muted">Catatan sebelumnya: {{ $actual->resume_meeting }}</p>
+                                                        @endif
+                                                    @endif
+                                                    <input class="form-control" type="file" id="resume_meeting_{{ $actual->id }}" name="resume_meeting" accept=".jpg,.jpeg,.png,.webp,.pdf">
+                                                    <p class="help-block">Format JPG, PNG, WEBP, atau PDF; maksimal 10 MB. Upload baru akan mengganti file sebelumnya.</p>
                                                 </div>
                                                 <div class="form-group" style="margin-bottom:0;">
                                                     <label for="report_improvement_{{ $actual->id }}">Report Improvement</label>
-                                                    <textarea class="form-control" id="report_improvement_{{ $actual->id }}" name="report_improvement" rows="4" maxlength="5000">{{ $actual->report_improvement }}</textarea>
+                                                    @if($actual->report_improvement)
+                                                        @if(\Illuminate\Support\Str::startsWith($actual->report_improvement, 'qcc/activity/') || preg_match('/^[A-Za-z0-9]{16}\.(?:jpg|jpeg|png|webp|pdf)$/i', $actual->report_improvement))
+                                                            <p><a href="{{ url('/qcc_activity_actual/'.$actual->id.'/file/report_improvement') }}" target="_blank" rel="noopener"><i class="fa fa-paperclip"></i> Lihat file Report Improvement</a></p>
+                                                        @else
+                                                            <p class="text-muted">Catatan sebelumnya: {{ $actual->report_improvement }}</p>
+                                                        @endif
+                                                    @endif
+                                                    <input class="form-control" type="file" id="report_improvement_{{ $actual->id }}" name="report_improvement" accept=".jpg,.jpeg,.png,.webp,.pdf">
+                                                    <p class="help-block">Format JPG, PNG, WEBP, atau PDF; maksimal 10 MB. Upload baru akan mengganti file sebelumnya.</p>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -175,7 +197,7 @@
     }
     .qcc-step-number { min-width: 55px; }
     .qcc-step-description { min-width: 220px; }
-    .qcc-row-type { min-width: 75px; }
+    .qcc-row-type { min-width: 50px; }
     .qcc-date-column { min-width: 100px; }
     .qcc-action-column { min-width: 115px; }
     .qcc-step-number-cell { font-weight: bold; }

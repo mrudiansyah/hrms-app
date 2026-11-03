@@ -19,7 +19,7 @@
                 <table class="table table-bordered table-hover">
                     <thead>
                         <tr class="bg-gray">
-                            <th style="width:100px;">Urutan</th>
+                            <th style="width:110px;">Urutan</th>
                             <th>Deskripsi Step</th>
                             <th style="width:180px;">Diperbarui</th>
                             <th style="width:180px;">Aksi</th>
@@ -30,40 +30,52 @@
                             @php($formId = 'update-step-' . $step->id)
                             <tr>
                                 <td>
-                                    <select class="form-control" name="step_sequance" form="{{ $formId }}" required>
-                                        @foreach(range(1, 8) as $sequence)
-                                            <option value="{{ $sequence }}" {{ (int) $step->step_sequance === $sequence ? 'selected' : '' }}>
-                                                Step {{ $sequence }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    @if($isCommittee)
+                                        <select class="form-control" name="step_sequance" form="{{ $formId }}" required>
+                                            @foreach(range(1, 8) as $sequence)
+                                                <option value="{{ $sequence }}" {{ (int) $step->step_sequance === $sequence ? 'selected' : '' }}>
+                                                    Step {{ $sequence }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        Step {{ $step->step_sequance }}
+                                    @endif
                                 </td>
                                 <td>
-                                    <input class="form-control" name="step_description" form="{{ $formId }}"
-                                        value="{{ $step->step_description }}" maxlength="255" required>
+                                    @if($isCommittee)
+                                        <input class="form-control" name="step_description" form="{{ $formId }}"
+                                            value="{{ $step->step_description }}" maxlength="255" required>
+                                    @else
+                                        {{ $step->step_description }}
+                                    @endif
                                 </td>
                                 <td>{{ $step->updated_by ?? '-' }}</td>
                                 <td>
-                                    <form id="{{ $formId }}" action="{{ url('/qcc_step/' . $step->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('PUT')
-                                        <button class="btn btn-primary btn-sm" type="submit" title="Simpan">
-                                            <i class="fa fa-save"></i> Simpan
-                                        </button>
-                                    </form>
-                                    <form action="{{ url('/qcc_step/' . $step->id) }}" method="POST" style="display:inline;"
-                                        onsubmit="return confirm('Hapus master step ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-danger btn-sm" type="submit" title="Hapus">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    @if($isCommittee)
+                                        <form id="{{ $formId }}" action="{{ url('/qcc_step/' . $step->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            @method('PUT')
+                                            <button class="btn btn-primary btn-sm" type="submit" title="Simpan">
+                                                <i class="fa fa-save"></i> Simpan
+                                            </button>
+                                        </form>
+                                        <form action="{{ url('/qcc_step/' . $step->id) }}" method="POST" style="display:inline;"
+                                            onsubmit="return confirm('Hapus master step ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-danger btn-sm" type="submit" title="Hapus">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
 
-                        @if($steps->count() < 8)
+                        @if($isCommittee && $steps->count() < 8)
                             <tr>
                                 @php($createFormId = 'create-qcc-step')
                                 <td>

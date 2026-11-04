@@ -111,6 +111,7 @@ class QccTeamController extends Controller
         $this->authorizeImprovement();
         $data = $request->validate([
             'group_name' => ['required', 'string', 'max:255'],
+            'department' => ['nullable', 'string', 'max:255'],
             'registered_at' => ['required', 'date'],
         ]);
         $now = now();
@@ -132,6 +133,7 @@ class QccTeamController extends Controller
 
         $data = $request->validate([
             'group_name' => ['required', 'string', 'max:255'],
+            'department' => ['nullable', 'string', 'max:255'],
             'registered_at' => ['required', 'date'],
         ]);
 

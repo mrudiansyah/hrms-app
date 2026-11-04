@@ -44,6 +44,7 @@
                             <tr class="bg-gray">
                                 <th style="width:70px;" class="text-center">Terdaftar</th>
                                 <th>Nama Team</th>
+                                <th>Department</th>
                                 <th style="width:180px;">Tanggal Registrasi</th>
                                 <th style="width:120px;" class="text-center">Anggota</th>
                             </tr>
@@ -74,6 +75,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $team->group_name }}</td>
+                                    <td>{{ $team->department ?: '-' }}</td>
                                     <td>{{ $team->registered_at ? \Illuminate\Support\Carbon::parse($team->registered_at)->format('d/m/Y') : '-' }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-default btn-xs" type="button" data-toggle="modal" data-target="#{{ $detailsId }}">
@@ -82,7 +84,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="text-center text-muted">Belum ada team QCC.</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted">Belum ada team QCC.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

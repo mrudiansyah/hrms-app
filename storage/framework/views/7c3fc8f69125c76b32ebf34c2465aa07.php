@@ -249,7 +249,7 @@
                                         </li>
                             <?php endif; ?>
                             <!-- IMPROVEMENT -->
-                            <?php if(request()->user()->hasRole('improvement')): ?>
+                            <?php if(request()->user()->hasRole('improvement') || request()->user()->hasRole('committee')): ?>
                                 <li class="treeview<?php if (isset($menu) && ($menu == 'improvement' || $menu == 'qcc' || $menu == 'gqcc')) echo ' active';?>">
                                     <a href="#">
                                         <i class="fa fa-star"></i> <span>Improvements</span>
@@ -267,8 +267,15 @@
                                             </a>
                                             <ul class="treeview-menu">
                                                 <li><a href="/qcc_schedule"><i class="fa fa-calendar"></i> Schedule</a></li>
-                                                <li><a href="/qcc_team/periode"><i class="fa fa-users"></i> Teams</a></li>
-                                                <li><a href="/qcc_activity"><i class="fa fa-tasks"></i> Activity</a></li>
+                                                <?php if(request()->user()->hasRole('improvement')): ?>
+                                                    <li><a href="/qcc_team/periode"><i class="fa fa-users"></i> Teams</a></li>
+                                                    <li><a href="/qcc_activity"><i class="fa fa-tasks"></i> Activity</a></li>
+                                                    <li><a href="/qcc_assesment"><i class="fa fa-list"></i> Assessment</a></li>
+                                                <?php endif; ?>
+                                                <?php if(request()->user()->hasRole('committee')): ?>
+                                                    <li><a href="/qcc_assesor"><i class="fa fa-users"></i> Assessor</a></li>
+                                                    <li><a href="/qcc_assesment_team"><i class="fa fa-check-square-o"></i> Penilaian</a></li>
+                                                <?php endif; ?>
                                             </ul>
                                         </li>
                                     </ul>

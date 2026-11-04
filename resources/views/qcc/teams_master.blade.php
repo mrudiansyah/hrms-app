@@ -25,6 +25,7 @@
                         <tr class="bg-gray">
                             <th style="width:75px;">ID</th>
                             <th>Nama Team</th>
+                            <th>Department</th>
                             <th style="width:190px;">Tanggal Registrasi</th>
                             <th style="width:150px;" class="text-center">Aksi</th>
                         </tr>
@@ -35,6 +36,7 @@
                             <tr>
                                 <td><span class="text-muted">#{{ $team->id }}</span></td>
                                 <td><strong>{{ $team->group_name }}</strong></td>
+                                <td>{{ $team->department ?: '-' }}</td>
                                 <td>
                                     <i class="fa fa-calendar text-muted"></i>
                                     {{ $team->registered_at ? \Illuminate\Support\Carbon::parse($team->registered_at)->format('d/m/Y') : '-' }}
@@ -54,7 +56,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted" style="padding:30px;">
+                                <td colspan="5" class="text-center text-muted" style="padding:30px;">
                                     <i class="fa fa-users fa-2x"></i>
                                     <p style="margin:10px 0 0;">Belum ada team QCC. Klik <strong>Tambah Team</strong> untuk memulai.</p>
                                 </td>
@@ -86,6 +88,12 @@
                                 <input class="form-control" id="add_group_name" name="group_name"
                                     value="{{ old('form_context') === 'add-team-modal' ? old('group_name') : '' }}"
                                     placeholder="Contoh: Productivity Up" required maxlength="255">
+                            </div>
+                            <div class="form-group">
+                                <label for="add_department">Department</label>
+                                <input class="form-control" id="add_department" name="department"
+                                    value="{{ old('form_context') === 'add-team-modal' ? old('department') : '' }}"
+                                    maxlength="255">
                             </div>
                             <div class="form-group" style="margin-bottom:0;">
                                 <label for="add_registered_at">Tanggal Registrasi</label>
@@ -121,6 +129,11 @@
                                     <label for="group_name_{{ $team->id }}">Nama Team</label>
                                     <input class="form-control" id="group_name_{{ $team->id }}" name="group_name"
                                         value="{{ $editingThisTeam ? old('group_name') : $team->group_name }}" required maxlength="255">
+                                </div>
+                                <div class="form-group">
+                                    <label for="department_{{ $team->id }}">Department</label>
+                                    <input class="form-control" id="department_{{ $team->id }}" name="department"
+                                        value="{{ $editingThisTeam ? old('department') : $team->department }}" maxlength="255">
                                 </div>
                                 <div class="form-group" style="margin-bottom:0;">
                                     <label for="registered_at_{{ $team->id }}">Tanggal Registrasi</label>

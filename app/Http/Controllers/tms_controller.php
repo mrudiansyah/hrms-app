@@ -1342,7 +1342,6 @@ class tms_controller extends Controller
             ->where('tb_work_entries.id_employee', $id_employee)
             ->where('plan_actual', 'actual')
             ->get(['tb_work_entries.*', 'tb_work_contract.PIN', 'tb_work_contract.NIK', 'tb_work_contract.department', 'tb_work_contract.nama_karyawan']);
-
         foreach ($tb_focus as $dtf) {
             \Log::info('Manual Processing: ' . $dtf->nama_karyawan);
             $id_employee_focus = $dtf->id_employee;
@@ -1400,8 +1399,7 @@ class tms_controller extends Controller
                             $p .= '0';
                         }
                         $badge = $p . $PIN;
-
-                        if ($check_in <= $now)
+                        if (Carbon::parse($check_in)->lessThanOrEqualTo(Carbon::parse($now)))
                             $work_status = '99';
                         else
                             $work_status = '98';

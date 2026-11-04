@@ -186,7 +186,7 @@
                                                     </td>
                                                     <td>
                                                     <div class="pull-right">
-                                                            <?php if($source_check=='Alpha'||$source_check=='Come Late'||$source_check=='Late Upload'||$source_check=='Come Late Night'||$source_check=='Late Upload Night'||$source_check=='Leave'||$source_check=='Freeday'): ?>
+                                                            <?php if($source_check=='Alpha'||$source_check=='Come Late'||$source_check=='Late Upload'||$source_check=='Come Late Night'||$source_check=='Late Upload Night'||$source_check=='Leave'||$source_check=='Freeday'||$source_check=='Other'): ?>
                                                                 <div class="pull-right">
                                                                     <?php if($lock_status==0): ?>
                                                                     <div class="btn-group">

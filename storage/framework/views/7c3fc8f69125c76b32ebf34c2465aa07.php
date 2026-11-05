@@ -113,7 +113,7 @@
             <?php endif; ?>
 
             <!-- EMPLOYEE MANAGEMENT -->
-            <?php if(request()->user()->hasRole('admin_shift') || request()->user()->hasRole('admin_employee') || request()->user()->hasRole('admin_calendar')): ?>
+            <?php if(request()->user()->hasRole('hr_access')||request()->user()->hasRole('admin_shift') || request()->user()->hasRole('admin_employee') || request()->user()->hasRole('admin_calendar')||request()->user()->hasRole('admin_department')): ?>
                     <li class="treeview<?php    if (isset($menu) && ($menu == 'shift' || $menu == 'employee' || $menu == 'leader' || $menu == 'calendar'))
                 echo ' active';?>">
                         <a href="#">
@@ -124,31 +124,31 @@
                         </a>
                         <ul class="treeview-menu">
                             <?php if(request()->user()->hasRole('admin_employee') || request()->user()->hasRole('contract') || request()->user()->hasRole('staff')): ?>
-                                <li><a href="/Admin/Employee"><i class="fa fa-users"></i> Employee List</a></li>
-                                <li><a href="/Admin/Department/0/0"><i class="fa fa-pie-chart"></i> Employee Recap</a></li>
 
                                 <?php if(request()->user()->hasRole('contract')): ?>
-                                        <li class="treeview<?php            if (isset($menu) && $menu == 'employee' && isset($submenu) && $submenu == 'contract')
-                                    echo ' active';?>">
-                                            <a href="#">
-                                                <i class="fa fa-file-text-o"></i> <span>Contract</span>
-                                                <span class="pull-right-container">
-                                                    <i class="fa fa-angle-left pull-right"></i>
-                                                </span>
-                                            </a>
-                                            <ul class="treeview-menu">
-                                                <li><a href="/Status/Active"><i class="fa fa-circle-o"></i> Registered Active</a></li>
-                                                <li><a href="/Status/Draft"><i class="fa fa-circle-o"></i> Non Active</a></li>
-                                                <?php if(request()->user()->hasRole('ksk_hr')): ?>
-                                                    <li><a href="/Status/KSK/0"><i class="fa fa-circle-o"></i> KSK Management</a>
-                                                    </li>
-                                                <?php endif; ?>
-                                            </ul>
-                                        </li>
+                                    <li><a href="/Admin/Employee"><i class="fa fa-users"></i> Employee List</a></li>
+                                    <li class="treeview<?php if (isset($menu) && $menu == 'employee' && isset($submenu) && $submenu == 'contract') echo ' active';?>">
+                                        <a href="#">
+                                            <i class="fa fa-file-text-o"></i> <span>Contract</span>
+                                            <span class="pull-right-container">
+                                                <i class="fa fa-angle-left pull-right"></i>
+                                            </span>
+                                        </a>
+                                        <ul class="treeview-menu">
+                                            <li><a href="/Status/Active"><i class="fa fa-circle-o"></i> Registered Active</a></li>
+                                            <li><a href="/Status/Draft"><i class="fa fa-circle-o"></i> Non Active</a></li>
+                                            <?php if(request()->user()->hasRole('ksk_hr')): ?>
+                                                <li><a href="/Status/KSK/0"><i class="fa fa-circle-o"></i> KSK Management</a>
+                                                </li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </li>
                                 <?php endif; ?>
+                                <?php if(request()->user()->hasRole('contract')): ?>
+                                    <li><a href="/Admin/Department/0/0"><i class="fa fa-pie-chart"></i> Employee Recap</a></li>
+                                <?php endif; ?>
+                                <li><a href="<?php echo e(route('structure.index')); ?>"><i class="fa fa-sitemap"></i> Organization Structure</a></li>
                                 <li><a href="/Leader"><i class="fa fa-user"></i> Direct Leader</a></li>
-                                <li><a href="<?php echo e(route('structure.index')); ?>"><i class="fa fa-sitemap"></i> Organization
-                                        Structure</a></li>
                                 <!-- <li class="treeview<?php        //if (isset($menu) && ($menu == 'recruitment')) echo ' active';?>">
                                                                     <a href="#">
                                                                         <i class="fa fa-user-plus text-yellow"></i> <span>Recruitment</span>

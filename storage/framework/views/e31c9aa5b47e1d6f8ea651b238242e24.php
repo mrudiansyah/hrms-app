@@ -130,19 +130,11 @@
                     <form action="<?php echo e(url('/Overtimes/Report')); ?>" method="GET">
                         <div class="overtime-filter-grid">
                             <div class="overtime-filter-field">
-                            <label for="periode">OT Period</label>
-                            <select name="periode" id="periode" class="form-control">
-                                <?php $__currentLoopData = $periods; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $periodOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($periodOption); ?>" <?php echo e($period == $periodOption ? 'selected' : ''); ?>><?php echo e($periodOption); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
-                        </div>
-
-                        <?php if($departments->count() > 1): ?>
-                            <div class="overtime-filter-field">
                                 <label for="dept_id">Department</label>
-                                <select name="dept_id" id="dept_id" class="form-control">
-                                    <option value="">All authorized departments</option>
+                                <select name="dept_id" id="dept_id" class="form-control" required <?php echo e($departments->isEmpty() ? 'disabled' : ''); ?>>
+                                    <?php if($departments->count() > 1): ?>
+                                        <option value="">Select department</option>
+                                    <?php endif; ?>
                                     <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $department): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($department->dept_id); ?>" <?php echo e((string) $departmentFilter === (string) $department->dept_id ? 'selected' : ''); ?>>
                                             <?php echo e($department->dept_code); ?> - <?php echo e($department->dept_name); ?>
@@ -151,7 +143,16 @@
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
-                        <?php endif; ?>
+
+                            <div class="overtime-filter-field">
+                                <label for="start_date">OT Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="<?php echo e($startDate); ?>" required <?php echo e($departmentFilter === null ? 'disabled' : ''); ?>>
+                            </div>
+
+                            <div class="overtime-filter-field">
+                                <label for="end_date">OT Finish Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="<?php echo e($endDate); ?>" min="<?php echo e($startDate); ?>" required <?php echo e($departmentFilter === null ? 'disabled' : ''); ?>>
+                            </div>
 
                         <div class="overtime-filter-field">
                             <label for="category_ot">Category</label>
@@ -220,7 +221,7 @@
                 <div class="box-header with-border">
                     <h3 class="box-title"><i class="fa fa-list"></i> Overtime Details</h3>
                     <div class="box-tools">
-                        <span class="label label-default"><?php echo e(number_format($rows->total())); ?> records</span>
+                        <span class="label label-default"><?php echo e(number_format($rows->count())); ?> records</span>
                     </div>
                 </div>
                 <div class="box-body">
@@ -253,14 +254,13 @@
                                 <tr class="active">
                                     <th colspan="9">Total</th>
                                     <th><?php echo e(number_format((float) $totalHours, 2)); ?></th>
+                                    <th><?php echo e(number_format((float) $totalConversion, 2)); ?></th>
                                     <th><?php echo e(number_format((float) $totalAmount, 0)); ?></th>
-                                    <th colspan="<?php echo e(count($columns) - 11); ?>"></th>
+                                    <th colspan="<?php echo e(count($columns) - 12); ?>"></th>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
-                    <?php echo e($rows->links()); ?>
-
                 </div>
             </div>
         </section>

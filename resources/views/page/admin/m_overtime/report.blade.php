@@ -130,19 +130,11 @@
                     <form action="{{ url('/Overtimes/Report') }}" method="GET">
                         <div class="overtime-filter-grid">
                             <div class="overtime-filter-field">
-                            <label for="periode">OT Period</label>
-                            <select name="periode" id="periode" class="form-control">
-                                @foreach($periods as $periodOption)
-                                    <option value="{{ $periodOption }}" {{ $period == $periodOption ? 'selected' : '' }}>{{ $periodOption }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        @if($departments->count() > 1)
-                            <div class="overtime-filter-field">
                                 <label for="dept_id">Department</label>
-                                <select name="dept_id" id="dept_id" class="form-control">
-                                    <option value="">All authorized departments</option>
+                                <select name="dept_id" id="dept_id" class="form-control" required {{ $departments->isEmpty() ? 'disabled' : '' }}>
+                                    @if($departments->count() > 1)
+                                        <option value="">Select department</option>
+                                    @endif
                                     @foreach($departments as $department)
                                         <option value="{{ $department->dept_id }}" {{ (string) $departmentFilter === (string) $department->dept_id ? 'selected' : '' }}>
                                             {{ $department->dept_code }} - {{ $department->dept_name }}
@@ -150,7 +142,16 @@
                                     @endforeach
                                 </select>
                             </div>
-                        @endif
+
+                            <div class="overtime-filter-field">
+                                <label for="start_date">OT Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ $startDate }}" required {{ $departmentFilter === null ? 'disabled' : '' }}>
+                            </div>
+
+                            <div class="overtime-filter-field">
+                                <label for="end_date">OT Finish Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ $endDate }}" min="{{ $startDate }}" required {{ $departmentFilter === null ? 'disabled' : '' }}>
+                            </div>
 
                         <div class="overtime-filter-field">
                             <label for="category_ot">Category</label>
@@ -218,7 +219,7 @@
                 <div class="box-header with-border">
                     <h3 class="box-title"><i class="fa fa-list"></i> Overtime Details</h3>
                     <div class="box-tools">
-                        <span class="label label-default">{{ number_format($rows->total()) }} records</span>
+                        <span class="label label-default">{{ number_format($rows->count()) }} records</span>
                     </div>
                 </div>
                 <div class="box-body">
@@ -251,13 +252,13 @@
                                 <tr class="active">
                                     <th colspan="9">Total</th>
                                     <th>{{ number_format((float) $totalHours, 2) }}</th>
+                                    <th>{{ number_format((float) $totalConversion, 2) }}</th>
                                     <th>{{ number_format((float) $totalAmount, 0) }}</th>
-                                    <th colspan="{{ count($columns) - 11 }}"></th>
+                                    <th colspan="{{ count($columns) - 12 }}"></th>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
-                    {{ $rows->links() }}
                 </div>
             </div>
         </section>

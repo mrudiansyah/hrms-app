@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
 use Auth;
 use PDF;
@@ -316,41 +317,39 @@ class overtime_controller extends Controller
             ->values()
             ->all();
 
-        $currentPeriod = date('Y-m');
-        $period = $request->input('periode', $currentPeriod);
-        if (!is_string($period) || !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $period)) {
-            $period = $currentPeriod;
-        }
-
         $requestedDepartment = filter_var($request->input('dept_id'), FILTER_VALIDATE_INT);
         $departmentFilter = $requestedDepartment !== false && in_array($requestedDepartment, $departmentIds, true)
             ? $requestedDepartment
-            : null;
+            : ($departmentIds[0] ?? null);
 
-        $periodRows = DB::table('view_detail_overtime')
-            ->whereIn('dept_id', $departmentIds)
-            ->whereNotNull('periode_ot')
-            ->distinct()
-            ->orderBy('periode_ot', 'desc')
-            ->get(['periode_ot']);
-        $periods = $periodRows->pluck('periode_ot')->filter()->unique()->values();
-        if (!$periods->contains($currentPeriod)) {
-            $periods->prepend($currentPeriod);
-        }
+        $monthStart = date('Y-m-01');
+        $defaultStartDate = date('Y-m-25', strtotime($monthStart . ' -1 month'));
+        $defaultEndDate = date('Y-m-24', strtotime($monthStart . ' +1 month'));
+        $validatedDates = Validator::make([
+            'start_date' => $request->input('start_date', $defaultStartDate),
+            'end_date' => $request->input('end_date', $defaultEndDate),
+        ], [
+            'start_date' => 'required|date_format:Y-m-d',
+            'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
+        ])->validate();
+        $startDate = $validatedDates['start_date'];
+        $endDate = $validatedDates['end_date'];
+        $endDateExclusive = date('Y-m-d', strtotime($endDate . ' +1 day'));
 
         $baseQuery = DB::table('view_detail_overtime')
-            ->whereIn('dept_id', $departmentIds)
-            ->where('periode_ot', $period);
+            ->whereIn('view_detail_overtime.dept_id', $departmentIds)
+            ->where('view_detail_overtime.ot_date', '>=', $startDate)
+            ->where('view_detail_overtime.ot_date', '<', $endDateExclusive);
         if ($departmentFilter !== null) {
-            $baseQuery->where('dept_id', $departmentFilter);
+            $baseQuery->where('view_detail_overtime.dept_id', $departmentFilter);
         }
 
         $categories = (clone $baseQuery)
-            ->whereNotNull('category_ot')
-            ->where('category_ot', '<>', '')
-            ->select('category_ot')
+            ->whereNotNull('view_detail_overtime.category_ot')
+            ->where('view_detail_overtime.category_ot', '<>', '')
+            ->select('view_detail_overtime.category_ot')
             ->distinct()
-            ->orderBy('category_ot')
+            ->orderBy('view_detail_overtime.category_ot')
             ->get()
             ->pluck('category_ot');
         $category = $request->input('category_ot', '');
@@ -360,14 +359,14 @@ class overtime_controller extends Controller
 
         $detailQuery = clone $baseQuery;
         if ($category !== '') {
-            $detailQuery->where('category_ot', $category);
+            $detailQuery->where('view_detail_overtime.category_ot', $category);
         }
         $details = $detailQuery
-            ->whereNotNull('detail_category')
-            ->where('detail_category', '<>', '')
-            ->select('detail_category')
+            ->whereNotNull('view_detail_overtime.detail_category')
+            ->where('view_detail_overtime.detail_category', '<>', '')
+            ->select('view_detail_overtime.detail_category')
             ->distinct()
-            ->orderBy('detail_category')
+            ->orderBy('view_detail_overtime.detail_category')
             ->get()
             ->pluck('detail_category');
         $detailCategory = $request->input('detail_category', '');
@@ -377,16 +376,16 @@ class overtime_controller extends Controller
 
         $employeeQuery = clone $baseQuery;
         if ($category !== '') {
-            $employeeQuery->where('category_ot', $category);
+            $employeeQuery->where('view_detail_overtime.category_ot', $category);
         }
         if ($detailCategory !== '') {
-            $employeeQuery->where('detail_category', $detailCategory);
+            $employeeQuery->where('view_detail_overtime.detail_category', $detailCategory);
         }
         $employees = $employeeQuery
-            ->whereNotNull('NIK')
-            ->select('NIK', 'employee_name')
+            ->whereNotNull('view_detail_overtime.NIK')
+            ->select('view_detail_overtime.NIK', 'view_detail_overtime.employee_name')
             ->distinct()
-            ->orderBy('employee_name')
+            ->orderBy('view_detail_overtime.employee_name')
             ->get();
         $employee = $request->input('employee', '');
         $employeeNiks = $employees->pluck('NIK')->map(function ($nik) {
@@ -418,7 +417,7 @@ class overtime_controller extends Controller
 
         $columns = [
             'id_overtime', 'dept_creater', 'ot_date', 'NIK', 'employee_name',
-            'position_name', 'dept_employee', 'start_act', 'finish_act', 'hours_act',
+            'position_name', 'dept_employee', 'start_act', 'finish_act', 'hours_act', 'hours_convertion',
             'ammount', 'category_ot', 'detail_category', 'reason_ot', 'reason',
             'job_ot', 'customer', 'verified', 'captured_at', 'dept_id',
             'periode_payroll', 'periode_ot',
@@ -426,32 +425,48 @@ class overtime_controller extends Controller
 
         $rowsQuery = clone $baseQuery;
         if ($category !== '') {
-            $rowsQuery->where('category_ot', $category);
+            $rowsQuery->where('view_detail_overtime.category_ot', $category);
         }
         if ($detailCategory !== '') {
-            $rowsQuery->where('detail_category', $detailCategory);
+            $rowsQuery->where('view_detail_overtime.detail_category', $detailCategory);
         }
         if ($employee !== '') {
-            $rowsQuery->where('NIK', $employee);
+            $rowsQuery->where('view_detail_overtime.NIK', $employee);
         }
-        $totalHours = (clone $rowsQuery)->sum('hours_act');
-        $totalAmount = (clone $rowsQuery)->sum('ammount');
-        $rows = $rowsQuery
-            ->select($columns)
-            ->orderBy($sortBy, $sortDirection)
-            ->paginate(50)
-            ->appends($request->except('page'));
+        $totalHours = (clone $rowsQuery)->sum('view_detail_overtime.hours_act');
+        $totalAmount = (clone $rowsQuery)->sum('view_detail_overtime.ammount');
+
+        $rowsWithConversionQuery = (clone $rowsQuery)
+            ->leftJoin('tb_employees as conversion_employee', 'conversion_employee.NIK', '=', 'view_detail_overtime.NIK')
+            ->leftJoin('tb_overtime_details as conversion_detail', function ($join) {
+                $join->on('conversion_detail.id_overtime', '=', 'view_detail_overtime.id_overtime')
+                    ->on('conversion_detail.id_employee', '=', 'conversion_employee.id')
+                    ->on('conversion_detail.date_on', '=', 'view_detail_overtime.ot_date')
+                    ->on('conversion_detail.start_act', '=', 'view_detail_overtime.start_act')
+                    ->on('conversion_detail.finish_act', '=', 'view_detail_overtime.finish_act');
+            });
+        $totalConversion = (clone $rowsWithConversionQuery)->sum('conversion_detail.hours_convertion');
+        $reportColumns = array_map(function ($column) {
+            return $column === 'hours_convertion'
+                ? 'conversion_detail.hours_convertion as hours_convertion'
+                : 'view_detail_overtime.' . $column;
+        }, $columns);
+        $rows = $rowsWithConversionQuery
+            ->select($reportColumns)
+            ->orderBy('view_detail_overtime.' . $sortBy, $sortDirection)
+            ->get();
 
         return view('page/admin/m_overtime/report', [
             'rows' => $rows,
             'columns' => $columns,
             'totalHours' => $totalHours,
+            'totalConversion' => $totalConversion,
             'totalAmount' => $totalAmount,
             'canSeeAmountDetails' => $canSeeAmountDetails,
             'departments' => $departments,
-            'periods' => $periods,
-            'period' => $period,
             'departmentFilter' => $departmentFilter,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
             'categories' => $categories,
             'category' => $category,
             'details' => $details,

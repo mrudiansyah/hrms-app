@@ -45,6 +45,7 @@
                             <tr class="bg-gray">
                                 <th style="width:70px;" class="text-center">Terdaftar</th>
                                 <th>Nama Team</th>
+                                <th>Department</th>
                                 <th style="width:180px;">Tanggal Registrasi</th>
                                 <th style="width:120px;" class="text-center">Anggota</th>
                             </tr>
@@ -75,6 +76,7 @@
                                         <?php endif; ?>
                                     </td>
                                     <td><?php echo e($team->group_name); ?></td>
+                                    <td><?php echo e($team->department ?: '-'); ?></td>
                                     <td><?php echo e($team->registered_at ? \Illuminate\Support\Carbon::parse($team->registered_at)->format('d/m/Y') : '-'); ?></td>
                                     <td class="text-center">
                                         <button class="btn btn-default btn-xs" type="button" data-toggle="modal" data-target="#<?php echo e($detailsId); ?>">
@@ -83,7 +85,7 @@
                                     </td>
                                 </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                <tr><td colspan="4" class="text-center text-muted">Belum ada team QCC.</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted">Belum ada team QCC.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

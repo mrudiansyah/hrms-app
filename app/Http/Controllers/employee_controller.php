@@ -19,6 +19,73 @@ class employee_controller extends Controller
     {
         $this->middleware(['auth','verified']);
     }
+    function checktimeRecords(Request $request)
+    {
+        if (!request()->user()->hasRole('info_employee') && !request()->user()->hasRole('root')) {
+            return abort(403, 'Anda tidak punya akses');
+        }
+
+        $today = date('Y-m-d');
+        $startOfMonth = date('Y-m-01', strtotime($today));
+        $endOfMonth = date('Y-m-t', strtotime($today));
+        $startDate = $request->input('start_date', $startOfMonth);
+        $endDate = $request->input('end_date', $endOfMonth);
+
+        $employees = DB::table('tb_employees')
+            ->where('status', 1)
+            ->where('delete', 0)
+            ->orderBy('employee_name')
+            ->get(['id', 'PIN', 'NIK', 'employee_name', 'badgenumber']);
+
+        $employee = null;
+        $iclockRecords = collect();
+        $mobileChecktimeRecords = collect();
+        if ($request->filled('employee_id')) {
+            $validated = $request->validate([
+                'employee_id' => 'required|integer|exists:tb_employees,id',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+            ]);
+
+            $employee = $employees->firstWhere('id', $validated['employee_id']);
+            if (!$employee) {
+                return abort(404);
+            }
+
+            $endExclusive = date('Y-m-d', strtotime($validated['end_date'] . ' +1 day'));
+
+            $badgeNumber = trim((string) $employee->badgenumber);
+            if ($badgeNumber !== '') {
+                $badgeNumber = str_pad($badgeNumber, 9, '0', STR_PAD_LEFT);
+                $iclockRecords = DB::table('tb_iclock')
+                    ->where('badgenumber', $badgeNumber)
+                    ->where('checktime', '>=', $validated['start_date'] . ' 00:00:00')
+                    ->where('checktime', '<', $endExclusive . ' 00:00:00')
+                    ->orderBy('checktime')
+                    ->get(['id', 'userid', 'name', 'badgenumber', 'checktime', 'checktype', 'WorkCode', 'sensorid', 'captured_date']);
+            }
+
+            if (trim((string) $employee->PIN) !== '') {
+                $mobileChecktimeRecords = DB::table('tb_checktimes')
+                    ->where('PIN', $employee->PIN)
+                    ->where('checktime', '>=', $validated['start_date'] . ' 00:00:00')
+                    ->where('checktime', '<', $endExclusive . ' 00:00:00')
+                    ->orderBy('checktime')
+                    ->get(['id', 'PIN', 'NIK', 'employee_name', 'status_kerja', 'status_checktime', 'checktime', 'checker', 'latitut', 'longitut', 'photo', 'badgenumber', 'created_at', 'updated_at', 'checktime_draft', 'id_ref']);
+            }
+        }
+
+        return view('page/user/m_employee/employees_checktime', [
+            'employees' => $employees,
+            'employee' => $employee,
+            'iclockRecords' => $iclockRecords,
+            'mobileChecktimeRecords' => $mobileChecktimeRecords,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'menu' => 'employees',
+            'juduls' => 'Employee Checktime',
+        ]);
+    }
     function index($status){
         $email=Auth::user()->email;
         $emailRecord=DB::table('tb_emails')->where('email_address',$email)->first(['id_employee']);

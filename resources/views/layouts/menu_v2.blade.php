@@ -266,15 +266,12 @@
                                                 </span>
                                             </a>
                                             <ul class="treeview-menu">
-                                                <li><a href="/qcc_schedule"><i class="fa fa-calendar"></i> Schedule</a></li>
+                                                @if (request()->user()->hasRole('committee'))
+                                                    <li><a href="/qcc_schedule"><i class="fa fa-calendar"></i> Committee</a></li>
+                                                @endif
                                                 @if (request()->user()->hasRole('improvement'))
                                                     <li><a href="/qcc_team/periode"><i class="fa fa-users"></i> Teams</a></li>
                                                     <li><a href="/qcc_activity"><i class="fa fa-tasks"></i> Activity</a></li>
-                                                    <li><a href="/qcc_assesment"><i class="fa fa-list"></i> Assessment</a></li>
-                                                @endif
-                                                @if (request()->user()->hasRole('committee'))
-                                                    <li><a href="/qcc_assesor"><i class="fa fa-users"></i> Assessor</a></li>
-                                                    <li><a href="/qcc_assesment_team"><i class="fa fa-check-square-o"></i> Penilaian</a></li>
                                                 @endif
                                             </ul>
                                         </li>
@@ -734,6 +731,9 @@
                         <ul class="treeview-menu">
                             @if (request()->user()->hasRole('info_employee'))
                                 <li><a href="/Employees/0"><i class="fa fa-circle-o"></i> Employee Profile</a></li>
+                            @endif
+                            @if (request()->user()->hasRole('info_employee'))
+                                <li><a href="/EmployeesChecktime"><i class="fa fa-clock-o"></i> Checktime</a></li>
                             @endif
                             @if (request()->user()->hasRole('ksk'))
                                 <li><a href="/Employees/KSK/0"><i class="fa fa-circle-o"></i> KSK</a> </li>

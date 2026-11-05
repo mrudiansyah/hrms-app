@@ -507,6 +507,19 @@ class permit_controller extends Controller
 				'personalia'=>$id_employee,
 				'status_personalia'=>'1'
 			]);
+			//Update 
+			if($approve){
+				$day=date('d',strtotime($data->start_izin));
+            	$periode_normal=date('Y-m',strtotime($data->start_izin));
+				$id_empl=DB::table('tb_izins')->where('id',$data->sysid)->value('id_employee');
+				$kolom="D".$day;
+				if($category=='IJIN')$code='55';
+				else $code='73'; 
+				$update=DB::table('tb_work_entries')->where('plan_actual','actual')->where('id_employee',$id_empl)->where('periode',$periode_normal)->update([
+					$kolom=>$code,
+				]);
+			}
+			//End Upate TMS
 		}
         if($approve)return redirect()->back()->with(['success'=>'Update Success']);
     }

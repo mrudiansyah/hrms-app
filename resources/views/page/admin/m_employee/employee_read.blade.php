@@ -139,7 +139,7 @@
 									<td>{{$dt->golongan_darah}}</td>
 									<td>{{$dt->agama}}</td>
 									<td>{{$dt->ibu_kandung}}</td>
-									<td>{{$dt->nomor_ktp}}</td>
+									<td>{{ strlen($dt->nomor_ktp) == 16 ? substr($dt->nomor_ktp, 0, 12) . ' ' . substr($dt->nomor_ktp, 12) : $dt->nomor_ktp }}</td>
 									<td>{{$dt->nomor_npwp}}</td>
 									<td>{{$dt->nomor_rekening}}</td>
 									<td>{{$dt->nomor_kk}}</td>

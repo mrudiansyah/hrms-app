@@ -139,7 +139,7 @@
 									<td><?php echo e($dt->golongan_darah); ?></td>
 									<td><?php echo e($dt->agama); ?></td>
 									<td><?php echo e($dt->ibu_kandung); ?></td>
-									<td><?php echo e($dt->nomor_ktp); ?></td>
+									<td><?php echo e(strlen($dt->nomor_ktp) == 16 ? substr($dt->nomor_ktp, 0, 12) . ' ' . substr($dt->nomor_ktp, 12) : $dt->nomor_ktp); ?></td>
 									<td><?php echo e($dt->nomor_npwp); ?></td>
 									<td><?php echo e($dt->nomor_rekening); ?></td>
 									<td><?php echo e($dt->nomor_kk); ?></td>

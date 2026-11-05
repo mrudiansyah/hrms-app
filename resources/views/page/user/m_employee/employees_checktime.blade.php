@@ -48,7 +48,7 @@
 			<div class="row">
 				<div class="col-md-5">
 					<div class="box box-info">
-						<div class="box-header with-border"><h3 class="box-title">iClock (tb_iclock)</h3></div>
+						<div class="box-header with-border"><h3 class="box-title">Finger Print</h3></div>
 						<div class="box-body table-responsive">
 							<table id="iclockTable" class="table table-bordered table-striped table-condensed">
 								<thead><tr><th>Badge</th><th>Nama</th><th>Checktime</th></tr></thead>
@@ -64,7 +64,7 @@
 				</div>
 				<div class="col-md-7">
 					<div class="box box-success">
-						<div class="box-header with-border"><h3 class="box-title">Checktime Mobile (tb_checktimes)</h3></div>
+						<div class="box-header with-border"><h3 class="box-title">Checktime Mobile</h3></div>
 						<div class="box-body table-responsive">
 							<table id="mobileChecktimeTable" class="table table-bordered table-striped table-condensed">
 								<thead><tr><th>Nama</th><th>Badge (PIN)</th><th>Checktime</th><th>Latitude</th><th>Longitude</th><th>Lokasi</th></tr></thead>

@@ -328,9 +328,10 @@ Route::get('/Permit/Delete/{id}', [App\Http\Controllers\permit_controller::class
 Route::get('/Permit/Approves/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'approvePermit']);
 Route::get('/Permit/Approve/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'approveSign']);
 Route::get('/Permit/Personalia/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'personaliaPermit']);
-Route::get('/Permit/PersonaliaSign/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'personaliaSign']);
+// Route::get('/Permit/PersonaliaSign/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'personaliaSign']);
 Route::get('/Permit/Scurities/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'scurityPermit']);
 Route::post('/Permit/Scurity', [App\Http\Controllers\permit_controller::class, 'scuritySign']);
+Route::post('/Permit/Personalia', [App\Http\Controllers\permit_controller::class, 'personaliaSign']);
 Route::get('/Permit/Report/{id}/{id1}', [App\Http\Controllers\permit_controller::class, 'reportPermit']);
 
 Route::get('/Leave', [App\Http\Controllers\leave_controller::class, 'index']);

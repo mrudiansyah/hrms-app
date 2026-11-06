@@ -91,19 +91,39 @@
                         <i class="fa fa-list"></i>
                         <h3 class="box-title" id="judul">SPL List</h3>
                         <div class="pull-right">
-                            <a  class="btn btn-app table2">
-                                <?php if(isset($jmlot_plan)&&$jmlot_plan>0)echo "<span class='badge bg-yellow'>".$jmlot_plan."</span>";?>
+							<?php if (! ($isCompleted)): ?>
+								<div class="pull-left">
+									<a class="btn btn-app" href="<?php echo e(route('LegalizeSPLAll')); ?>">
+										<i class="fa fa-check-square"></i> Approve All
+									</a>
+								</div>
+							<?php endif; ?>
+                            <a class="btn btn-app <?php echo e(!$isCompleted ? 'bg-blue' : ''); ?>" href="<?php echo e(route('LegalizeSPL', ['status_paid' => '0'])); ?>">
+                                <?php if(isset($jmlot_plan) && $jmlot_plan > 0): ?><span class="badge bg-yellow"><?php echo e($jmlot_plan); ?></span><?php endif; ?>
                                 <i class="fa fa-file-o"></i> New SPL
                             </a>
-                            <a  class="btn btn-app" href="<?php echo e(route('LegalizeSPLAll')); ?>">
-                                <i class="fa fa-check-square"></i> Approve All
-                            </a>
-                            <a class="btn btn-app table4">
-                                <i class="fa fa-check-square-o"></i> Complete
+                            <a class="btn btn-app <?php echo e($isCompleted ? 'bg-blue' : ''); ?>" href="<?php echo e(route('LegalizeSPL', ['status_paid' => 'completed'])); ?>">
+                                <i class="fa fa-check-square-o"></i> Completed
                             </a>
                         </div>
                     </div>
                     <div class="box-body" style="min-height:200px;overflow-x: scroll;">
+                        <?php if($isCompleted): ?>
+                            <form method="GET" action="<?php echo e(route('LegalizeSPL')); ?>" class="form-inline" style="margin-bottom: 15px;">
+                                <input type="hidden" name="status_paid" value="completed">
+                                <div class="form-group">
+                                    <label for="start_date">Dari tanggal</label>
+                                    <input class="form-control" type="date" id="start_date" name="start_date" value="<?php echo e($startDate); ?>" required>
+                                </div>
+                                <div class="form-group" style="margin-left: 8px;">
+                                    <label for="end_date">Sampai tanggal</label>
+                                    <input class="form-control" type="date" id="end_date" name="end_date" value="<?php echo e($endDate); ?>" required>
+                                </div>
+                                <button class="btn btn-primary" type="submit" style="margin-left: 8px;">
+                                    <i class="fa fa-search"></i> Tampilkan
+                                </button>
+                            </form>
+                        <?php endif; ?>
                         <div class="col-md-12 table-responsive">
                             <table id="table2" class="table table-striped" border="0">
                                 <thead>
@@ -153,6 +173,11 @@
 				data: function(d) {
 					d._token = document.querySelector('meta[name="csrf-token"]')
 						.getAttribute('content');
+					d.status_paid = <?php echo json_encode($isCompleted ? 'completed' : '0', 15, 512) ?>;
+					<?php if($isCompleted): ?>
+						d.start_date = <?php echo json_encode($startDate, 15, 512) ?>;
+						d.end_date = <?php echo json_encode($endDate, 15, 512) ?>;
+					<?php endif; ?>
 				},
 				cache: false,
 				dataType: 'json',
@@ -201,12 +226,6 @@
 				});
 			table.ajax.reload();
         }
-            $(".table2").click(function(){
-                    table.destroy();
-
-                GetData();
-                // $("#table2")
-            })
     });
 </script>
 <?php $__env->stopSection(); ?>

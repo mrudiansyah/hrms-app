@@ -537,7 +537,7 @@
                     </li>
             <?php endif; ?>
             <!-- PAYROLL -->
-            <?php if(request()->user()->hasRole('payroll') || request()->user()->hasRole('accounting')): ?>
+            <?php if(request()->user()->hasRole('payroll') || request()->user()->hasRole('accounting') || request()->user()->hasRole('allowance')): ?>
                     <li class="treeview<?php    if (isset($menu) && ($menu == 'overtime' || $menu == 'overtime_summary' || $menu == 'overtime_tax' || $menu == 'overtime_recap' || $menu == 'capture_assignment' || $menu == 'summary_assignment' || $menu == 'recap_journal' || $menu == 'recap_assignment' || $menu == 'payroll_calculation'||$menu == 'payroll_recap'||$menu == 'payroll_other'||$menu == 'meal'))
                 echo ' active';?>">
                         <a href="#">

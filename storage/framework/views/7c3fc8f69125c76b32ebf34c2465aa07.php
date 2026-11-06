@@ -735,6 +735,9 @@
                             <?php if(request()->user()->hasRole('info_employee')): ?>
                                 <li><a href="/EmployeesChecktime"><i class="fa fa-clock-o"></i> Checktime</a></li>
                             <?php endif; ?>
+                            <?php if(request()->user()->hasRole('info_employee')): ?>
+                                <li><a href="/EmployeesChecktimePKL"><i class="fa fa-clock-o"></i> Checktime PKL</a></li>
+                            <?php endif; ?>
                             <?php if(request()->user()->hasRole('ksk')): ?>
                                 <li><a href="/Employees/KSK/0"><i class="fa fa-circle-o"></i> KSK</a> </li>
                             <?php endif; ?>

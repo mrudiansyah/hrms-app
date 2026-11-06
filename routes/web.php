@@ -457,6 +457,7 @@ Route::resource('memos', App\Http\Controllers\MemoController::class);
 
 Route::get('/Employees/{status}', [App\Http\Controllers\employee_controller::class, 'index']);
 Route::get('/EmployeesChecktime', [App\Http\Controllers\employee_controller::class, 'checktimeRecords']);
+Route::get('/EmployeesChecktimePKL', [App\Http\Controllers\employee_controller::class, 'checktimeRecordsPKL']);
 Route::get('/Employee/KSK/Detail/{id_ksk}/{periode}', [App\Http\Controllers\employee_controller::class, 'kskDetail']);
 Route::post('/Status/KSK/Info', [App\Http\Controllers\employee_controller::class, 'kskInfo']);
 Route::get('/Status/KSK/Visible/{id}/{index}', [App\Http\Controllers\employee_controller::class, 'kskDisplay']);

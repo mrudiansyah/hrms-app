@@ -716,25 +716,32 @@ class tms_controller extends Controller
                                 else
                                     $work_status = '98';
                                 //Check Actual Finger
-                                $host = mysqli_connect("192.168.121.4:83306", "cahyudin", "123456", "adms_db");
-                                $text1 = "select checktime as masuk from checkinout left join userinfo on userinfo.userid=checkinout.userid where userinfo.badgenumber='$badge' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime desc";
-                                $qry = mysqli_query($host, $text1) or die(mysqli_error($host));
-                                $qty_finger = mysqli_num_rows($qry);
+                                $finger_records = DB::table('db_hrms.dbo.tb_iclock')
+                                    ->where('badgenumber', $badge)
+                                    ->where('checktime', '>=', $ncdateindown)
+                                    ->where('checktime', '<=', $ncdateinup)
+                                    ->orderBy('checktime', 'desc')
+                                    ->get(['checktime as masuk']);
+                                $qty_finger = $finger_records->count();
                                 if ($qty_finger > 0) {
-                                    while ($row = mysqli_fetch_array($qry)) {
-                                        if ($row['masuk'] >= $ncdatein)
+                                    foreach ($finger_records as $row) {
+                                        if ($row->masuk >= $ncdatein)
                                             $work_status = '71';
-                                        elseif ($row['masuk'] > 0)
+                                        elseif ($row->masuk > 0)
                                             $work_status = '51';
                                     }
                                 }
                                 $qty_finger2 = 0;
                                 if ($qty_finger == 0) {
-                                    $text2 = "select checktime as masuk from checkinout left join userinfo on userinfo.userid=checkinout.userid where userinfo.badgenumber='$badge' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup' order by checktime desc";
-                                    $qry2 = mysqli_query($host, $text2) or die(mysqli_error($host));
-                                    $qty_finger2 = mysqli_num_rows($qry2);
-                                    while ($row2 = mysqli_fetch_array($qry2)) {
-                                        if ($row2['masuk'] >= $ncdatein)
+                                    $finger_records_out = DB::table('db_hrms.dbo.tb_iclock')
+                                        ->where('badgenumber', $badge)
+                                        ->where('checktime', '>=', $ncdateoutdown)
+                                        ->where('checktime', '<=', $ncdateoutup)
+                                        ->orderBy('checktime', 'desc')
+                                        ->get(['checktime as masuk']);
+                                    $qty_finger2 = $finger_records_out->count();
+                                    foreach ($finger_records_out as $row2) {
+                                        if ($row2->masuk >= $ncdatein)
                                             $work_status = '71';
                                     }
                                 }
@@ -2123,16 +2130,19 @@ class tms_controller extends Controller
                         }
                         $badge = $p . $PIN;
 
-                        $host = mysqli_connect("192.168.121.4:83306", "cahyudin", "123456", "adms_db");
-                        $text1 = "select checktime as masuk from checkinout left join userinfo on userinfo.userid=checkinout.userid where userinfo.badgenumber='$badge' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime desc";
                         //$text2="select max(checktime) from checkinout left join userinfo on userinfo.userid=checkinout.userid where userinfo.badgenumber='$badge' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup'";
-                        $qry = mysqli_query($host, $text1) or die(mysqli_error($host));
-                        $qty_finger = mysqli_num_rows($qry);
+                        $finger_records = DB::table('db_hrms.dbo.tb_iclock')
+                            ->where('badgenumber', $badge)
+                            ->where('checktime', '>=', $ncdateindown)
+                            ->where('checktime', '<=', $ncdateinup)
+                            ->orderBy('checktime', 'desc')
+                            ->get(['checktime as masuk']);
+                        $qty_finger = $finger_records->count();
                         if ($qty_finger > 0) {
-                            while ($row = mysqli_fetch_array($qry)) {
-                                if ($row['masuk'] > $ncdatein)
+                            foreach ($finger_records as $row) {
+                                if ($row->masuk > $ncdatein)
                                     $work_status = '71';
-                                elseif ($row['masuk'] > 0)
+                                elseif ($row->masuk > 0)
                                     $work_status = '51';
                             }
                         } else
@@ -2421,15 +2431,18 @@ class tms_controller extends Controller
                         $p .= '0';
                     }
                     $badge = $p . $PIN;
-                    $host = mysqli_connect("192.168.121.4:83306", "cahyudin", "123456", "adms_db");
-                    $text1 = "select checktime as masuk from checkinout left join userinfo on userinfo.userid=checkinout.userid where userinfo.badgenumber='$badge' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime desc";
                     //$text2="select max(checktime) from checkinout left join userinfo on userinfo.userid=checkinout.userid where userinfo.badgenumber='$badge' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup'";
-                    $qry = mysqli_query($host, $text1) or die(mysqli_error($host));
-                    $qty_finger = mysqli_num_rows($qry);
+                    $finger_records = DB::table('db_hrms.dbo.tb_iclock')
+                        ->where('badgenumber', $badge)
+                        ->where('checktime', '>=', $ncdateindown)
+                        ->where('checktime', '<=', $ncdateinup)
+                        ->orderBy('checktime', 'desc')
+                        ->get(['checktime as masuk']);
+                    $qty_finger = $finger_records->count();
                     $work_status = 0;
                     if ($qty_finger > 0) {
-                        while ($row = mysqli_fetch_array($qry)) {
-                            if ($row['masuk'] > $ncdatein)
+                        foreach ($finger_records as $row) {
+                            if ($row->masuk > $ncdatein)
                                 $work_status = '71';
                             else
                                 $work_status = '51';
@@ -2621,11 +2634,14 @@ class tms_controller extends Controller
                                 $actual = '';
                                 //Check Actual Finger
                                 if ($dt->$j == "71" || $dt->$j == "710") {
-                                    $host = mysqli_connect("192.168.121.4:83306", "cahyudin", "123456", "adms_db");
-                                    $text1 = "select checktime as masuk from checkinout left join userinfo on userinfo.userid=checkinout.userid where userinfo.badgenumber='$badge' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime desc";
-                                    $qry = mysqli_query($host, $text1) or die(mysqli_error($host));
-                                    while ($row = mysqli_fetch_array($qry)) {
-                                        $actual = $row['masuk'];
+                                    $finger_records = DB::table('db_hrms.dbo.tb_iclock')
+                                        ->where('badgenumber', $badge)
+                                        ->where('checktime', '>=', $ncdateindown)
+                                        ->where('checktime', '<=', $ncdateinup)
+                                        ->orderBy('checktime', 'desc')
+                                        ->get(['checktime']);
+                                    foreach ($finger_records as $row) {
+                                        $actual = $row->checktime;
                                     }
                                 }
                                 //End Check Actual Finger
@@ -3177,9 +3193,11 @@ class tms_controller extends Controller
                     }
                     //Read Finger Print
                     $PIN = $dt->PIN;
-                    $host = mysqli_connect("192.168.121.4:83306", "cahyudin", "123456", "adms_db");
-                    $qry = mysqli_query($host, "select checktime from checkinout where userid='$PIN' and checktime>='$ncdateindown' and checktime<='$ncdateoutup'") or die(mysqli_error($host));
-                    $qty_finger = mysqli_num_rows($qry);
+                    $qty_finger = DB::table('db_hrms.dbo.tb_iclock')
+                        ->where('userid', $PIN)
+                        ->where('checktime', '>=', $ncdateindown)
+                        ->where('checktime', '<=', $ncdateoutup)
+                        ->count();
                     if ($qty_finger > 0) {
                         if ($plan_work == '3')
                             $work_status = '11';
@@ -3262,9 +3280,11 @@ class tms_controller extends Controller
                         }
                         //Read Finger Print
                         $PIN = $dt->PIN;
-                        $host = mysqli_connect("192.168.121.4:83306", "cahyudin", "123456", "adms_db");
-                        $qry = mysqli_query($host, "select checktime from checkinout where userid='$PIN' and checktime>='$ncdateindown' and checktime<='$ncdateoutup'") or die(mysqli_error($host));
-                        $qty_finger = mysqli_num_rows($qry);
+                        $qty_finger = DB::table('db_hrms.dbo.tb_iclock')
+                            ->where('userid', $PIN)
+                            ->where('checktime', '>=', $ncdateindown)
+                            ->where('checktime', '<=', $ncdateoutup)
+                            ->count();
                         if ($qty_finger > 0) {
                             if ($plan_work == '3')
                                 $work_status = '11';

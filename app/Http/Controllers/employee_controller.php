@@ -86,6 +86,92 @@ class employee_controller extends Controller
             'juduls' => 'Employee Checktime',
         ]);
     }
+    function checktimeRecordsPKL(Request $request)
+    {
+        if (!request()->user()->hasRole('info_employee') && !request()->user()->hasRole('root')) {
+            return abort(403, 'Anda tidak punya akses');
+        }
+
+        $today = date('Y-m-d');
+        $startOfMonth = date('Y-m-01', strtotime($today));
+        $endOfMonth = date('Y-m-t', strtotime($today));
+        $startDate = $request->input('start_date', $startOfMonth);
+        $endDate = $request->input('end_date', $endOfMonth);
+
+        $employees = DB::table('db_hrms.dbo.tb_employee_others')
+            ->orderBy('nama')
+            ->get(['id', 'kategori', 'sub_kategori', 'nama', 'gender', 'PIN']);
+
+        $employee = null;
+        $iclockRecords = collect();
+        $attendanceSummary = collect();
+        if ($request->filled('employee_id')) {
+            $validated = $request->validate([
+                'employee_id' => 'required|integer',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+            ]);
+
+            $employee = $employees->firstWhere('id', $validated['employee_id']);
+            if (!$employee) {
+                return abort(404);
+            }
+
+            $endExclusive = date('Y-m-d', strtotime($validated['end_date'] . ' +1 day'));
+            $badgeNumber = trim((string) $employee->PIN);
+            if ($badgeNumber !== '') {
+                $badgeNumber = str_pad($badgeNumber, 9, '0', STR_PAD_LEFT);
+                $iclockRecords = DB::table('db_hrms.dbo.tb_iclock')
+                    ->where('badgenumber', $badgeNumber)
+                    ->where('checktime', '>=', $validated['start_date'] . ' 00:00:00')
+                    ->where('checktime', '<', $endExclusive . ' 00:00:00')
+                    ->orderBy('checktime')
+                    ->get(['id', 'badgenumber', 'checktime']);
+            }
+
+            $presentDates = $iclockRecords
+                ->map(function ($record) {
+                    return date('Y-m-d', strtotime($record->checktime));
+                })
+                ->unique()
+                ->flip();
+
+            $date = new DateTime($validated['start_date']);
+            $endDateExclusive = new DateTime($endExclusive);
+            $dayNames = [
+                1 => 'Senin',
+                2 => 'Selasa',
+                3 => 'Rabu',
+                4 => 'Kamis',
+                5 => 'Jumat',
+                6 => 'Sabtu',
+                7 => 'Minggu',
+            ];
+            while ($date < $endDateExclusive) {
+                $dateKey = $date->format('Y-m-d');
+                $dayOfWeek = (int) $date->format('N');
+                $attendanceSummary->push((object) [
+                    'date' => $dateKey,
+                    'day_name' => $dayNames[$dayOfWeek],
+                    'status' => $dayOfWeek >= 6 || $dateKey > $today
+                        ? ''
+                        : ($presentDates->has($dateKey) ? 'Hadir' : 'Absen'),
+                ]);
+                $date->modify('+1 day');
+            }
+        }
+
+        return view('page/user/m_employee/employees_checktime_pkl', [
+            'employees' => $employees,
+            'employee' => $employee,
+            'iclockRecords' => $iclockRecords,
+            'attendanceSummary' => $attendanceSummary,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'menu' => 'employees',
+            'juduls' => 'Checktime PKL',
+        ]);
+    }
     function index($status){
         $email=Auth::user()->email;
         $emailRecord=DB::table('tb_emails')->where('email_address',$email)->first(['id_employee']);

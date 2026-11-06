@@ -123,7 +123,7 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
-                            <?php if(request()->user()->hasRole('admin_employee') || request()->user()->hasRole('contract') || request()->user()->hasRole('staff')): ?>
+                            <?php if(request()->user()->hasRole('admin_employee') || request()->user()->hasRole('contract') || request()->user()->hasRole('staff') || request()->user()->hasRole('admin_department')): ?>
 
                                 <?php if(request()->user()->hasRole('contract')): ?>
                                     <li><a href="/Admin/Employee"><i class="fa fa-users"></i> Employee List</a></li>

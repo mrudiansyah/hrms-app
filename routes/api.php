@@ -7,6 +7,7 @@ use App\Http\Controllers\WhatsappController;
 use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\Api\MobileAttendanceController;
 use App\Http\Controllers\Api\MobileInsideChecktimeController;
+use App\Http\Controllers\Api\MobileSkdController;
 use App\Http\Controllers\Api\MobileSlipController;
 
 /*
@@ -47,6 +48,8 @@ Route::prefix('mobile')->group(function () {
         Route::get('/attendance', [MobileAttendanceController::class, 'index']);
         Route::post('/attendance', [MobileAttendanceController::class, 'store'])->middleware('throttle:10,1');
         Route::get('/inside-checktime', [MobileInsideChecktimeController::class, 'index']);
+        Route::get('/skd', [MobileSkdController::class, 'options']);
+        Route::post('/skd', [MobileSkdController::class, 'store'])->middleware('throttle:5,1');
         Route::get('/slips/salary', [MobileSlipController::class, 'salary']);
         Route::get('/slips/overtime', [MobileSlipController::class, 'overtime']);
         Route::get('/slips/salary/{source}/{id}/pdf', [MobileSlipController::class, 'salaryPdf'])

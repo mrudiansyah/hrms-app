@@ -87,154 +87,24 @@
 									</td>
 									<td>
 									<?php
-										$checkin_act='';
-										$cin='';
-										$checkout_act='';
-										$cout='';
-										$pass=1;
-										if($pass==0){
-											$host1 = mysqli_connect("192.168.1.4","ems","123456","db_ems");
-
-
-											$checkin_act='';
-											$checkout_act='';
-											$cin='';
-											$cout='';
-
-											$ncdatein=$dt->start_act;
-											//Reduce 2 Hour
-											$date = date_create($ncdatein);
-											date_add($date, date_interval_create_from_date_string('-2 hours'));
-											$ncdateindown= date_format($date, 'Y-m-d H:i:s');
-											//Increas 2 Hour
-											$date = date_create($ncdatein);
-											date_add($date, date_interval_create_from_date_string('2 hours'));
-											$ncdateinup= date_format($date, 'Y-m-d H:i:s');
-											//echo $ncdatein.' ';
-
-											$ncdateout=$dt->finish_act;
-											//Reduce 3 Hour
-											$date = date_create($ncdateout);
-											date_add($date, date_interval_create_from_date_string('-3 hours'));
-											$ncdateoutdown= date_format($date, 'Y-m-d H:i:s');
-											//Increas 3 Hour
-											$date = date_create($ncdateout);
-											date_add($date, date_interval_create_from_date_string('3 hours'));
-											$ncdateoutup= date_format($date, 'Y-m-d H:i:s');
-											//echo $ncdateout.' ';
-
-											$lenbadge=strlen($dt->badgenumber);
-											$nullbadge=9-$lenbadge;
-											$j='';
-											for($i=1;$i<=$nullbadge;$i++){
-												$j.='0';
-											}
-											$badge=$j.$dt->badgenumber;
-
-											$sambungan=0;
-											$qry_finger=mysqli_query($host1,"select * from tb_utilities where atribut='iclock_connection'")or die(mysqli_error($host1));
-											while($dt_finger=mysqli_fetch_array($qry_finger)){$sambungan=$dt_finger['status'];}
-											if($sambungan==1){
-												$host = mysqli_connect("192.168.121.4:83306","cahyudin","123456","adms_db");
-
-												//$qry5=mysqli_query($host,"select checktime from checkinout where userid='$dt->PIN' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host));
-												$qry5=mysqli_query($host,"select checktime from checkinout left join userinfo on userinfo.userid=checkinout.userid where badgenumber='$badge' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host));
-												while($dt5=mysqli_fetch_array($qry5)){
-													$checkin_act=$dt5['checktime'];
-													$status='Present';
-													//if($cin=='')
-													$cin=$checkin_act;
-												}
-												$qry5=mysqli_query($host,"select checktime from checkinout left join userinfo on userinfo.userid=checkinout.userid where badgenumber='$badge' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup' order by checktime desc limit 1")or die(mysqli_error($host));
-												while($dt5=mysqli_fetch_array($qry5)){
-													$checkout_act=$dt5['checktime'];
-													$status='Present';
-													//if($cout=='')
-													$cout=$checkout_act;
-												}
-
-
-												$qry6=mysqli_query($host1,"select * from tb_employee_freedays where id_employee='$dt->id_employee' and date_off='$dt->date_on'")or die(mysqli_error($host1));
-												while($dt6=mysqli_fetch_array($qry6)){
-													$category=$dt6['category'];
-													$description=$dt6['description'];
-													$status=$category;
-												}
-											}
-											//Absen Manual Start
-											if($checkin_act==''){
-												//$qry7=mysqli_query($host1,"select * from tb_checktimes where badgenumber='$dt->badgenumber' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host1));
-												$qry7=mysqli_query($host1,"select * from tb_checktimes where NIK='$dt->NIK' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host1));
-												while($dt7=mysqli_fetch_array($qry7)){
-													$checkin_act=$dt7['checktime'];
-													$status=$dt7['status_kerja'];
-													//if($checkin_act<$cin)
-													$cin=$checkin_act;
-												}
-											}
-											if($checkout_act==''){
-												$qry7=mysqli_query($host1,"select * from tb_checktimes where NIK='$dt->NIK' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup' order by checktime desc limit 1")or die(mysqli_error($host1));
-												while($dt7=mysqli_fetch_array($qry7)){
-													$checkout_act=$dt7['checktime'];
-													$status=$dt7['status_kerja'];
-													//if($checkout_act>$cout)
-													$cout=$checkout_act;
-												}
-											}
-											//Absen Manual End
-
-											if($checkin_act!=''&&$cin!=''){
-												if($status=='Present'){
-													if($checkin_act<=$dt->start_act)echo "<span class='badge bg-green' title='Masuk: {{$cin}}'>".date('H:i',strtotime($cin))."</span>";
-													else echo "<span class='badge bg-yellow' title='Masuk: {{$cin}}'>".date('H:i',strtotime($cin))."</span>&nbsp;";
-												}else{
-													echo "<span class='badge bg-blue' title='Masuk: {{$cin}}'>".date('H:i',strtotime($cin))."</span>&nbsp;";
-												}
+										if($dt->checkin!=''){
+											if($dt->in_finger=='1'){
+												if($dt->checkin<=$dt->start_act)echo "<span class='badge bg-green'>".date('H:i',strtotime($dt->checkin))."</span>";
+												else echo "<span class='badge bg-yellow'>".date('H:i',strtotime($dt->checkin))."</span>&nbsp;";
+											}else{
+												echo "<span class='badge bg-blue'>".date('H:i',strtotime($dt->checkin))."</span>&nbsp;";
 											}
 										}
-										//New Fixed Column
-										if($pass==1){
-											$checkin_act = '';
-											$checkin_act =$dt->checkin;
-											if( $checkin_act!=''){
-												if ($dt->in_finger == '1') {
-													if ($checkin_act <= $dt->start_act) {
-														echo "<span class='badge bg-green'>" . date('H:i', strtotime($checkin_act)) . '</span>';
-													} else {
-														echo "<span class='badge bg-yellow'>" . date('H:i', strtotime($checkin_act)) . '</span>&nbsp;';
-													}
-												} else {
-													echo "<span class='badge bg-blue'>" . date('H:i', strtotime($checkin_act)) . '</span>&nbsp;';
-												}
-											}
-										}
-
-
 									?>
 									</td>
 									<td>
 									<?php
-										if($checkout_act!=''&&$cout!=''&&$pass==0){
-											if($status=='Present'){
-												if($checkout_act>=$dt->finish_act)echo "<span class='badge bg-green' title='Pulang: {{$cout}}'>".date('H:i',strtotime($cout))."</span>";
-												else echo "<span class='badge bg-yellow' title='Pulang: {{$cout}}'>".date('H:i',strtotime($cout))."</span>&nbsp;";
+										if($dt->checkout!=''){
+											if($dt->out_finger=='1'){
+												if($dt->checkout>=$dt->finish_act)echo "<span class='badge bg-green'>".date('H:i',strtotime($dt->checkout))."</span>";
+												else echo "<span class='badge bg-yellow'>".date('H:i',strtotime($dt->checkout))."</span>&nbsp;";
 											}else{
-												echo "<span class='badge bg-blue' title='Pulang: {{$cout}}'>".date('H:i',strtotime($cout))."</span>&nbsp;";
-											}
-										}
-										if($pass==1){
-											$checkout_act = '';
-											$checkout_act = $dt->checkout;
-											if($checkout_act!=''){
-												if ($dt->out_finger == '1') {
-													if ($checkout_act >= $dt->finish_act) {
-														echo "<span class='badge bg-green'>" . date('H:i', strtotime($checkout_act)) . '</span>';
-													} else {
-														echo "<span class='badge bg-yellow'>" . date('H:i', strtotime($checkout_act)) . '</span>&nbsp;';
-													}
-												} else {
-													echo "<span class='badge bg-blue'>" . date('H:i', strtotime($checkout_act)) . '</span>&nbsp;';
-												}
+												echo "<span class='badge bg-blue'>".date('H:i',strtotime($dt->checkout))."</span>&nbsp;";
 											}
 										}
 									?>
@@ -1023,6 +893,5 @@
 	</script>
 
 <?php $__env->stopSection(); ?>
-
 
 <?php echo $__env->make('layouts/admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Admin\.gemini\antigravity-ide\scratch\hrms-app\resources\views/page/admin/m_overtime/verificationspl.blade.php ENDPATH**/ ?>

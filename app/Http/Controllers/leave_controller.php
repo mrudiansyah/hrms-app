@@ -1348,9 +1348,6 @@ class leave_controller extends Controller
         $days=0;
         for($i=0;$i<=$diffdays;$i++){
             $Tgl=date('Y-m-d',strtotime($i.' days',strtotime($mulai)));
-            // $tb_shift=DB::table('tb_employee_shifts')->leftJoin('tb_group_shifts','tb_group_shifts.id','=','tb_employee_shifts.id_shift')->leftJoin('tb_groups','tb_groups.group','=','tb_group_shifts.group')->where('id_employee',$id_employee)
-            // ->where('tb_employee_shifts.status','1')
-            // ->get();
             $tb_shift=DB::table('tb_work_contract')->leftjoin('tb_work_shift','tb_work_shift.id','=','tb_work_contract.id_work_shift')->leftjoin('tb_work_group','tb_work_group.id','=','tb_work_shift.id_work_group')->where('tb_work_contract.id_employee',$id_employee)
             ->where('tb_work_contract.isactive','1')
             ->get(['tb_work_group.id as group','tb_work_shift.start_implement','tb_work_group.cycle_day as cycle']);
@@ -1576,45 +1573,37 @@ class leave_controller extends Controller
             for($i=0;$i<=$diffdays;$i++){
                 $jml_leave=0;
                 $Tgl=date('Y-m-d',strtotime($i.' days',strtotime($mulai)));
-                $tb_shift=DB::table('tb_employee_shifts')->leftJoin('tb_group_shifts','tb_group_shifts.id','=','tb_employee_shifts.id_shift')->leftJoin('tb_groups','tb_groups.group','=','tb_group_shifts.group')->where('id_employee',$id_employee)
-                ->where('tb_employee_shifts.status','1')
-                ->get();
-                foreach($tb_shift as $row){
-                    $group=$row->group;
-                    $tgl1 = new DateTime($row->start_implement);
-                    $tgl2 = new DateTime($Tgl);
-                    $diffdays2 = $tgl2->diff($tgl1)->days;
-                    $diffcycle=Floor($diffdays2/$row->cycle);
-                    $modcycle=$diffdays2%$row->cycle;
-                    $modcycle++;
+                $periode=date('Y-m',strtotime($Tgl));
+                $d=date('D',strtotime($Tgl));
+                if(ste_len($d==1))$d='0'.$d;
+                $column='D'.$d;
 
-                    $tb_cycle=tb_cycle::where('days',$modcycle)->where('group',$group)->where('shift','>','0')->count();
-                    $tb_freeday=tb_freeday::where('date_off',$Tgl)->count();
-                    $change_day=tb_freeday::where('date_off',$Tgl)->where('category','Working')->count();
-                    if(($tb_cycle>0&&$tb_freeday==0)||($change_day>0)){
-                        //Check Data Cuti
-                        $tb_employees=DB::table('tb_employees')
-                        ->leftjoin('tb_cost_center','tb_cost_center.cc_code','=','tb_employees.cc_code')
-                        ->where('tb_employees.id',$id_employee)->get(['tb_employees.*','tb_cost_center.segment_name','tb_cost_center.leave_limit']);
-                        foreach($tb_employees as $dt){
-                            $cc_code=$dt->cc_code;
-                            $bagian=$dt->segment_name;
-                            $batas=$dt->leave_limit;
-                            $tb_leaves=DB::table('tb_leaves')
-                            ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
-                            ->where('cc_code',$cc_code)
-                            ->where('start_leave','<=',$Tgl)
-                            ->where('finish_leave','>=',$Tgl)
-                            ->get(['tb_employees.employee_name','tb_leaves.start_leave','tb_leaves.finish_leave','tb_leaves.id_leave']);
-                            $teks_detail='';
-                            foreach($tb_leaves as $dt2){
-                                $teks_detail.=$dt2->employee_name.'; ';
-                                $jml_leave++;
-                            }
+                $id_work_time=DB::table('tb_work_entries')->where('id_employee',$id_employee)->where('periode',$periode)->value($column);
+                $tb_freeday=DB::table('tb_freedays')->where('date_off',$Tgl)->count();
+                $change_day=DB::table('tb_freedays')->where('date_off',$Tgl)->where('category','Working')->count();
+                if(($id_work_time>0&&$tb_freeday==0)||($change_day>0)){
+                    //Check Data Cuti
+                    $tb_employees=DB::table('tb_employees')
+                    ->leftjoin('tb_cost_center','tb_cost_center.cc_code','=','tb_employees.cc_code')
+                    ->where('tb_employees.id',$id_employee)->get(['tb_employees.*','tb_cost_center.segment_name','tb_cost_center.leave_limit']);
+                    foreach($tb_employees as $dt){
+                        $cc_code=$dt->cc_code;
+                        $bagian=$dt->segment_name;
+                        $batas=$dt->leave_limit;
+                        $tb_leaves=DB::table('tb_leaves')
+                        ->leftjoin('tb_employees','tb_employees.id','=','tb_leaves.id_employee')
+                        ->where('cc_code',$cc_code)
+                        ->where('start_leave','<=',$Tgl)
+                        ->where('finish_leave','>=',$Tgl)
+                        ->get(['tb_employees.employee_name','tb_leaves.start_leave','tb_leaves.finish_leave','tb_leaves.id_leave']);
+                        $teks_detail='';
+                        foreach($tb_leaves as $dt2){
+                            $teks_detail.=$dt2->employee_name.'; ';
+                            $jml_leave++;
                         }
-
-                        //End Check
                     }
+
+                    //End Check
                 }
                 if($batas<=$jml_leave){
                     $problem++;

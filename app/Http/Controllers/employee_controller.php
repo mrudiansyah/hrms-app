@@ -499,7 +499,7 @@ class employee_controller extends Controller
         return view('page/user/m_employee/employee_changeday',['tb_changeday'=>$tb_changeday,'id_employee'=>$id,'PIN'=>$pin,'start'=>$start,'end'=>$end,'employee_name'=>$employee_name,'menu'=>'employees']);
         
     }
-    function payrollUpdate($id,$pin){
+    function payrollUpdate_deleted($id,$pin){
         $tb_cutoff=tb_cutoff::where('usage','payroll')->get();
         foreach($tb_cutoff as $dt){
             $Batas_awal=$dt->start_implement;
@@ -829,7 +829,7 @@ class employee_controller extends Controller
         return redirect('/Employee/'.$id.'/'.$pin);
 
     }
-    function employeeShift($Tgl,$show){
+    function employeeShift_deleted($Tgl,$show){
         date_default_timezone_set("Asia/Jakarta");
         if($Tgl==0)$Tgl=date('Y-m-d');
         $Tgl_awal=date('Y-m-d',strtotime('-2 weeks',strtotime($Tgl)));
@@ -1514,12 +1514,6 @@ class employee_controller extends Controller
         }
         $tb_address=tb_address::where([['id_employee',$id]])->get();
         $tb_group_shift=DB::table('tb_group_shifts')->leftjoin('tb_groups','tb_groups.group','=','tb_group_shifts.group')->get(['tb_group_shifts.*','tb_groups.cycle','tb_groups.nshift','tb_groups.ngroup']);
-        $tb_employee_shift=tb_employee_shift::where('id_employee',$id)->get();
-        $id_shift='';
-        foreach($tb_employee_shift as $dt3){
-            $id_shift=$dt3->id_shift;
-        }
-        $tb_group_employee=DB::table('tb_group_shifts')->leftjoin('tb_groups','tb_groups.group','=','tb_group_shifts.group')->where('tb_group_shifts.id',$id_shift)->get(['tb_group_shifts.*','tb_groups.cycle','tb_groups.nshift','tb_groups.ngroup']);
         $tb_education=tb_education::where('id_employee',$id)->orderby('graduate_year','desc')->get();
         $tb_experience=tb_experience::where('id_employee',$id)->orderby('finish_year','desc')->get();
         $tb_skill=tb_skill::where('id_employee',$id)->get();
@@ -1537,7 +1531,7 @@ class employee_controller extends Controller
         try {DB::connection('fingerPrint')->getPdo();} catch (\Exception $e) {$koneksi='NG';}
         //$koneksi='NG';
 
-        return view('page/admin/m_employee/employee_update',['data'=>$data,'tb_employee_family'=>$tb_employee_family,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_group_shift'=>$tb_group_shift,'tb_group_employee'=>$tb_group_employee,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee']);
+        return view('page/admin/m_employee/employee_update',['data'=>$data,'tb_employee_family'=>$tb_employee_family,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee']);
     }
     function saveData(Request $data){
 

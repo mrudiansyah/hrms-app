@@ -262,25 +262,18 @@ class skd_controller extends Controller
     $days=0;
     for($i=0;$i<=$diffdays;$i++){
         $Tgl=date('Y-m-d',strtotime($i.' days',strtotime($mulai)));
-        $tb_shift=DB::table('tb_employee_shifts')->leftJoin('tb_group_shifts','tb_group_shifts.id','=','tb_employee_shifts.id_shift')->leftJoin('tb_groups','tb_groups.group','=','tb_group_shifts.group')->where('id_employee',$id_employee)
-        ->where('tb_employee_shifts.status','1')
-        ->get();
-        foreach($tb_shift as $row){
-            $group=$row->group;
-            $tgl1 = new DateTime($row->start_implement);
-            $tgl2 = new DateTime($Tgl);
-            $diffdays2 = $tgl2->diff($tgl1)->days;
-            $diffcycle=Floor($diffdays2/$row->cycle);
-            $modcycle=$diffdays2%$row->cycle;
-            $modcycle++;
+        $periode=date('Y-m',strtotime($Tgl));
+        $d=date('D',strtotime($Tgl));
+        if(ste_len($d==1))$d='0'.$d;
+        $column='D'.$d;
 
-            $tb_cycle=DB::table('tb_cycles')->where('days',$modcycle)->where('group',$group)->where('shift','>','0')->count();
-            $tb_freeday=DB::table('tb_freedays')->where('date_off',$Tgl)->count();
-            $change_day=DB::table('tb_freedays')->where('date_off',$Tgl)->where('category','Working')->count();
-            if(($tb_cycle>0&&$tb_freeday==0)||($change_day>0)){
-                $days++;
-            }
+        $id_work_time=DB::table('tb_work_entries')->where('id_employee',$id_employee)->where('periode',$periode)->value($column);
+        $tb_freeday=DB::table('tb_freedays')->where('date_off',$Tgl)->count();
+        $change_day=DB::table('tb_freedays')->where('date_off',$Tgl)->where('category','Working')->count();
+        if(($id_work_time>0&&$tb_freeday==0)||($change_day>0)){
+            $days++;
         }
+
     }
     return $days;
 }

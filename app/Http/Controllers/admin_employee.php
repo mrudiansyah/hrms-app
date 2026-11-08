@@ -481,7 +481,7 @@ class admin_employee extends Controller
         //return $simpan;
         return redirect('/Admin/Employee/Update/'.$data->id_employee)->with(['success' => $teks]);    
     }
-    function saveShift(Request $data){
+    function saveShift_deleted(Request $data){
         $this->validate($data,['groupid'=>'required']);
         $update=tb_employee_shift::where([['id_employee',$data->id_employee]])->update(['status'=>'0']);
         $simpan=tb_employee_shift::create([

@@ -1161,7 +1161,7 @@ class ApprovalSPLController extends Controller
         $data['menu'] = 'overtime';
         return view('page/admin/m_overtime/verification_detailFixed',$data);  
     }
-    public function GetDataVerificationDetail(Request $request){
+    public function GetDataVerificationDetail_deleted(Request $request){
         $str = explode("_", $request->id) ;   
         // if($str[0] == ""){
         $id = Crypt::decryptString(str_replace("-", "=", $str[0])) ;    

@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use DateTime;
 
 class MobileSkdController extends Controller
 {
@@ -204,61 +205,24 @@ class MobileSkdController extends Controller
 
     private function leaveCount(int $employeeId, Carbon $start, Carbon $finish): int
     {
-        $shifts = DB::table('tb_employee_shifts')
-            ->leftJoin('tb_group_shifts', 'tb_group_shifts.id', '=', 'tb_employee_shifts.id_shift')
-            ->leftJoin('tb_groups', 'tb_groups.group', '=', 'tb_group_shifts.group')
-            ->where('tb_employee_shifts.id_employee', $employeeId)
-            ->where('tb_employee_shifts.status', '1')
-            ->get([
-                'tb_groups.group as group_code',
-                'tb_groups.cycle as cycle_length',
-                'tb_employee_shifts.start_implement',
-            ]);
-
-        if ($shifts->isEmpty()) {
-            return 0;
+        $tgl1 = new DateTime($data->start);
+        $tgl2 = new DateTime($data->finish);
+        $diffdays = $tgl2->diff($tgl1)->days;
+        $id_employee=$data->idemployee;
+        $mulai=$data->start;
+        $qty=0;
+        for($i=0;$i<=$diffdays;$i++){
+            $jml_leave=0;
+            $Tgl=date('Y-m-d',strtotime($i.' days',strtotime($mulai)));
+            $periode=date('Y-m',strtotime($Tgl));
+            $d=date('D',strtotime($Tgl));
+            if(ste_len($d==1))$d='0'.$d;
+            $column='D'.$d;
+            $id_work_time=DB::table('tb_work_entries')->where('id_employee',$id_employee)->where('periode',$periode)->value($column);
+            $tb_freeday=DB::table('tb_freedays')->where('date_off',$Tgl)->count();
+            $change_day=DB::table('tb_freedays')->where('date_off',$Tgl)->where('category','Working')->count();
+            if(($id_work_time>0&&$tb_freeday==0)||($change_day>0))$qty++;
         }
-
-        $groups = $shifts->pluck('group_code')->unique()->all();
-        $workCycles = DB::table('tb_cycles')
-            ->whereIn('group', $groups)
-            ->where('shift', '>', '0')
-            ->get(['group', 'days'])
-            ->groupBy('group')
-            ->map(fn ($cycles) => $cycles->pluck('days')->map(fn ($day) => (int) $day)->all());
-
-        $daysOff = DB::table('tb_freedays')
-            ->whereDate('date_off', '>=', $start->toDateString())
-            ->whereDate('date_off', '<=', $finish->toDateString())
-            ->get(['date_off', 'category'])
-            ->groupBy(fn ($dayOff) => Carbon::parse($dayOff->date_off)->toDateString());
-
-        $count = 0;
-        for ($date = $start->copy(); $date->lte($finish); $date->addDay()) {
-            $dateKey = $date->toDateString();
-            $dateOff = $daysOff->get($dateKey, collect());
-            $isWorkingOverride = $dateOff->contains('category', 'Working');
-            $isDayOff = $dateOff->isNotEmpty();
-
-            foreach ($shifts as $shift) {
-                $cycleLength = (int) $shift->cycle_length;
-                if ($cycleLength < 1) {
-                    continue;
-                }
-
-                $cycleDay = (Carbon::parse($shift->start_implement)->diffInDays($date) % $cycleLength) + 1;
-                $isScheduledWorkday = in_array(
-                    $cycleDay,
-                    $workCycles->get($shift->group_code, []),
-                    true,
-                );
-
-                if (($isScheduledWorkday && !$isDayOff) || $isWorkingOverride) {
-                    $count++;
-                }
-            }
-        }
-
-        return $count;
+        return $qty;
     }
 }

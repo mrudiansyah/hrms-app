@@ -118,13 +118,7 @@
 										<?php if($dt->approval5>0&&$dt->approval5_status==0)echo "<i class='fa fa-square-o'></i> ";if($dt->approval5>0&&$dt->approval5_status==1)echo "<i class='fa fa-check-square-o'></i> ";?> {{$dt->approvalname5}}
 									</td>
 									<td>
-										<?php
-											$host = mysqli_connect("192.168.1.4","ems","123456","db_ems");
-											$idksk=$dt->id;
-											$qryt=mysqli_query($host,"select * from tb_ksk_detail where id_ksk='$idksk'")or die(mysqli_error($host));
-											$qty_total=mysqli_num_rows($qryt);
-										?>
-										{{$qty_total}}
+										{{$qty_ksk_details->get($dt->id,0)}}
 										<div class="pull-right">
 											<a href="/Employee/KSK/Detail/{{$dt->id}}/{{$periode}}" type="button" class="btn btn-primary btn-xs"><i class="fa  fa-folder-o"></i></a>
 											<a href="/Employee/KSK/Print/{{$dt->id}}" type="button" class="btn btn-info btn-xs" target="_blank"><i class="fa  fa-print"></i></a>

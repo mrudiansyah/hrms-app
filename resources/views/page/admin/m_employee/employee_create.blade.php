@@ -15,35 +15,6 @@
 		  cursor:pointer;
         }
    </style>
-   <?php
-		$dept_name='';
-		if(old('dept_id')!=''){
-			$dept_id=old('dept_id');
-			$host1 = mysqli_connect("localhost","ems","123456","db_ems");
-			$qry=mysqli_query($host1,"select * from tb_departments where id='$dept_id'")or die(mysqli_error($host1));
-			while($dt=mysqli_fetch_array($qry)){
-				$dept_name=$dt['dept_name'];
-			}
-		}
-		$position_name='';
-		if(old('position_id')!=''){
-			$pos_id=old('position_id');
-			$host1 = mysqli_connect("localhost","ems","123456","db_ems");
-			$qry=mysqli_query($host1,"select * from tb_positions where id='$pos_id'")or die(mysqli_error($host1));
-			while($dt=mysqli_fetch_array($qry)){
-				$position_name=$dt['position_name'];
-			}
-		}
-		$leader_name='';
-		if(old('leader_id')!=''){
-			$leader_id=old('leader_id');
-			$host1 = mysqli_connect("localhost","ems","123456","db_ems");
-			$qry=mysqli_query($host1,"select * from tb_employees where id='$leader_id'")or die(mysqli_error($host1));
-			while($dt=mysqli_fetch_array($qry)){
-				$leader_name=$dt['employee_name'];
-			}
-		}
-   ?>
 	<div class="content-wrapper">
 		<!-- Content Header (Page header) -->
 		<section class="content-header">

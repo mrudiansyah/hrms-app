@@ -207,12 +207,7 @@
 													if($dt->status_approve==1)echo "<i class='fa fa-check-square-o'></i>";
 													elseif($dt->status_approve==1&&$submenu=='verification')echo "<a href='".$tujuan.$dt->id."'><i class='fa fa-square-o'></i></a>";
 													else {
-														//$host= mysqli_connect("192.168.1.4","ems","123456","db_ems");
-														//$idot=$dt->id;
-														//$qry=mysqli_query($host,"select * from tb_overtime_details where id_ot='$idot' and sign_after='0' and status<90")or die(mysqli_error($host));
-														//$qtynull=mysqli_num_rows($qry);
 														if($dt->status_dicatat==0)echo "<i class='fa fa-square-o' style='color:black;'></i>";
-														//else if($qtynull>0)echo "<i class='fa fa-square-o' style='color:red;'></i>";
 														else echo "<i class='fa fa-square-o' style='color:blue;'></i>";
 													}
 	
@@ -409,10 +404,7 @@
 														if($dt->status_approve==1)echo "<i class='fa fa-check-square-o'></i>";
 														elseif($dt->status_approve==1&&$submenu=='verification')echo "<a href='".$tujuan.$dt->id."'><i class='fa fa-square-o'></i></a>";
 														else {
-															$host= mysqli_connect("192.168.1.4","ems","123456","db_ems");
-															$idot=$dt->id;
-															$qry=mysqli_query($host,"select * from tb_overtime_details where id_ot='$idot' and sign_after='0' and status<90")or die(mysqli_error($host));
-															$qtynull=mysqli_num_rows($qry);
+															$qtynull=$qtynull_by_overtime->get($dt->id,0);
 															if($dt->status_dicatat==0)echo "<i class='fa fa-square-o' style='color:black;'></i>";
 															else if($qtynull>0)echo "<i class='fa fa-square-o' style='color:red;'></i>";
 															else echo "<i class='fa fa-square-o' style='color:blue;'></i>";

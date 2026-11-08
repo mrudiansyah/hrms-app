@@ -403,9 +403,9 @@ class employee_controller extends Controller
             $employee_name=$dt->employee_name;
         }
         $tb_overtime=tb_overtime::where([['id_employee',$id],['approval','1']])->get();
+        $badgeNumber=str_pad((string)$pin,9,'0',STR_PAD_LEFT);
         foreach($tb_overtime as $dt){
             $id_overtime=$dt->id;
-            $host = mysqli_connect("192.168.121.4:83306","cahyudin","123456","adms_db");
 
             $checkin_act='';
             $checkin_status='0';
@@ -425,9 +425,8 @@ class employee_controller extends Controller
                 $ncdateinup= date_format($date, 'Y-m-d H:i:s');
                 //echo $ncdatein.' ';
 
-                $qry2=mysqli_query($host,"select checktime from checkinout where userid='$pin'and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc")or die(mysqli_error($host));
-                while($dt2=mysqli_fetch_array($qry2)){
-                    $checkin_act=$dt2['checktime'];
+                $checkin_act=DB::table('tb_iclock')->where('badgenumber',$badgeNumber)->where('checktime','>=',$ncdateindown)->where('checktime','<=',$ncdateinup)->orderBy('checktime','asc')->value('checktime');
+                if($checkin_act!==null){
                     $checkin_status='1';
                 }
             }
@@ -444,9 +443,8 @@ class employee_controller extends Controller
                 $ncdateoutup= date_format($date, 'Y-m-d H:i:s');
                 //echo $ncdateout.' ';
 
-                $qry2=mysqli_query($host,"select checktime from checkinout where userid='$pin' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup' order by checktime desc")or die(mysqli_error($host));
-                while($dt2=mysqli_fetch_array($qry2)){
-                    $checkout_act=$dt2['checktime'];
+                $checkout_act=DB::table('tb_iclock')->where('badgenumber',$badgeNumber)->where('checktime','>=',$ncdateoutdown)->where('checktime','<=',$ncdateoutup)->orderBy('checktime','desc')->value('checktime');
+                if($checkout_act!==null){
                     $checkout_status='1';
                 }
             }
@@ -500,384 +498,6 @@ class employee_controller extends Controller
         }
         return view('page/user/m_employee/employee_changeday',['tb_changeday'=>$tb_changeday,'id_employee'=>$id,'PIN'=>$pin,'start'=>$start,'end'=>$end,'employee_name'=>$employee_name,'menu'=>'employees']);
         
-    }
-    function presenceUpdate($id,$pin){
-        date_default_timezone_set("Asia/Bangkok");
-        $kalendar=CAL_GREGORIAN;
-        $host = mysqli_connect("192.168.121.4:83306","cahyudin","123456","adms_db");
-
-        $tb_employee_shift=DB::table('tb_employee_shifts')->leftjoin('tb_employees','tb_employees.id','=','tb_employee_shifts.id_employee')->where('tb_employees.id',$id)->get(['tb_employee_shifts.*','tb_employees.PIN']);
-        //$tb_employee_shift=tb_employee_shift::all();
-        foreach($tb_employee_shift as $row){
-
-            $userid=$row->id_employee;
-            $id_shift=$row->id_shift;
-            $PIN=$row->PIN;
-            //echo '<br>#1 '.$userid.': ';
-
-            //New Code
-            $Today=date('Y-m-d');
-            $BYesterday=date('Y-m-d',strtotime('-2 days',strtotime($Today)));
-            $thn_max=date('Y',strtotime($Today));
-            $thn_min=date('Y',strtotime($BYesterday));
-            $bln_max=date('m',strtotime($Today));
-            $bln_min=date('m',strtotime($BYesterday));
-
-            //#1
-            $thn=$thn_max;
-            $bln=$bln_max;
-
-                $hariakhir=cal_days_in_month($kalendar,$bln,$thn);
-                $Tglawal=date('Y-m-d',strtotime($thn.'-'.$bln.'-01'));
-                $Tglakhir=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$hariakhir));
-
-                $i=0;
-                $present=0;
-                $presence=0;
-                $offDays='';
-                $delay_fr='0';
-                $delay_minutes='0';
-
-                for($day=$hariakhir;$day>=1;$day--){
-                    $Tgl=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$day));
-                    $Today=date('Y-m-d');
-                    $Months=date('Y-m',strtotime($thn.'-'.$bln.'-'.$day));
-                    if($Tgl<=$Today){
-
-                    //insert Old Code
-
-                        //echo '<br>&nbsp;&nbsp;#2 '.$Tgl.' ';
-
-                        $tb_group_shift=tb_group_shift::where('id',$id_shift)->get();
-                        foreach($tb_group_shift as $dt){
-                            $tgl1 = new DateTime($dt->start_implement);
-                            $tgl2 = new DateTime($Tgl);
-                            $diffdays = $tgl2->diff($tgl1)->days;
-                            $tb_group=tb_group::where('group',$dt->group)->get();
-                            foreach($tb_group as $dt2){
-                                $cycle=$dt2->cycle;
-                            }
-                            $diffcycle=Floor($diffdays/$cycle);
-                            $modcycle=$diffdays%$cycle;
-                            $modcycle++;
-                            //echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;#3 '.$diffcycle.'-'.$modcycle.' ';
-                            $tb_cycle=tb_cycle::where([['group',$dt->group],['days',$modcycle],['check_in','<>','check_out']])->get();
-                            foreach($tb_cycle as $dt3){
-
-                                $shift=$dt3->shift;
-                                $check_in=$dt3->check_in;
-                                $check_out=$dt3->check_out;
-                                $advance=$dt3->advance;
-                                $cross=$dt3->cross;
-                
-                                //Return Checkin Range
-                                if(isset($check_in)&&$check_in!=''){
-                                    $cdate=date('Y-m-d',strtotime($Tgl));
-                                    if($advance==1){
-                                        $date = date_create($cdate);
-                                        date_add($date, date_interval_create_from_date_string('-1 days'));
-                                        $cdate= date_format($date, 'Y-m-d');
-                                    }
-                                    $ncdatein=$cdate." ".$check_in;
-                                    //Reduce 2 Hour
-                                    $date = date_create($ncdatein);
-                                    date_add($date, date_interval_create_from_date_string('-2 hours'));
-                                    $ncdateindown= date_format($date, 'Y-m-d H:i:s');
-                                    //Increas 5 Hour
-                                    $date = date_create($ncdatein);
-                                    date_add($date, date_interval_create_from_date_string('5 hours'));
-                                    $ncdateinup= date_format($date, 'Y-m-d H:i:s');
-                                    //echo $ncdatein.' ';
-                                }
-                                //Return Checkout Range
-                                if(isset($check_out)&&$check_out!=''){
-                                    $cdate=date('Y-m-d',strtotime($Tgl));
-                                    if($cross==1){
-                                        $date = date_create($cdate);
-                                        date_add($date, date_interval_create_from_date_string('+1 days'));
-                                        $cdate= date_format($date, 'Y-m-d');
-                                    }
-                                    $ncdateout=$cdate." ".$check_out;
-                                    //Reduce 2 Hour
-                                    $date = date_create($ncdateout);
-                                    date_add($date, date_interval_create_from_date_string('-2 hours'));
-                                    $ncdateoutdown= date_format($date, 'Y-m-d H:i:s');
-                                    //Increas 5 Hour
-                                    $date = date_create($ncdateout);
-                                    date_add($date, date_interval_create_from_date_string('4 hours 30 minutes'));
-                                    $ncdateoutup= date_format($date, 'Y-m-d H:i:s');
-                                    //echo $ncdateout.' ';
-                                }
-
-                                $in_status='0';
-                                $out_status='0';
-                                $off_status='0';
-                                $qry2=mysqli_query($host,"select checkinout.checktime,checkinout.userid,userinfo.name from checkinout left join userinfo on checkinout.userid=userinfo.userid where userinfo.userid='$PIN' and checkinout.checktime>='$ncdateindown' and checkinout.checktime<='$ncdateoutup' order by checkinout.checktime asc")or die(mysqli_error($host));
-                                while($dt2=mysqli_fetch_array($qry2)){
-                                    $ctime=$dt2['checktime'];
-                                    //Conditionl IN-OUT
-                                    if($ctime>=$ncdateindown and $ctime<=$ncdateinup){
-                                        $in_status="1";
-                                        $tgl101 = strtotime($check_in);
-                                        $tgl201 = strtotime($ctime);
-                                        if($tgl201>$tgl101){
-                                            $delay_minutes=$delay_minutes+floor(($tgl201-$tgl101)/60);
-                                            $delay_fr++;
-                                        }
-                                        //$sample = $tgl201-$tgl101;
-                                        //echo $delay_fr.' '.$delay_minutes.'<br>';
-                                    }
-                                    if($ctime>=$ncdateoutdown and $ctime<=$ncdateoutup)$out_status="1";
-                                }
-
-                                $tb_freeday=tb_employee_freeday::where([['id_employee',$userid],['date_off',$Tgl]])->count();
-                                $tb_changeday=tb_changeday::where([['id_employee',$userid],['date_off',$Tgl]])->count();
-                                $i++;
-                                if($tb_freeday>0||$tb_changeday>0){
-                                    $i--;
-                                    $off_status='1';
-                                }
-
-                                if($in_status=='1'||$out_status=='1')$present++;
-                                else{
-                                    if(strlen($day)==1)$dj='0'.$day;
-                                    else $dj=$day;
-                                    if($off_status=='0'){
-                                        $offDays=$offDays.$dj.' ';
-                                    }
-                                }
-
-                            }
-                        }
-                    
-
-                        if($i==0)$presence=0;
-                        else
-                        $presence=number_format($present/$i*100,'2');
-                        $absent=100-$presence;
-
-                        $remark=0;
-
-                        $check_presence=tb_presence::where([['month',$Months],['employee_id',$userid]])->count();
-                        if($userid<>''){
-                            if($check_presence==0){
-                                tb_presence::create([
-                                    'month'=>$Months,
-                                    'start'=>$Tglawal,
-                                    'end'=>$Tglakhir,
-                                    'employee_id'=>$userid,
-                                    'plan'=>$i,
-                                    'actual'=>$present,
-                                    'presence'=>$presence,
-                                    'delay_fr'=>$delay_fr,
-                                    'delay_minutes'=>$delay_minutes,
-                                    'status'=>$remark,
-                                    'absent' => $offDays
-                                ]);
-                        
-                            }else{
-                                tb_presence::where([['month',$Months],['employee_id',$userid]])->update([
-                                    'plan'=>$i,
-                                    'actual'=>$present,
-                                    'presence'=>$presence,
-                                    'delay_fr'=>$delay_fr,
-                                    'delay_minutes'=>$delay_minutes,
-                                    'status'=>$remark,
-                                    'absent' => $offDays
-                                ]);
-                            }
-                        }
-
-
-                    //End Insert Old Code
-
-                    }
-                }
-            //End #1
-            //\Log::info('Presence #1'.$userid.' '.$thn.'-'.$bln.' Updated');
-
-            if($bln_max!=$bln_min){
-
-                //#2
-                $thn=$thn_min;
-                $bln=$bln_min;
-
-                $hariakhir=cal_days_in_month($kalendar,$bln,$thn);
-                $Tglawal=date('Y-m-d',strtotime($thn.'-'.$bln.'-01'));
-                $Tglakhir=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$hariakhir));
-
-                $i=0;
-                $present=0;
-                $presence=0;
-                $offDays='';
-                $delay_fr='0';
-                $delay_minutes='0';
-
-                for($day=$hariakhir;$day>=1;$day--){
-                    $Tgl=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$day));
-                    $Today=date('Y-m-d');
-                    $Months=date('Y-m',strtotime($thn.'-'.$bln.'-'.$day));
-                    if($Tgl<=$Today){
-
-                    //insert Old Code
-
-                        //echo '<br>&nbsp;&nbsp;#2 '.$Tgl.' ';
-
-                        $tb_group_shift=tb_group_shift::where('id',$id_shift)->get();
-                        foreach($tb_group_shift as $dt){
-                            $tgl1 = new DateTime($dt->start_implement);
-                            $tgl2 = new DateTime($Tgl);
-                            $diffdays = $tgl2->diff($tgl1)->days;
-                            $tb_group=tb_group::where('group',$dt->group)->get();
-                            foreach($tb_group as $dt2){
-                                $cycle=$dt2->cycle;
-                            }
-                            $diffcycle=Floor($diffdays/$cycle);
-                            $modcycle=$diffdays%$cycle;
-                            $modcycle++;
-                            //echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;#3 '.$diffcycle.'-'.$modcycle.' ';
-                            $tb_cycle=tb_cycle::where([['group',$dt->group],['days',$modcycle],['check_in','<>','check_out']])->get();
-                            foreach($tb_cycle as $dt3){
-
-                                $shift=$dt3->shift;
-                                $check_in=$dt3->check_in;
-                                $check_out=$dt3->check_out;
-                                $advance=$dt3->advance;
-                                $cross=$dt3->cross;
-                
-                                //Return Checkin Range
-                                if(isset($check_in)&&$check_in!=''){
-                                    $cdate=date('Y-m-d',strtotime($Tgl));
-                                    if($advance==1){
-                                        $date = date_create($cdate);
-                                        date_add($date, date_interval_create_from_date_string('-1 days'));
-                                        $cdate= date_format($date, 'Y-m-d');
-                                    }
-                                    $ncdatein=$cdate." ".$check_in;
-                                    //Reduce 2 Hour
-                                    $date = date_create($ncdatein);
-                                    date_add($date, date_interval_create_from_date_string('-2 hours'));
-                                    $ncdateindown= date_format($date, 'Y-m-d H:i:s');
-                                    //Increas 5 Hour
-                                    $date = date_create($ncdatein);
-                                    date_add($date, date_interval_create_from_date_string('5 hours'));
-                                    $ncdateinup= date_format($date, 'Y-m-d H:i:s');
-                                    //echo $ncdatein.' ';
-                                }
-                                //Return Checkout Range
-                                if(isset($check_out)&&$check_out!=''){
-                                    $cdate=date('Y-m-d',strtotime($Tgl));
-                                    if($cross==1){
-                                        $date = date_create($cdate);
-                                        date_add($date, date_interval_create_from_date_string('+1 days'));
-                                        $cdate= date_format($date, 'Y-m-d');
-                                    }
-                                    $ncdateout=$cdate." ".$check_out;
-                                    //Reduce 2 Hour
-                                    $date = date_create($ncdateout);
-                                    date_add($date, date_interval_create_from_date_string('-2 hours'));
-                                    $ncdateoutdown= date_format($date, 'Y-m-d H:i:s');
-                                    //Increas 5 Hour
-                                    $date = date_create($ncdateout);
-                                    date_add($date, date_interval_create_from_date_string('4 hours 30 minutes'));
-                                    $ncdateoutup= date_format($date, 'Y-m-d H:i:s');
-                                    //echo $ncdateout.' ';
-                                }
-                                $in_status='0';
-                                $out_status='0';
-                                $off_status='0';
-
-                                $qry2=mysqli_query($host,"select checkinout.checktime,checkinout.userid,userinfo.name from checkinout left join userinfo on checkinout.userid=userinfo.userid where userinfo.userid='$PIN' and checkinout.checktime>='$ncdateindown' and checkinout.checktime<='$ncdateoutup' order by checkinout.checktime asc")or die(mysqli_error($host));
-                                while($dt2=mysqli_fetch_array($qry2)){
-                                    $ctime=$dt2['checktime'];
-                                    //Conditionl IN-OUT
-                                    if($ctime>=$ncdateindown and $ctime<=$ncdateinup){
-                                        $in_status="1";
-                                        $tgl101 = strtotime($check_in);
-                                        $tgl201 = strtotime($ctime);
-                                        if($tgl201>$tgl101){
-                                            $delay_minutes=$delay_minutes+floor(($tgl201-$tgl101)/60);
-                                            $delay_fr++;
-                                        }
-                                        //$sample = $tgl201-$tgl101;
-                                        //echo $delay_fr.' '.$delay_minutes.'<br>';
-                                    }
-                                   if($ctime>=$ncdateoutdown and $ctime<=$ncdateoutup)$status="2";
-                                }
-
-                                $tb_freeday=tb_employee_freeday::where([['id_employee',$userid],['date_off',$Tgl]])->count();
-                                $tb_changeday=tb_changeday::where([['id_employee',$userid],['date_off',$Tgl]])->count();
-                                $i++;
-                                if($tb_freeday>0||$tb_changeday>0){
-                                    $i--;
-                                    $off_status='1';
-                                }
-
-                                if($in_status=='1'||$out_status=='1')$present++;
-                                else{
-                                    if(strlen($day)==1)$dj='0'.$day;
-                                    else $dj=$day;
-                                    if($off_status=='0'){
-                                        $offDays=$offDays.$dj.' ';
-                                    }
-                                }
-
-                            }
-                        }
-                    
-
-                        if($i==0)$presence=0;
-                        else
-                        $presence=number_format($present/$i*100,'2');
-                        $absent=100-$presence;
-
-                        $remark=1;
-
-                        $check_presence=tb_presence::where([['month',$Months],['employee_id',$userid]])->count();
-                        if($userid<>''){
-                            if($check_presence==0){
-                                tb_presence::create([
-                                    'month'=>$Months,
-                                    'start'=>$Tglawal,
-                                    'end'=>$Tglakhir,
-                                    'employee_id'=>$userid,
-                                    'plan'=>$i,
-                                    'actual'=>$present,
-                                    'presence'=>$presence,
-                                    'delay_fr'=>$delay_fr,
-                                    'delay_minutes'=>$delay_minutes,
-                                    'status'=>$remark,
-                                    'absent' => $offDays
-                                ]);
-                        
-                            }else{
-                                tb_presence::where([['month',$Months],['employee_id',$userid]])->update([
-                                    'plan'=>$i,
-                                    'actual'=>$present,
-                                    'presence'=>$presence,
-                                    'delay_fr'=>$delay_fr,
-                                    'delay_minutes'=>$delay_minutes,
-                                    'status'=>$remark,
-                                    'absent' => $offDays
-                                ]);
-                            }
-                        }
-
-
-                    //End Insert Old Code
-
-                    }
-                }
-
-                //\Log::info('Presence #2'.$userid.' '.$thn.'-'.$bln.' Updated');
-            }        
-
-            //End New Code
-
-        }
-
-        //\Log::info('Finish');
-        return redirect('/Employee/'.$id.'/'.$PIN);
     }
     function payrollUpdate($id,$pin){
         $tb_cutoff=tb_cutoff::where('usage','payroll')->get();
@@ -1302,8 +922,13 @@ class employee_controller extends Controller
                       ->orWhere('legalize4', $id_user);
             })
             ->orderby('no_ksk','asc')->get();
+            $qty_ksk_details=DB::table('tb_ksk_detail')
+                ->whereIn('id_ksk',$tb_ksk->pluck('id'))
+                ->select('id_ksk',DB::raw('COUNT(*) as qty_total'))
+                ->groupBy('id_ksk')
+                ->pluck('qty_total','id_ksk');
             //return $tb_ksk;
-            return view('page/admin/m_employee/ksk_approval',['tb_ksk'=>$tb_ksk,'periode'=>$periode,'menu'=>'ksk','submenu'=>'ksk','Judul'=>'KSK List']);
+            return view('page/admin/m_employee/ksk_approval',['tb_ksk'=>$tb_ksk,'qty_ksk_details'=>$qty_ksk_details,'periode'=>$periode,'menu'=>'ksk','submenu'=>'ksk','Judul'=>'KSK List']);
         }else{
             return abort(403,'Anda tidak punya akses');
         }
@@ -1907,11 +1532,12 @@ class employee_controller extends Controller
         $tb_employee_family=DB::table('tb_employee_family')->where([['id_employee',$id]])->where('status','1')->get();
         //return $tb_employee_family;
         
+        $data['tb_prov']=DB::table('wilayah_2020')->select('kode','nama')->whereRaw('LEN(kode) = 2')->orderBy('nama')->get();
         $koneksi='OK';
         try {DB::connection('fingerPrint')->getPdo();} catch (\Exception $e) {$koneksi='NG';}
         //$koneksi='NG';
 
-        return view('page/admin/m_employee/employee_update',['tb_employee_family'=>$tb_employee_family,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_group_shift'=>$tb_group_shift,'tb_group_employee'=>$tb_group_employee,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee']);
+        return view('page/admin/m_employee/employee_update',['data'=>$data,'tb_employee_family'=>$tb_employee_family,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_group_shift'=>$tb_group_shift,'tb_group_employee'=>$tb_group_employee,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee']);
     }
     function saveData(Request $data){
 

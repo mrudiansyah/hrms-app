@@ -49,13 +49,25 @@ class admin_employee extends Controller
         ->get();
         return view('page/admin/m_employee/employee_read',['tb_employee'=>$tb_employee_data,'menu'=>'employee']);
     }
-    function createData(){
+    function createData(Request $request){
         $tb_department=DB::table('tb_departments')->where('isDelete',0)->get();
         $tb_position=DB::table('tb_positions')->get();
         $tb_contract=DB::table('tb_contract')->whereNull('id_status')->get();
         $tb_cost_center=DB::table('tb_cost_center')->orderby('cc_code','asc')->get();
         $tb_iclock=DB::table('tb_iclock')->select('userid','name','badgenumber')->groupby('userid','name','badgenumber')->get();
-        return view('page/admin/m_employee/employee_create',['tb_department'=>$tb_department,'tb_cost_center'=>$tb_cost_center,'tb_position'=>$tb_position,'tb_contract'=>$tb_contract,'tb_iclock'=>$tb_iclock,'menu'=>'employee']);
+        $dept_name='';
+        if($request->old('dept_id')!=''){
+            $dept_name=DB::table('tb_departments')->where('id',$request->old('dept_id'))->value('dept_name');
+        }
+        $position_name='';
+        if($request->old('position_id')!=''){
+            $position_name=DB::table('tb_positions')->where('id',$request->old('position_id'))->value('position_name');
+        }
+        $leader_name='';
+        if($request->old('leader_id')!=''){
+            $leader_name=DB::table('tb_employees')->where('id',$request->old('leader_id'))->value('employee_name');
+        }
+        return view('page/admin/m_employee/employee_create',['tb_department'=>$tb_department,'tb_cost_center'=>$tb_cost_center,'tb_position'=>$tb_position,'tb_contract'=>$tb_contract,'tb_iclock'=>$tb_iclock,'dept_name'=>$dept_name,'position_name'=>$position_name,'leader_name'=>$leader_name,'menu'=>'employee']);
     }
     function insertData(Request $data){
         $this->validate($data,[
@@ -680,9 +692,9 @@ class admin_employee extends Controller
             'receive_slip_ot'=>$data->receive_slipot
         ]);
         if($simpan){
-            $cek_user=DB::connection('mysql')->table('users')->where('nik',$NIK)->count();
+            $cek_user=DB::table('users')->where('nik',$NIK)->count();
             if($cek_user==0){
-                $add_user=DB::connection('mysql')->table('users')->insert([
+                $add_user=DB::table('users')->insert([
                     'name' => $data->nama_karyawan,
                     'email' => $data->email_address,
                     'email_verified_at'=>$tgl_sekarang,
@@ -691,11 +703,11 @@ class admin_employee extends Controller
                     'hint'=>$NIK,
                 ]);
             }
-            $tb_user=DB::connection('mysql')->table('users')->where('nik',$NIK)->get();
+            $tb_user=DB::table('users')->where('nik',$NIK)->get();
             foreach($tb_user as $dt){
-                $cek_role=DB::connection('mysql')->table('role_users')->where('user_id',$dt->id)->where('role_id','36')->count();
+                $cek_role=DB::table('role_users')->where('user_id',$dt->id)->where('role_id','36')->count();
                 if($cek_role==0){
-                    $add_role=DB::connection('mysql')->table('role_users')->insert([
+                    $add_role=DB::table('role_users')->insert([
                         'user_id'=>$dt->id,
                         'role_id'=>'36',
                     ]);
@@ -825,7 +837,7 @@ class admin_employee extends Controller
                 ]);
             }else{
                 if($dt->extend<$Tgl){
-                    $update=DB::connection('mysql')->table('tb_employee_leaves')->where('id',$dt->id)->update(['status'=>'0']);
+                    $update=DB::table('tb_employee_leaves')->where('id',$dt->id)->update(['status'=>'0']);
                 }
             }
         }

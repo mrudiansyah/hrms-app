@@ -93,7 +93,7 @@ class meal_controller extends Controller
         if($delete)
         return redirect()->back()->with(['success' => 'Delete data berhasil']);
     }
-    function shiftMeals($Tgl,$show){
+    function shiftMeals_deleted($Tgl,$show){
         date_default_timezone_set("Asia/Jakarta");
         if($Tgl==0)$Tgl=date('Y-m-d');
         $Tgl_awal=date('Y-m-d',strtotime('-2 weeks',strtotime($Tgl)));
@@ -111,7 +111,7 @@ class meal_controller extends Controller
         //return $tb_employee;
         return view('page/admin/m_meal/meal_shift',['Tgl'=>$Tgl,'Tgl_awal'=>$Tgl_awal,'Tgl_akhir'=>$Tgl_akhir,'tb_employee'=>$tb_employee,'show'=>$show,'menu'=>'meal']);
     }
-    function tempMeal($Tgl,$show){
+    function tempMeal_deleted($Tgl,$show){
         $ip_address=$_SERVER['REMOTE_ADDR'];
         $reset=DB::table('temp_shift')->where('ip_address',$ip_address)->delete();
 
@@ -131,8 +131,6 @@ class meal_controller extends Controller
         foreach($tb_employee as $dt){
             if($dt->id_shift>0){
                 $shift="";
-                $host= mysqli_connect("192.168.1.4","ems","123456","db_ems");
-                $host1 = mysqli_connect("192.168.121.4:83306","cahyudin","123456","adms_db");
 
                 date_default_timezone_set("Asia/Jakarta");
                 //$Tgl=date('Y-m-d');
@@ -154,15 +152,14 @@ class meal_controller extends Controller
                 $modcycle++;
 
                 $group=$dt->group;
-                $query="select * from tb_cycles where tb_cycles.group='$group' and days='$modcycle'";
-                $qry=mysqli_query($host,$query)or die(mysqli_error($host));
-                while($dt3=mysqli_fetch_array($qry)){
+                $dt3=DB::table('tb_cycles')->where('group',$group)->where('days',$modcycle)->first();
+                if($dt3){
 
-                    $shift=$dt3['shift'];
-                    $check_in=date('H:i',strtotime($dt3['check_in']));
-                    $check_out=date('H:i',strtotime($dt3['check_out']));
-                    $advance=$dt3['advance'];
-                    $cross=$dt3['cross'];
+                    $shift=$dt3->shift;
+                    $check_in=date('H:i',strtotime($dt3->check_in));
+                    $check_out=date('H:i',strtotime($dt3->check_out));
+                    $advance=$dt3->advance;
+                    $cross=$dt3->cross;
 
                     //Return Checkin Range
                     if(isset($check_in)&&$check_in!=''){
@@ -202,12 +199,11 @@ class meal_controller extends Controller
                         $ncdateoutup= date_format($date, 'Y-m-d H:i:s');
                         //echo $ncdateout.' ';
                     }
-                    $qry2=mysqli_query($host1,"select checkinout.checktime,checkinout.userid,userinfo.name from checkinout left join userinfo on checkinout.userid=userinfo.userid where userinfo.userid='$dt->PIN' and checkinout.checktime>='$ncdateindown' and checkinout.checktime<='$ncdateoutup' order by checkinout.checktime asc limit 1")or die(mysqli_error($host1));
                     $hadir=0;
                     $act_in=$ncdatein;
                     $act_out=$ncdateout;
-                    while($dt2=mysqli_fetch_array($qry2)){
-                        $ctime=$dt2['checktime'];
+                    $ctime=DB::table('tb_iclock')->where('userid',$dt->PIN)->where('checktime','>=',$ncdateindown)->where('checktime','<=',$ncdateoutup)->orderBy('checktime','asc')->value('checktime');
+                    if($ctime!==null){
                         $act_in=$ctime;
                         $act_out=$ctime;
                         //Conditionl IN-OUT
@@ -249,7 +245,7 @@ class meal_controller extends Controller
         }
         return redirect('/MealsShift/Detail/'.$Tgl.'/'.$show)->with(['success','Export Success']);
     }
-    function shiftDetail($Tgl,$show){
+    function shiftDetail_deleted($Tgl,$show){
         $ip_address=$_SERVER['REMOTE_ADDR'];
 
         $temp_shift=DB::table('temp_shift')

@@ -24,7 +24,8 @@ class absency_controller extends Controller
         ->where('tb_iclock.badgenumber',$PIN)
         ->orderby('tb_iclock.checktime','asc')
         ->get();
-        return view('page/tms/absencyfingers',['PIN'=>$PIN,'start'=>$start,'end'=>$end,'tb_absen'=>$tb_absen,'badgenumber'=>$PIN,'menu'=>'absency']);
+        $employeeNik=DB::table('tb_employees')->where('badgenumber',$PIN)->value('NIK');
+        return view('page/tms/absencyfingers',['PIN'=>$PIN,'start'=>$start,'end'=>$end,'tb_absen'=>$tb_absen,'badgenumber'=>$PIN,'employeeNik'=>$employeeNik ?? 0,'menu'=>'absency']);
     }
     function absensiRate($periode,$dept_id,$hari_kerja){
         $tb_dept=DB::table('tb_departments')->where('id',$dept_id)->orwhere('dept_code',$dept_id)->get();

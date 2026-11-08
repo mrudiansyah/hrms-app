@@ -628,16 +628,13 @@
 										</div>
 										<div class="box-body">
 											<div class="col-md-12">
-												<?php $host1 = mysqli_connect("192.168.1.4","ems","123456","db_wilayah");?>
 												<div class="form-group">
 													<label>Provinsi</label>
 													<select name="provinsi_domicile" class="form-control" id="form_prov3">
 														<option></option>
-														<?php 
-														$qry=mysqli_query($host1,"SELECT kode,nama FROM wilayah_2020 WHERE CHAR_LENGTH(kode)=2 ORDER BY nama")or die(mysqli_error($host1));
-														while($dt=mysqli_fetch_array($qry)){
-															echo "<option value='".$dt['kode']."'>".$dt['nama']."</option>";
-														}?>
+														@foreach($data['tb_prov'] as $dt)
+															<option value="{{$dt->kode}}">{{$dt->nama}}</option>
+														@endforeach
 													</select>
 												</div>
 												<div class="form-group" id="form_kabs3">
@@ -721,7 +718,6 @@
 									</div>
 									<div class="box-body">
 										<div class="col-md-12">
-											<?php $host1 = mysqli_connect("192.168.1.4","ems","123456","db_wilayah");?>
 											<div class="form-group">
 												<label>Nama Keluarga</label>
 												<input type="text" name="nama_keluarga" class="form-control" placeholder="Entry ...">
@@ -738,11 +734,9 @@
 												<label>Provinsi</label>
 												<select name="provinsi_kontak" class="form-control" id="form_prov2">
 													<option></option>
-													<?php 
-													$qry=mysqli_query($host1,"SELECT kode,nama FROM wilayah_2020 WHERE CHAR_LENGTH(kode)=2 ORDER BY nama")or die(mysqli_error($host1));
-													while($dt=mysqli_fetch_array($qry)){
-														echo "<option value='".$dt['kode']."'>".$dt['nama']."</option>";
-													}?>
+													@foreach($data['tb_prov'] as $dt)
+														<option value="{{$dt->kode}}">{{$dt->nama}}</option>
+													@endforeach
 												</select>
 											</div>
 											<div class="form-group" id="form_kabs2">

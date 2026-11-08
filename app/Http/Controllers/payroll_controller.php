@@ -1266,6 +1266,36 @@ class payroll_controller extends Controller
         } else {
             return abort(403, 'Under Maintenance');
         }
+        if ($tipe == 'SAI' || $tipe == 'MAGANG' || $tipe == 'MANAGEMENT') {
+            $jumlah_diterima_query = DB::table('tb_salary_summary')
+                ->join('tb_salary_contract', function ($join) use ($tipe) {
+                    $join->on('tb_salary_contract.id_employee', '=', 'tb_salary_summary.id_employee');
+                    if ($tipe == 'MAGANG') {
+                        $join->on('tb_salary_contract.tipe_kontrak', '=', 'tb_salary_summary.tipe_kontrak');
+                    }
+                })
+                ->where('tb_salary_summary.periode', $periode)
+                ->where('tb_salary_contract.status_rekening', '1');
+            if ($tipe == 'MAGANG') {
+                $jumlah_diterima_query->where('tb_salary_summary.tipe_kontrak', 'MAGANG');
+            } else {
+                $jumlah_diterima_query->whereIn('tb_salary_summary.tipe_kontrak', ['SAI', 'TKA']);
+            }
+            $jumlah_diterima_rows = $jumlah_diterima_query
+                ->select('tb_salary_contract.department', 'tb_salary_contract.cc_code', DB::raw('SUM(tb_salary_summary.pendapatan_netto) as jumlah_diterima'))
+                ->groupBy('tb_salary_contract.department', 'tb_salary_contract.cc_code')
+                ->get();
+            $jumlah_diterima_by_department_cc = [];
+            foreach ($jumlah_diterima_rows as $row) {
+                $jumlah_diterima_by_department_cc[$row->department][$row->cc_code] = $row->jumlah_diterima;
+            }
+            foreach ($tabel as $row) {
+                $row->jumlah_diterima = $jumlah_diterima_by_department_cc[$row->department][$row->cc_code] ?? 0;
+                $row->manual = $row->total_paid != $row->jumlah_diterima
+                    ? $row->total_paid - $row->jumlah_diterima
+                    : 0;
+            }
+        }
         //return $tabel;
         if (request()->user()->hasRole('root') || request()->user()->hasRole('payroll') || request()->user()->hasRole('payroll_management')) {
             $FileName = 'RECAP.PDF';

@@ -66,21 +66,7 @@
 													<td>{{$dt->badgenumber}}</td>
 													<td>{{$dt->name}}</td>
 													<td>{{$dt->checktime}}</td>
-													<?php $assesment=0;$NIK=0;$id_employee='';?>
-														<?php
-															$PIN=$dt->userid;
-															$tgl=date('Y-m-d',strtotime($dt->checktime));
-															$host = mysqli_connect("192.168.1.4","ems","123456","db_ems");
-															$host1 = mysqli_connect("192.168.1.4","ems","123456","db_ems_covid");
-															$qry=mysqli_query($host,"select * from tb_employees where badgenumber='$badgenumber'")or die(mysqli_error($host));
-															while($dt1=mysqli_fetch_array($qry)){
-																$NIK=$dt1['NIK'];
-																$id_employee=$dt1['id'];
-															}
-															if($NIK==0)echo "<td>&nbsp;</td>";
-															else echo "<td>".$NIK."</td>";
-
-														?>	
+													<td>{{$employeeNik ?: ''}}</td>
 													<td>
 														&nbsp;
 													</td>
@@ -224,4 +210,3 @@
   	</script>
 
 @endsection
-

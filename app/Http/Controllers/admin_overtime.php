@@ -612,7 +612,8 @@ class admin_overtime extends Controller
         $tb_overtime = $tb_overtime->get();
         $jmlot_plan = $tb_overtime_plan->count();
         $jmlot_actual = $tb_overtime_actual->count();
-        return view('page/admin/m_overtime/createdspl', ['tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'periode' => $periode, 'cabang' => 'Depts', 'menu' => 'overtime', 'submenu' => 'realisation']);
+        $qtynull_by_overtime = $this->pendingOvertimeDetailCounts($tb_overtime_actual);
+        return view('page/admin/m_overtime/createdspl', ['tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'qtynull_by_overtime' => $qtynull_by_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'periode' => $periode, 'cabang' => 'Depts', 'menu' => 'overtime', 'submenu' => 'realisation']);
 
 
     }
@@ -1160,7 +1161,8 @@ class admin_overtime extends Controller
         $slatus_lock = DB::table('tb_utilities')
             ->where('atribut', 'limit_approval_ot')
             ->value('status');
-        return view('page/admin/m_overtime/createdspl', ['tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'periode' => $periode, 'status_lock' => $slatus_lock, 'cabang' => 'Verifications', 'menu' => 'overtime', 'submenu' => 'verification']);
+        $qtynull_by_overtime = $this->pendingOvertimeDetailCounts($tb_overtime_actual);
+        return view('page/admin/m_overtime/createdspl', ['tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'qtynull_by_overtime' => $qtynull_by_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'periode' => $periode, 'status_lock' => $slatus_lock, 'cabang' => 'Verifications', 'menu' => 'overtime', 'submenu' => 'verification']);
     }
     function verificationOT2($periode)
     {
@@ -1223,7 +1225,8 @@ class admin_overtime extends Controller
         foreach ($status_lock_ot as $dt) {
             $slatus_lock = $dt->status;
         }
-        return view('page/admin/m_overtime/createdspl', ['tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'periode' => $periode, 'status_lock' => $slatus_lock, 'cabang' => 'Verifications', 'menu' => 'overtime', 'submenu' => 'verification2']);
+        $qtynull_by_overtime = $this->pendingOvertimeDetailCounts($tb_overtime_actual);
+        return view('page/admin/m_overtime/createdspl', ['tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'qtynull_by_overtime' => $qtynull_by_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'periode' => $periode, 'status_lock' => $slatus_lock, 'cabang' => 'Verifications', 'menu' => 'overtime', 'submenu' => 'verification2']);
     }
     function verificationdetailOT($id)
     {
@@ -1297,37 +1300,24 @@ class admin_overtime extends Controller
             $ncdateoutup = date_format($date, 'Y-m-d H:i:s');
             //echo $ncdateout.' ';
 
-            $lenbadge = strlen($dt->badgenumber);
-            $nullbadge = 9 - $lenbadge;
-            $j = '';
-            for ($i = 1; $i <= $nullbadge; $i++) {
-                $j .= '0';
-            }
-            $badge = $j . $dt->badgenumber;
+            $badge = str_pad((string) $dt->badgenumber, 9, '0', STR_PAD_LEFT);
 
-
-            $qry5 = DB::connection('fingerPrint')->table('checkinout')
-                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
-                ->where('userinfo.badgenumber', $badge)
-                ->where('checkinout.checktime', '>=', $ncdateindown)
-                ->where('checkinout.checktime', '<=', $ncdateinup)
-                ->orderby('checkinout.checktime', 'asc')
-                ->limit(1)
-                ->get(['checkinout.checktime']);
-            foreach ($qry5 as $dt5) {
-                $checkin_act = $dt5->checktime;
+            $checkin_act = DB::table('tb_iclock')
+                ->where('badgenumber', $badge)
+                ->where('checktime', '>=', $ncdateindown)
+                ->where('checktime', '<=', $ncdateinup)
+                ->orderBy('checktime', 'asc')
+                ->value('checktime');
+            if ($checkin_act !== null) {
                 $in_finger = 1;
             }
-            $qry5 = DB::connection('fingerPrint')->table('checkinout')
-                ->leftJoin('userinfo', 'checkinout.userid', '=', 'userinfo.userid')
-                ->where('userinfo.badgenumber', $badge)
-                ->where('checkinout.checktime', '>=', $ncdateoutdown)
-                ->where('checkinout.checktime', '<=', $ncdateoutup)
-                ->orderby('checkinout.checktime', 'asc')
-                ->limit(1)
-                ->get(['checkinout.checktime']);
-            foreach ($qry5 as $dt5) {
-                $checkout_act = $dt5->checktime;
+            $checkout_act = DB::table('tb_iclock')
+                ->where('badgenumber', $badge)
+                ->where('checktime', '>=', $ncdateoutdown)
+                ->where('checktime', '<=', $ncdateoutup)
+                ->orderBy('checktime', 'asc')
+                ->value('checktime');
+            if ($checkout_act !== null) {
                 $out_finger = 1;
             }
 
@@ -1676,7 +1666,7 @@ class admin_overtime extends Controller
     function planApproval($periode)
     {
         //return "A";
-        $cek_lock = DB::connection('mysql')->table('tb_utilities')->where('atribut', 'limit_approval_ot')->where('status', '1')->count();
+        $cek_lock = DB::table('tb_utilities')->where('atribut', 'limit_approval_ot')->where('status', '1')->count();
         //if($cek_lock==1){
         $this->autoCancel();
         //}
@@ -1833,13 +1823,13 @@ class admin_overtime extends Controller
         //return $last_sales;
         $pareto = session('pareto', '');
         if ($pareto == '' || $pareto == '0')
-            return view('page/admin/m_overtime/createdspl', ['total_sumot' => $total_sumot, 'tb_sumot' => $tb_sumot, 'tb_sumot_detail' => $tb_sumot_detail, 'tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'Tglawal' => $Tglawal, 'Tglakhir' => $Tglakhir, 'periode' => $periode, 'periode_teks' => $periode_teks, 'salesammount' => $last_sales, 'id_employee' => $id_employee, 'cabang' => 'Plan', 'menu' => 'overtime', 'submenu' => 'approval']);
+            return view('page/admin/m_overtime/createdspl', ['total_sumot' => $total_sumot, 'tb_sumot' => $tb_sumot, 'tb_sumot_detail' => $tb_sumot_detail, 'tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'qtynull_by_overtime' => $this->pendingOvertimeDetailCounts($tb_overtime_actual), 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'Tglawal' => $Tglawal, 'Tglakhir' => $Tglakhir, 'periode' => $periode, 'periode_teks' => $periode_teks, 'salesammount' => $last_sales, 'id_employee' => $id_employee, 'cabang' => 'Plan', 'menu' => 'overtime', 'submenu' => 'approval']);
         else
             return view('page/admin/m_overtime/createdspl2', ['total_sumot' => $total_sumot, 'tb_sumot' => $tb_sumot, 'tb_sumot_detail' => $tb_sumot_detail, 'tb_overtime_plan' => $tb_overtime_plan, 'tb_overtime_actual' => $tb_overtime_actual, 'tb_overtime' => $tb_overtime, 'jmlot_plan' => $jmlot_plan, 'jmlot_actual' => $jmlot_actual, 'Tglawal' => $Tglawal, 'Tglakhir' => $Tglakhir, 'periode' => $periode, 'periode_teks' => $periode_teks, 'salesammount' => $last_sales, 'id_employee' => $id_employee, 'cabang' => 'Plan', 'menu' => 'overtime', 'submenu' => 'approval']);
     }
     function planLegalize($periode)
     {
-        $cek_lock = DB::connection('mysql')->table('tb_utilities')->where('atribut', 'limit_approval_ot')->where('status', '1')->count();
+        $cek_lock = DB::table('tb_utilities')->where('atribut', 'limit_approval_ot')->where('status', '1')->count();
         //if($cek_lock==1){
         $this->autoCancel();
         //}
@@ -2001,7 +1991,7 @@ class admin_overtime extends Controller
     }
     public function autoCancel()
     {
-        $cek_lock = DB::connection('mysql')->table('tb_utilities')->where('atribut', 'limit_approval_ot')->where('status', '1')->count();
+        $cek_lock = DB::table('tb_utilities')->where('atribut', 'limit_approval_ot')->where('status', '1')->count();
         if ($cek_lock == 1) {
             date_default_timezone_set("Asia/Jakarta");
             $tgl_sekarang = date('Y-m-d H:i:s');
@@ -2573,6 +2563,17 @@ class admin_overtime extends Controller
         }
 
         return null;
+    }
+
+    private function pendingOvertimeDetailCounts($overtimes)
+    {
+        return DB::table('tb_overtime_details')
+            ->whereIn('id_ot', $overtimes->pluck('id')->all())
+            ->where('sign_after', '0')
+            ->where('status', '<', 90)
+            ->select('id_ot', DB::raw('COUNT(*) as qtynull'))
+            ->groupBy('id_ot')
+            ->pluck('qtynull', 'id_ot');
     }
 
 }

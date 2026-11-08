@@ -872,7 +872,7 @@ class ApprovalSPLController extends Controller
         $Tglakhir=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$hariakhir));
         }
        
-        $status_lock_ot=DB::connection('mysql')->table('tb_utilities')->where('atribut','limit_approval_ot')->get();
+        $status_lock_ot=DB::table('tb_utilities')->where('atribut','limit_approval_ot')->get();
         foreach($status_lock_ot as $dt){$slatus_lock=$dt->status;}
          $data = array(
             'jmlot_plan' => $jmlot_plan,
@@ -959,7 +959,7 @@ class ApprovalSPLController extends Controller
         $tujuan="/Admin/Overtime/Verification/";
             $no = $start ;
             foreach($posts as $post){
-                $status_lock_ot=DB::connection('mysql')->table('tb_utilities')->where('atribut','limit_approval_ot')->get();
+                $status_lock_ot=DB::table('tb_utilities')->where('atribut','limit_approval_ot')->get();
                     foreach($status_lock_ot as $dt){
                 $status_lock=$dt->status;
             }
@@ -1265,55 +1265,45 @@ class ApprovalSPLController extends Controller
                     $j.='0';
                 }
                 $badge=$j.$post->badgenumber;
-                $sambungan=0;
-                $host1 = mysqli_connect("192.168.1.4","ems","123456","db_ems");
-                $qry_finger=mysqli_query($host1,"select * from tb_utilities where atribut='iclock_connection'")
-                or die(mysqli_error($host1));
-                while($dt_finger=mysqli_fetch_array($qry_finger))
-                {$sambungan=$dt_finger['status'];}
+                $sambungan=DB::table('tb_utilities')->where('atribut','iclock_connection')->value('status');
                 if($sambungan==1){
-                    $host = mysqli_connect("192.168.121.4:83306","cahyudin","123456","adms_db");
-
-                    //$qry5=mysqli_query($host,"select checktime from checkinout where userid='$dt->PIN' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host));
-                    $qry5=mysqli_query($host,"select checktime from checkinout left join userinfo on userinfo.userid=checkinout.userid where badgenumber='$badge' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host));
-                    while($dt5=mysqli_fetch_array($qry5)){
-                        $checkin_act=$dt5['checktime'];
+                    $qry5=DB::table('tb_iclock')->select('checktime')->where('badgenumber',$badge)->where('checktime','>=',$ncdateindown)->where('checktime','<=',$ncdateinup)->orderBy('checktime','asc')->limit(1)->get();
+                    foreach($qry5 as $dt5){
+                        $checkin_act=$dt5->checktime;
                         $status='Present';
                         //if($cin=='')
                         $cin=$checkin_act;
                     }
-                    $qry5=mysqli_query($host,"select checktime from checkinout left join userinfo on userinfo.userid=checkinout.userid where badgenumber='$badge' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup' order by checktime desc limit 1")or die(mysqli_error($host));
-                    while($dt5=mysqli_fetch_array($qry5)){
-                        $checkout_act=$dt5['checktime'];
+                    $qry5=DB::table('tb_iclock')->select('checktime')->where('badgenumber',$badge)->where('checktime','>=',$ncdateoutdown)->where('checktime','<=',$ncdateoutup)->orderBy('checktime','desc')->limit(1)->get();
+                    foreach($qry5 as $dt5){
+                        $checkout_act=$dt5->checktime;
                         $status='Present';
                         //if($cout=='')
                         $cout=$checkout_act;
                     }
 
-
-                    $qry6=mysqli_query($host1,"select * from tb_employee_freedays where id_employee='$post->id_employee' and date_off='$post->date_on'")or die(mysqli_error($host1));
-                    while($dt6=mysqli_fetch_array($qry6)){
-                        $category=$dt6['category'];
-                        $description=$dt6['description'];
+                    $qry6=DB::table('tb_freedays')->where('date_off',$post->date_on)->get();
+                    foreach($qry6 as $dt6){
+                        $category=$dt6->category;
+                        $description=$dt6->description;
                         $status=$category;
                     }
                 }
                 //Absen Manual Start
                 if($checkin_act==''){
-                    //$qry7=mysqli_query($host1,"select * from tb_checktimes where badgenumber='$post->badgenumber' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host1));
-                    $qry7=mysqli_query($host1,"select * from tb_checktimes where NIK='$post->NIK' and checktime>='$ncdateindown' and checktime<='$ncdateinup' order by checktime asc limit 1")or die(mysqli_error($host1));
-                    while($dt7=mysqli_fetch_array($qry7)){
-                        $checkin_act=$dt7['checktime'];
-                        $status=$dt7['status_kerja'];
+                    $qry7=DB::table('tb_checktimes')->where('NIK',$post->NIK)->where('checktime','>=',$ncdateindown)->where('checktime','<=',$ncdateinup)->orderBy('checktime','asc')->limit(1)->get();
+                    foreach($qry7 as $dt7){
+                        $checkin_act=$dt7->checktime;
+                        $status=$dt7->status_kerja;
                         //if($checkin_act<$cin)
                         $cin=$checkin_act;
                     }
                 }
                 if($checkout_act==''){
-                    $qry7=mysqli_query($host1,"select * from tb_checktimes where NIK='$post->NIK' and checktime>='$ncdateoutdown' and checktime<='$ncdateoutup' order by checktime desc limit 1")or die(mysqli_error($host1));
-                    while($dt7=mysqli_fetch_array($qry7)){
-                        $checkout_act=$dt7['checktime'];
-                        $status=$dt7['status_kerja'];
+                    $qry7=DB::table('tb_checktimes')->where('NIK',$post->NIK)->where('checktime','>=',$ncdateoutdown)->where('checktime','<=',$ncdateoutup)->orderBy('checktime','desc')->limit(1)->get();
+                    foreach($qry7 as $dt7){
+                        $checkout_act=$dt7->checktime;
+                        $status=$dt7->status_kerja;
                         //if($checkout_act>$cout)
                         $cout=$checkout_act;
                     }

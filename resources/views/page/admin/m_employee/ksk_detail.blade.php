@@ -120,7 +120,6 @@
 									<td><?php if($tahun>0)echo $tahun.' Tahun ';if($bulan>0)echo $bulan.' Bulan';?></td>
 									<td>
 										<?php
-										$host = mysqli_connect("192.168.1.4","ems","123456","db_ems");
 										$id_ksk_detail=$dt->id;
 										$approval1=$dt->approval1;
 										$approval2=$dt->approval2;
@@ -141,48 +140,31 @@
 										$judge4='';
 										$judge5='';
 										$judge6='';
-										$qry1=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$approval1'")or die(mysqli_error($host));
-										while($dt1=mysqli_fetch_array($qry1)){
-											if($dt1['judge']=='PERMANENCY')$approve1="<span class='badge bg-green'>1</span>";
-											elseif($dt1['judge']=='EXTEND')$approve1="<span class='badge bg-yellow'>1</span>";
-											elseif($dt1['judge']=='NOT EXTEND')$approve1="<span class='badge bg-red'>1</span>";
-											$judge1=$dt1['judge'];
-										}
-										$qry2=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$approval2'")or die(mysqli_error($host));
-										while($dt2=mysqli_fetch_array($qry2)){
-											if($dt2['judge']=='PERMANENCY')$approve2="<span class='badge bg-green'>2</span>";
-											elseif($dt2['judge']=='EXTEND')$approve2="<span class='badge bg-yellow'>2</span>";
-											elseif($dt2['judge']=='NOT EXTEND')$approve2="<span class='badge bg-red'>2</span>";
-											$judge2=$dt2['judge'];
-										}
-										$qry3=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$approval3'")or die(mysqli_error($host));
-										while($dt3=mysqli_fetch_array($qry3)){
-											if($dt3['judge']=='PERMANENCY')$approve3="<span class='badge bg-green'>3</span>";
-											elseif($dt3['judge']=='EXTEND')$approve3="<span class='badge bg-yellow'>3</span>";
-											elseif($dt3['judge']=='NOT EXTEND')$approve3="<span class='badge bg-red'>3</span>";
-											$judge3=$dt3['judge'];
-										}
-										$qry4=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$approval4'")or die(mysqli_error($host));
-										while($dt4=mysqli_fetch_array($qry4)){
-											if($dt4['judge']=='PERMANENCY')$approve4="<span class='badge bg-green'>4</span>";
-											elseif($dt4['judge']=='EXTEND')$approve4="<span class='badge bg-yellow'>4</span>";
-											elseif($dt4['judge']=='NOT EXTEND')$approve4="<span class='badge bg-red'>4</span>";
-											$judge4=$dt4['judge'];
-										}
-										$qry5=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$approval5'")or die(mysqli_error($host));
-										while($dt5=mysqli_fetch_array($qry5)){
-											if($dt5['judge']=='PERMANENCY')$approve5="<span class='badge bg-green'>5</span>";
-											elseif($dt5['judge']=='EXTEND')$approve5="<span class='badge bg-yellow'>5</span>";
-											elseif($dt5['judge']=='NOT EXTEND')$approve5="<span class='badge bg-red'>5</span>";
-											$judge5=$dt5['judge'];
-										}
-										$qry6=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$approval6'")or die(mysqli_error($host));
-										while($dt6=mysqli_fetch_array($qry6)){
-											if($dt6['judge']=='PERMANENCY')$approve6="<span class='badge bg-green'>6</span>";
-											elseif($dt6['judge']=='EXTEND')$approve6="<span class='badge bg-yellow'>6</span>";
-											elseif($dt6['judge']=='NOT EXTEND')$approve6="<span class='badge bg-red'>6</span>";
-											$judge6=$dt6['judge'];
-										}
+										$detail_judges=isset($ksk_judges[$id_ksk_detail])?$ksk_judges[$id_ksk_detail]:[];
+										$judge1=isset($detail_judges[$approval1])?$detail_judges[$approval1]:'';
+										$judge2=isset($detail_judges[$approval2])?$detail_judges[$approval2]:'';
+										$judge3=isset($detail_judges[$approval3])?$detail_judges[$approval3]:'';
+										$judge4=isset($detail_judges[$approval4])?$detail_judges[$approval4]:'';
+										$judge5=isset($detail_judges[$approval5])?$detail_judges[$approval5]:'';
+										$judge6=isset($detail_judges[$approval6])?$detail_judges[$approval6]:'';
+										if($judge1=='PERMANENCY')$approve1="<span class='badge bg-green'>1</span>";
+										elseif($judge1=='EXTEND')$approve1="<span class='badge bg-yellow'>1</span>";
+										elseif($judge1=='NOT EXTEND')$approve1="<span class='badge bg-red'>1</span>";
+										if($judge2=='PERMANENCY')$approve2="<span class='badge bg-green'>2</span>";
+										elseif($judge2=='EXTEND')$approve2="<span class='badge bg-yellow'>2</span>";
+										elseif($judge2=='NOT EXTEND')$approve2="<span class='badge bg-red'>2</span>";
+										if($judge3=='PERMANENCY')$approve3="<span class='badge bg-green'>3</span>";
+										elseif($judge3=='EXTEND')$approve3="<span class='badge bg-yellow'>3</span>";
+										elseif($judge3=='NOT EXTEND')$approve3="<span class='badge bg-red'>3</span>";
+										if($judge4=='PERMANENCY')$approve4="<span class='badge bg-green'>4</span>";
+										elseif($judge4=='EXTEND')$approve4="<span class='badge bg-yellow'>4</span>";
+										elseif($judge4=='NOT EXTEND')$approve4="<span class='badge bg-red'>4</span>";
+										if($judge5=='PERMANENCY')$approve5="<span class='badge bg-green'>5</span>";
+										elseif($judge5=='EXTEND')$approve5="<span class='badge bg-yellow'>5</span>";
+										elseif($judge5=='NOT EXTEND')$approve5="<span class='badge bg-red'>5</span>";
+										if($judge6=='PERMANENCY')$approve6="<span class='badge bg-green'>6</span>";
+										elseif($judge6=='EXTEND')$approve6="<span class='badge bg-yellow'>6</span>";
+										elseif($judge6=='NOT EXTEND')$approve6="<span class='badge bg-red'>6</span>";
 										if($approval1==$id_employee){
 											$status=1;
 										}else if($approval2==$id_employee&&$judge1!=''){
@@ -203,7 +185,6 @@
 									</td>
 									<td>
 										<?php
-										$host = mysqli_connect("192.168.1.4","ems","123456","db_ems");
 										$id_ksk_detail=$dt->id;
 										$legalize1=$dt->legalize1;
 										$legalize2=$dt->legalize2;
@@ -218,34 +199,22 @@
 										$judge8='';
 										$judge9='';
 										$judge10='';
-										$qry7=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$legalize1'")or die(mysqli_error($host));
-										while($dt7=mysqli_fetch_array($qry7)){
-											if($dt7['judge']=='PERMANENCY')$legaliz1="<span class='badge bg-green'>1</span>";
-											elseif($dt7['judge']=='EXTEND')$legaliz1="<span class='badge bg-yellow'>1</span>";
-											elseif($dt7['judge']=='NOT EXTEND')$legaliz1="<span class='badge bg-red'>1</span>";
-											$judge7=$dt7['judge'];
-										}
-										$qry8=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$legalize2'")or die(mysqli_error($host));
-										while($dt8=mysqli_fetch_array($qry8)){
-											if($dt8['judge']=='PERMANENCY')$legaliz2="<span class='badge bg-green'>2</span>";
-											elseif($dt8['judge']=='EXTEND')$legaliz2="<span class='badge bg-yellow'>2</span>";
-											elseif($dt8['judge']=='NOT EXTEND')$legaliz2="<span class='badge bg-red'>2</span>";
-											$judge8=$dt8['judge'];
-										}
-										$qry9=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$legalize3'")or die(mysqli_error($host));
-										while($dt9=mysqli_fetch_array($qry9)){
-											if($dt9['judge']=='PERMANENCY')$legaliz3="<span class='badge bg-green'>3</span>";
-											elseif($dt9['judge']=='EXTEND')$legaliz3="<span class='badge bg-yellow'>3</span>";
-											elseif($dt9['judge']=='NOT EXTEND')$legaliz3="<span class='badge bg-red'>3</span>";
-											$judge9=$dt9['judge'];
-										}
-										$qry10=mysqli_query($host,"select * from tb_ksk_detail_status where id_ksk_detail='$id_ksk_detail' and id_employee='$legalize4'")or die(mysqli_error($host));
-										while($dt10=mysqli_fetch_array($qry10)){
-											if($dt10['judge']=='PERMANENCY')$legaliz4="<span class='badge bg-green'>4</span>";
-											elseif($dt10['judge']=='EXTEND')$legaliz4="<span class='badge bg-yellow'>4</span>";
-											elseif($dt10['judge']=='NOT EXTEND')$legaliz4="<span class='badge bg-red'>4</span>";
-											$judge10=$dt10['judge'];
-										}
+										$judge7=isset($detail_judges[$legalize1])?$detail_judges[$legalize1]:'';
+										$judge8=isset($detail_judges[$legalize2])?$detail_judges[$legalize2]:'';
+										$judge9=isset($detail_judges[$legalize3])?$detail_judges[$legalize3]:'';
+										$judge10=isset($detail_judges[$legalize4])?$detail_judges[$legalize4]:'';
+										if($judge7=='PERMANENCY')$legaliz1="<span class='badge bg-green'>1</span>";
+										elseif($judge7=='EXTEND')$legaliz1="<span class='badge bg-yellow'>1</span>";
+										elseif($judge7=='NOT EXTEND')$legaliz1="<span class='badge bg-red'>1</span>";
+										if($judge8=='PERMANENCY')$legaliz2="<span class='badge bg-green'>2</span>";
+										elseif($judge8=='EXTEND')$legaliz2="<span class='badge bg-yellow'>2</span>";
+										elseif($judge8=='NOT EXTEND')$legaliz2="<span class='badge bg-red'>2</span>";
+										if($judge9=='PERMANENCY')$legaliz3="<span class='badge bg-green'>3</span>";
+										elseif($judge9=='EXTEND')$legaliz3="<span class='badge bg-yellow'>3</span>";
+										elseif($judge9=='NOT EXTEND')$legaliz3="<span class='badge bg-red'>3</span>";
+										if($judge10=='PERMANENCY')$legaliz4="<span class='badge bg-green'>4</span>";
+										elseif($judge10=='EXTEND')$legaliz4="<span class='badge bg-yellow'>4</span>";
+										elseif($judge10=='NOT EXTEND')$legaliz4="<span class='badge bg-red'>4</span>";
 										if($legalize1==$id_employee&&$dt->approval_status==1){
 											$status=1;
 										}else if($legalize2==$id_employee&&$judge7!=''){

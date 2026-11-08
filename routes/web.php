@@ -664,9 +664,9 @@ Route::get('/Meals/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'i
 Route::get('/MealsCheck/{id}', [App\Http\Controllers\meal_controller::class, 'checkDouble']);
 Route::get('/MealsDelete/{id}', [App\Http\Controllers\meal_controller::class, 'deleteData']);
 Route::post('/Meals/Create', [App\Http\Controllers\meal_controller::class, 'createData']);
-Route::get('/MealsShifts/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'shiftMeals']);
-Route::get('/MealsShift/Temp/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'tempMeal']);
-Route::get('/MealsShift/Detail/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'shiftDetail']);
+// Route::get('/MealsShifts/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'shiftMeals']);
+// Route::get('/MealsShift/Temp/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'tempMeal']);
+//Route::get('/MealsShift/Detail/{id}/{id1}', [App\Http\Controllers\meal_controller::class, 'shiftDetail']);
 Route::get('/MealsShift/Check', [App\Http\Controllers\meal_controller::class, 'shiftCheck']);
 Route::get('/MealsShift/Create/{id}', [App\Http\Controllers\meal_controller::class, 'shiftCreate']);
 Route::get('/MealsShift/Delete/{id}', [App\Http\Controllers\meal_controller::class, 'shiftDelete']);

@@ -1575,9 +1575,16 @@ class contract_controller extends Controller
             'tb_employees10.employee_name as legalizename4',
         ])
         ->orderby('no_ksk','asc')->get();
+      $ksk_status_rows=DB::table('tb_ksk_detail_status')
+        ->whereIn('id_ksk_detail',$tb_ksk->pluck('id')->toArray())
+        ->get(['id_ksk_detail','id_employee','judge']);
+      $ksk_judges=[];
+      foreach($ksk_status_rows as $status_row){
+        $ksk_judges[$status_row->id_ksk_detail][$status_row->id_employee]=$status_row->judge;
+      }
       //return $tb_ksk;
       $judul="KSK ID ".$id_ksk." (".$periode.")";
-      return view('page/admin/m_employee/ksk_detail',['tb_ksk'=>$tb_ksk,'id_ksk'=>$id_ksk,'tb_spv'=>$tb_spv,'periode'=>$periode,'id_employee'=>$id_user,'menu'=>'employee','submenu'=>'contract','submenu'=>'contract','Judul'=>$judul]);
+      return view('page/admin/m_employee/ksk_detail',['tb_ksk'=>$tb_ksk,'ksk_judges'=>$ksk_judges,'id_ksk'=>$id_ksk,'tb_spv'=>$tb_spv,'periode'=>$periode,'id_employee'=>$id_user,'menu'=>'employee','submenu'=>'contract','submenu'=>'contract','Judul'=>$judul]);
     
     }
     function kskPrint_221206($id_ksk){
@@ -2426,11 +2433,7 @@ class contract_controller extends Controller
     function AgreementSave(Request $data){
       $admin=Auth::user()->name;
 
-      $host1 = mysqli_connect("192.168.1.4","ems","123456","db_wilayah");                
-      $qry=mysqli_query($host1,"SELECT * FROM wilayah_2020 WHERE kode='$data->provinsi'")or die(mysqli_error($host1));
-      while($dt=mysqli_fetch_array($qry)){
-          $prov=$dt['nama'];
-      }
+      $prov=DB::table('wilayah_2020')->where('kode',$data->provinsi)->value('nama');
       $kode_kab=$data->kabupaten;
       $kode_kec=$data->kecamatan;
       $kode_des=$data->kelurahan;
@@ -2438,22 +2441,13 @@ class contract_controller extends Controller
       $kel='';
       $des='';
       if($data->kabupaten!=''){
-        $qry=mysqli_query($host1,"SELECT * FROM wilayah_2020 WHERE kode='$data->kabupaten'")or die(mysqli_error($host1));
-        while($dt=mysqli_fetch_array($qry)){
-            $kab=$dt['nama'];
-        }
+        $kab=DB::table('wilayah_2020')->where('kode',$data->kabupaten)->value('nama');
       }
       if($data->kecamatan!=''){
-        $qry=mysqli_query($host1,"SELECT * FROM wilayah_2020 WHERE kode='$data->kecamatan'")or die(mysqli_error($host1));
-        while($dt=mysqli_fetch_array($qry)){
-            $kec=$dt['nama'];
-        }
+        $kec=DB::table('wilayah_2020')->where('kode',$data->kecamatan)->value('nama');
       }
       if($data->kelurahan!=''){
-        $qry=mysqli_query($host1,"SELECT * FROM wilayah_2020 WHERE kode='$data->kelurahan'")or die(mysqli_error($host1));
-        while($dt=mysqli_fetch_array($qry)){
-            $des=$dt['nama'];
-        }
+        $des=DB::table('wilayah_2020')->where('kode',$data->kelurahan)->value('nama');
       }
 
       $tanggal_awal = new DateTime($data->tanggalmulai);

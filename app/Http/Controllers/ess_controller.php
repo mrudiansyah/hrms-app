@@ -979,7 +979,6 @@ class ess_controller extends Controller
         $id_participant = $data->idparticipant;
 
         $email = Auth::user()->email;
-        // Hapus DB::connection('mysql') yang redundan — gunakan koneksi default
         $id_employee = DB::table('tb_emails')
             ->where('email_address', $email)
             ->value('id_employee');

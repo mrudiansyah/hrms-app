@@ -51,22 +51,8 @@ PERIOD <?php echo strtoupper(date('F Y',strtotime($periode.'-01')));?>
         <?php $a=0;$b=0;$c=0;$d=0;$e=0;$e1=0;$f=0;$g=0;$h=0;$i=0;$j=0;$k=0;$l=0;$m=0;$n=0;$o=0;$p=0;?>
         @foreach($tb_rekap as $dt)
         <?php
-            $department=$dt->department;
-            $cc_code=$dt->cc_code;
-            $host = mysqli_connect("localhost","ems","123456","db_ems_payroll");
-            if($tipe=='MAGANG'){
-                $qry=mysqli_query($host,"select sum(pendapatan_netto) as 'jumlah_diterima' from tb_salary_summary left join tb_salary_contract on tb_salary_contract.id_employee=tb_salary_summary.id_employee and tb_salary_contract.tipe_kontrak=tb_salary_summary.tipe_kontrak where periode='$periode' and tb_salary_contract.cc_code='$cc_code' and tb_salary_summary.tipe_kontrak='MAGANG' and department='$department' and status_rekening='1'")or die(mysqli_error($host));
-            }
-            else{
-                $qry=mysqli_query($host,"select sum(pendapatan_netto) as 'jumlah_diterima' from tb_salary_summary left join tb_salary_contract on tb_salary_contract.id_employee=tb_salary_summary.id_employee where periode='$periode' and tb_salary_contract.cc_code='$cc_code' and (tb_salary_summary.tipe_kontrak='SAI' or tb_salary_summary.tipe_kontrak='TKA') and department='$department' and status_rekening='1'")or die(mysqli_error($host));
-            }
-            while($row=mysqli_fetch_array($qry)){
-                $jumlah_diterima=$row['jumlah_diterima'];
-            }
-            if($jumlah_diterima!=$dt->total_paid){
-                $manual=$dt->total_paid-$jumlah_diterima;
-            }
-            else $manual=0;
+            $jumlah_diterima=$dt->jumlah_diterima;
+            $manual=$dt->manual;
         ?>
         <tr>
             <td style="text-align:left;">{{$dt->department}}</td>  

@@ -511,9 +511,6 @@ class assigment_controller extends Controller
                     //}
                 }
                 $total_bayar = '';
-                // $host = mysqli_connect('192.168.1.4', 'ems', '123456', 'db_ems');
-                // ($qry = mysqli_query($host, "select * from tb_utilities where atribut='$insentif'")) or die(mysqli_error($host));
-                // while ($dt_insentif = mysqli_fetch_array($qry)) {
                 $qry=DB::table('tb_utilities')->where('atribut',$insentif)->get(['status']);
                 foreach($qry as $dt_insentif){
                     $total_bayar=0;
@@ -590,9 +587,6 @@ class assigment_controller extends Controller
                         // }
                     }
                     $total_bayar = '';
-                    // $host = mysqli_connect('192.168.1.4', 'ems', '123456', 'db_ems');
-                    // ($qry = mysqli_query($host, "select * from tb_utilities where atribut='$insentif'")) or die(mysqli_error($host));
-                    // while ($dt_insentif = mysqli_fetch_array($qry)) {
                     $qry=DB::table('tb_utilities')->where('atribut',$insentif)->get(['status']);
                     foreach($qry as $dt_insentif){
                         //if ($Hari < 6 || $Hari != 0 || $tb_freedays == 0) {
@@ -699,7 +693,7 @@ class assigment_controller extends Controller
 
 
     function checkFreedays(Request $data){
-        $tb_freedays=DB::connection('mysql')->table('tb_freedays')->where('date_off',$data->date_off)->count();
+        $tb_freedays=DB::table('tb_freedays')->where('date_off',$data->date_off)->count();
         $hari=date('w',strtotime($data->date_off));
         if($hari==0||$hari==6||$tb_freedays==1)$assigment_status=1;
         else $assigment_status=0;
@@ -716,7 +710,7 @@ class assigment_controller extends Controller
             $id_position = $d->position_index;
 
         }
-        $tb_freedays= DB::connection('mysql')->table('tb_freedays')
+        $tb_freedays= DB::table('tb_freedays')
         ->where('date_off',$request->date_off)
         ->count();
         $hari= date('w',strtotime($request->date_off));

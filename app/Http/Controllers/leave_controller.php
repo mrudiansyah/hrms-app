@@ -23,16 +23,6 @@ class leave_controller extends Controller
 
         $Tgl=date('Y-m-d');
         $jam=date('Y-m-d H:i:s');
-        //Daily Refresh
-            // $qty_record=DB::connection('mysql')->table('tb_update_record')->where('record_date',$Tgl)->count();
-            // if($qty_record==0){
-            //     $tb_record=DB::connection('mysql')->table('tb_update_record')->insert([
-            //         'tabel_name'=>'tb_employee_leaves',
-            //         'record_date'=>$Tgl,
-            //     ]);
-            //     return redirect('/Leave/Update');
-            // }
-        //Daily Refresh End
         $next_month=date('Y-m-d',strtotime('+1 months',strtotime($Tgl)));
 
         $nama=Auth::user()->name;

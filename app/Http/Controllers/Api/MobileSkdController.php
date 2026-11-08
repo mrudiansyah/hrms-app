@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use DateTime;
@@ -24,6 +25,24 @@ class MobileSkdController extends Controller
             ->orderBy('diagnosa')
             ->pluck('diagnosa');
 
+        $records = DB::table('tb_sick')
+            ->leftJoin('tb_leaves', function ($join) {
+                $join->on(DB::raw('TRY_CONVERT(int, [tb_leaves].[id_doc])'), '=', 'tb_sick.id')
+                    ->where('tb_leaves.category', 'docter');
+            })
+            ->where('tb_sick.id_employee', $employee->id)
+            ->orderByDesc('tb_sick.upload_time')
+            ->orderByDesc('tb_sick.id')
+            ->get([
+                'tb_sick.id',
+                'tb_sick.tanggal as start_leave',
+                'tb_leaves.finish_leave',
+                'tb_sick.diagnosa',
+                'tb_sick.status',
+                'tb_sick.upload_time',
+                'tb_leaves.status_legalized',
+            ]);
+
         return response()->json([
             'employee' => [
                 'name' => $employee->employee_name,
@@ -31,6 +50,7 @@ class MobileSkdController extends Controller
                 'department' => $employee->department,
             ],
             'diagnoses' => $diagnoses,
+            'records' => $records,
         ]);
     }
 
@@ -181,6 +201,73 @@ class MobileSkdController extends Controller
             'message' => 'Berhasil mengunggah SKD. Dokumen SKD asli tetap harus diserahkan ke HR.',
             'record' => $record,
         ], 201);
+    }
+
+    public function destroy(Request $request, int $id)
+    {
+        $employee = $this->employeeFor($request);
+        if (!$employee) {
+            return response()->json(['message' => 'Data karyawan untuk akun ini tidak ditemukan.'], 404);
+        }
+
+        $result = DB::transaction(function () use ($employee, $id) {
+            $sick = DB::table('tb_sick')
+                ->where('id', $id)
+                ->where('id_employee', $employee->id)
+                ->lockForUpdate()
+                ->first(['id', 'skd']);
+            if (!$sick) {
+                return ['status' => 'missing'];
+            }
+
+            $leaves = DB::table('tb_leaves')
+                ->whereRaw('TRY_CONVERT(int, [id_doc]) = ?', [$id])
+                ->where('id_employee', $employee->id)
+                ->where('category', 'docter')
+                ->lockForUpdate()
+                ->get(['id', 'status_legalized']);
+            if ($leaves->isEmpty() || $leaves->contains(
+                fn ($leave) => (string) $leave->status_legalized !== '0'
+            )) {
+                return ['status' => 'not_deletable'];
+            }
+
+            DB::table('tb_leaves')
+                ->whereIn('id', $leaves->pluck('id'))
+                ->delete();
+            DB::table('tb_sick')
+                ->where('id', $sick->id)
+                ->where('id_employee', $employee->id)
+                ->delete();
+
+            return ['status' => 'deleted', 'filename' => $sick->skd];
+        });
+
+        if ($result['status'] === 'missing') {
+            return response()->json(['message' => 'Data SKD tidak ditemukan.'], 404);
+        }
+        if ($result['status'] === 'not_deletable') {
+            return response()->json([
+                'message' => 'SKD hanya dapat dihapus sebelum dilegalisasi.',
+            ], 409);
+        }
+
+        $filename = $result['filename'];
+        if (is_string($filename) &&
+            $filename !== '' &&
+            !str_starts_with($filename, 'data:') &&
+            basename($filename) === $filename) {
+            $storage = Storage::disk('public');
+            $path = 'skd/' . $filename;
+            if ($storage->exists($path) && !$storage->delete($path)) {
+                Log::warning('Mobile SKD file could not be deleted after record removal.', [
+                    'employee_id' => $employee->id,
+                    'skd_id' => $id,
+                ]);
+            }
+        }
+
+        return response()->json(['message' => 'Data SKD berhasil dihapus.']);
     }
 
     private function employeeFor(Request $request): ?object

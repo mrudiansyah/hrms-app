@@ -50,6 +50,7 @@ Route::prefix('mobile')->group(function () {
         Route::get('/inside-checktime', [MobileInsideChecktimeController::class, 'index']);
         Route::get('/skd', [MobileSkdController::class, 'options']);
         Route::post('/skd', [MobileSkdController::class, 'store'])->middleware('throttle:5,1');
+        Route::delete('/skd/{id}', [MobileSkdController::class, 'destroy'])->whereNumber('id');
         Route::get('/slips/salary', [MobileSlipController::class, 'salary']);
         Route::get('/slips/overtime', [MobileSlipController::class, 'overtime']);
         Route::get('/slips/salary/{source}/{id}/pdf', [MobileSlipController::class, 'salaryPdf'])

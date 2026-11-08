@@ -209,7 +209,7 @@ class MobileSkdController extends Controller
         $tgl2 = new DateTime($finish);
         $diffdays = $tgl2->diff($tgl1)->days;
         $id_employee=$employeeId;
-        $mulai=$data->start;
+        $mulai=$start;
         $qty=0;
         for($i=0;$i<=$diffdays;$i++){
             $jml_leave=0;

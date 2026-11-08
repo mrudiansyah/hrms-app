@@ -205,10 +205,10 @@ class MobileSkdController extends Controller
 
     private function leaveCount(int $employeeId, Carbon $start, Carbon $finish): int
     {
-        $tgl1 = new DateTime($data->start);
-        $tgl2 = new DateTime($data->finish);
+        $tgl1 = new DateTime($start);
+        $tgl2 = new DateTime($finish);
         $diffdays = $tgl2->diff($tgl1)->days;
-        $id_employee=$data->idemployee;
+        $id_employee=$employeeId;
         $mulai=$data->start;
         $qty=0;
         for($i=0;$i<=$diffdays;$i++){

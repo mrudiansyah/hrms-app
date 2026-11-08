@@ -215,7 +215,7 @@ class MobileSkdController extends Controller
             $jml_leave=0;
             $Tgl=date('Y-m-d',strtotime($i.' days',strtotime($mulai)));
             $periode=date('Y-m',strtotime($Tgl));
-            $d=date('D',strtotime($Tgl));
+            $d=date('d',strtotime($Tgl));
             if(strlen($d)==1)$d='0'.$d;
             $column='D'.$d;
             $id_work_time=DB::table('tb_work_entries')->where('id_employee',$id_employee)->where('periode',$periode)->value($column);

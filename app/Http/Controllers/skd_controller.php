@@ -263,7 +263,7 @@ class skd_controller extends Controller
     for($i=0;$i<=$diffdays;$i++){
         $Tgl=date('Y-m-d',strtotime($i.' days',strtotime($mulai)));
         $periode=date('Y-m',strtotime($Tgl));
-        $d=date('D',strtotime($Tgl));
+        $d=date('d',strtotime($Tgl));
         if(strlen($d)==1)$d='0'.$d;
         $column='D'.$d;
 

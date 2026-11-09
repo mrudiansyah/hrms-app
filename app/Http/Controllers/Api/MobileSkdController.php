@@ -40,8 +40,13 @@ class MobileSkdController extends Controller
                 'tb_sick.diagnosa',
                 'tb_sick.status',
                 'tb_sick.upload_time',
+                'tb_sick.skd',
                 'tb_leaves.status_legalized',
             ]);
+        $records->each(function ($record) {
+            $record->has_photo = is_string($record->skd) && $record->skd !== '';
+            unset($record->skd);
+        });
 
         return response()->json([
             'employee' => [
@@ -201,6 +206,54 @@ class MobileSkdController extends Controller
             'message' => 'Berhasil mengunggah SKD. Dokumen SKD asli tetap harus diserahkan ke HR.',
             'record' => $record,
         ], 201);
+    }
+
+    public function photo(Request $request, int $id)
+    {
+        $employee = $this->employeeFor($request);
+        if (!$employee) {
+            return response()->json(['message' => 'Data karyawan untuk akun ini tidak ditemukan.'], 404);
+        }
+
+        $record = DB::table('tb_sick')
+            ->where('id', $id)
+            ->where('id_employee', $employee->id)
+            ->first(['skd']);
+        if (!$record || !is_string($record->skd) || $record->skd === '') {
+            return response()->json(['message' => 'Foto SKD tidak ditemukan.'], 404);
+        }
+
+        if (preg_match('/\Adata:(image\/(?:jpeg|png));base64,([A-Za-z0-9+\/=\r\n]+)\z/', $record->skd, $matches)) {
+            $contents = base64_decode($matches[2], true);
+            if ($contents === false) {
+                return response()->json(['message' => 'Foto SKD tidak dapat dibaca.'], 404);
+            }
+
+            return response($contents, 200, [
+                'Content-Type' => $matches[1],
+                'Cache-Control' => 'private, no-store',
+            ]);
+        }
+
+        $filename = basename($record->skd);
+        if ($filename !== $record->skd) {
+            return response()->json(['message' => 'Foto SKD tidak ditemukan.'], 404);
+        }
+
+        $storage = Storage::disk('public');
+        $path = 'skd/' . $filename;
+        if (!$storage->exists($path)) {
+            return response()->json(['message' => 'Foto SKD tidak ditemukan.'], 404);
+        }
+
+        $mimeType = $storage->mimeType($path);
+        if (!is_string($mimeType) || !in_array($mimeType, ['image/jpeg', 'image/png'], true)) {
+            return response()->json(['message' => 'Dokumen SKD ini bukan foto yang dapat ditampilkan.'], 415);
+        }
+
+        return $storage->response($path, null, [
+            'Cache-Control' => 'private, no-store',
+        ], 'inline');
     }
 
     public function destroy(Request $request, int $id)

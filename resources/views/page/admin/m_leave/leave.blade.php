@@ -4,9 +4,11 @@
    <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $user = request()->user();
-        $canManageLeave = $user && ($user->hasRole('hr_access') || $user->hasRole('admin_department'));
-        $canAllowance = $user && $user->hasRole('allowance');
-        $canRootOrHr = $user && ($user->hasRole('root') || $user->hasRole('hr_access'));
+        $roleCounts = $user ? array_count_values($user->roles()->pluck('name')->all()) : [];
+        $hasRole = static fn ($role) => ($roleCounts[$role] ?? 0) === 1;
+        $canManageLeave = $hasRole('hr_access') || $hasRole('admin_department');
+        $canAllowance = $hasRole('allowance');
+        $canRootOrHr = $hasRole('root') || $hasRole('hr_access');
         $today = date('Y-m-d');
     @endphp
     <style>
@@ -137,7 +139,7 @@
 													$masa_kerja=$diffdays/357;
 													if($masa_kerja<1){echo "<span class='label label-danger'>Under 1 Year</span>";$belum++;}
 													else{
-														if($dt->status=='0'&&request()->user()->hasRole('allowance')){echo "<a href='/Leave/CreateNow/".$dt->id_employee."'><span class='label label-primary'><i class='fa fa-file-o'></i> Create Now</span></a>";$siap++;}
+														if($dt->status=='0'&&$canAllowance){echo "<a href='/Leave/CreateNow/".$dt->id_employee."'><span class='label label-primary'><i class='fa fa-file-o'></i> Create Now</span></a>";$siap++;}
 														elseif($dt->status=='0') {echo "<span class='label label-warning'>Inform HR!</span>";$siap++;}
 														else {$punya++;}
 													}
@@ -175,10 +177,10 @@
 											<td>
 												<?php echo number_format($dt->outstanding,0);?>
 												<div class="pull-right">
-													@if((request()->user()->hasRole('root')||request()->user()->hasRole('hr_access'))&&$dt->outstanding<=0)
+													@if($canRootOrHr&&$dt->outstanding<=0)
 														<!-- <a href="/Leave/Create/{{$dt->id}}"><button title="Create New" type="button" class="btn btn-warning btn-xs"><i class="fa fa-file-o"></i></button></a> -->
 													@endif
-													<?php if(request()->user()->hasRole('allowance')){?>
+													<?php if($canAllowance){?>
 														<?php if($nik==$dt->NIK){?>
 															<a href="/Leave/Employee/Delete/{{$dt->id}}"><button title="Delete" type="button" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></button></a>
 														<?php }?>

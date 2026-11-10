@@ -17,7 +17,7 @@ class DashboardPreviewController extends Controller
 
     public function index()
     {
-        if (!Auth::user()->hasRole('hr_access')) {
+        if (!Auth::user()->hasRole('dashboard')) {
             return redirect('/Profile');
         }
         $today = Carbon::today();

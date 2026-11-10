@@ -17,7 +17,9 @@ class assigment_controller extends Controller
     function index(){
         $admin=Auth::user()->name;
         $tb_assigment=DB::table('tb_overtime_spv')
-        ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
+        ->leftJoin('tb_employees', function ($join) {
+            $join->on('tb_employees.id', '=', DB::raw('TRY_CONVERT(int, tb_overtime_spv.id_employee)'));
+        })
         ->where('assigned_status','0')->where('admin',$admin)->get(['tb_overtime_spv.*','tb_employees.NIK','tb_employees.employee_name']);
 
         $lock_create=DB::table('tb_utilities')->where('id','19')->where('status','1')->count();
@@ -161,22 +163,31 @@ class assigment_controller extends Controller
     function show($id){
         $tb_assigment=DB::table('tb_overtime_spv')
         ->leftjoin('tb_employees','tb_employees.id','=','tb_overtime_spv.id_employee')
-        ->leftjoin('tb_employees as emp1','emp1.id','=','tb_overtime_spv.assigned')
-        ->leftjoin('tb_employees as emp2','emp2.id','=','tb_overtime_spv.approved1')
-        ->leftjoin('tb_employees as emp3','emp3.id','=','tb_overtime_spv.approved2')
-        ->leftjoin('tb_employees as emp4','emp4.id','=','tb_overtime_spv.legalized')
+        ->leftJoin('tb_employees as emp1', function ($join) {
+            $join->on('emp1.id', '=', DB::raw('TRY_CONVERT(int, tb_overtime_spv.assigned)'));
+        })
+        ->leftJoin('tb_employees as emp2', function ($join) {
+            $join->on('emp2.id', '=', DB::raw('TRY_CONVERT(int, tb_overtime_spv.approved1)'));
+        })
+        ->leftJoin('tb_employees as emp3', function ($join) {
+            $join->on('emp3.id', '=', DB::raw('TRY_CONVERT(int, tb_overtime_spv.approved2)'));
+        })
+        ->leftJoin('tb_employees as emp4', function ($join) {
+            $join->on('emp4.id', '=', DB::raw('TRY_CONVERT(int, tb_overtime_spv.legalized)'));
+        })
         ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
         ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
         ->where('tb_overtime_spv.id',$id)->get(['tb_overtime_spv.*','tb_employees.NIK','tb_employees.employee_name','tb_departments.dept_name','tb_positions.position_name','emp1.employee_name as assigned_name','emp2.employee_name as approved1_name','emp3.employee_name as approved2_name','emp4.employee_name as legalized_name']);
 
-        foreach($tb_assigment as $dt){
-            $assigned=$dt->assigned;
+        $assigned = $tb_assigment->first()->assigned ?? null;
+        $tb_atasan = collect();
+        if (is_numeric($assigned) && (int) $assigned > 0) {
+            $tb_atasan = DB::table('tb_employees')
+                ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
+                ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
+                ->where('tb_employees.id',(int) $assigned)
+                ->get(['tb_employees.*','tb_departments.dept_name','tb_positions.position_name']);
         }
-
-        $tb_atasan=DB::table('tb_employees')
-        ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
-        ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
-        ->where('tb_employees.id',$assigned)->get(['tb_employees.*','tb_departments.dept_name','tb_positions.position_name']);
 
         $FileName='FORMSPL '.$id.'.PDF';
         $pdf = PDF::loadview('page/admin/m_assigment/printview',['tb_assigment'=>$tb_assigment,'tb_atasan'=>$tb_atasan]);

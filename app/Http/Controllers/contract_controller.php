@@ -2056,18 +2056,15 @@ class contract_controller extends Controller
     
     }
     function ImportKSK(Request $request){
-      //return "Masuk";
       $this->validate($request, [
-        'file' => 'required|mimes:csv,xls,xlsx'
+        'file' => 'required|file|mimes:csv,xls,xlsx',
+        'periode' => 'required|date_format:Y-m',
       ]);
-      $file = $request->file('file');
-      $nama_file = rand().$file->getClientOriginalName();
-      $file->move('laravel/public/excel',$nama_file);
-      $import=Excel::import(new KSKImport, public_path('/excel/'.$nama_file));
-      if($import){
-        $this->updatePerformance($request->periode);
-        return redirect()->back()->with(['info'=>'Import Berhasil']);
-      }
+      $periode = $request->input('periode').'-01';
+      Excel::import(new KSKImport($periode), $request->file('file'));
+      $this->updatePerformance($periode);
+
+      return redirect()->back()->with(['info'=>'Import Berhasil']);
     }
     function updatePerformance($periode){
       date_default_timezone_set("Asia/Jakarta");

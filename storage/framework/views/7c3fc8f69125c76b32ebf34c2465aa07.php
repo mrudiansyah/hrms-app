@@ -114,8 +114,8 @@
             <?php endif; ?>
 
             <!-- EMPLOYEE MANAGEMENT -->
-            <?php if(request()->user()->hasRole('hr_access')||request()->user()->hasRole('admin_shift') || request()->user()->hasRole('admin_employee') || request()->user()->hasRole('admin_calendar')||request()->user()->hasRole('admin_department')): ?>
-                    <li class="treeview<?php    if (isset($menu) && ($menu == 'shift' || $menu == 'employee' || $menu == 'leader' || $menu == 'calendar'))
+            <?php if(request()->user()->hasRole('hr_access')||request()->user()->hasRole('admin_shift') || request()->user()->hasRole('admin_employee') || request()->user()->hasRole('admin_calendar')||request()->user()->hasRole('admin_department') || request()->user()->hasRole('root')): ?>
+                    <li class="treeview<?php    if (isset($menu) && ($menu == 'shift' || $menu == 'employee' || $menu == 'leader' || $menu == 'calendar' || $menu == 'profile_refresh_data'))
                 echo ' active';?>">
                         <a href="#">
                             <i class="fa fa-id-card-o text-aqua"></i> <span>Employee Management</span>
@@ -124,6 +124,9 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
+                            <?php if(request()->user()->hasRole('root')): ?>
+                                <li><a href="/ProfileConfirmations"><i class="fa fa-check-circle"></i> <span>Konfirmasi Data Profil</span></a></li>
+                            <?php endif; ?>
                             <?php if(request()->user()->hasRole('admin_employee') || request()->user()->hasRole('contract') || request()->user()->hasRole('staff') || request()->user()->hasRole('admin_department')): ?>
 
                                 <?php if(request()->user()->hasRole('contract')): ?>

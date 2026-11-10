@@ -152,6 +152,7 @@ Route::get('/payroll/recap_journal/{periode?}', [App\Http\Controllers\PayrollCon
 Route::get('/Profile', [App\Http\Controllers\ess_controller::class, 'index']);
 Route::get('/ProfileEdit',[App\Http\Controllers\ess_controller::class,'profileEdit']);
 Route::get('/AuditLogs', [App\Http\Controllers\AuditLogController::class, 'index']);
+Route::get('/ProfileConfirmations', [App\Http\Controllers\ProfileRefreshDataController::class, 'index']);
 Route::post('/Profile/SaveDetail',[App\Http\Controllers\ess_controller::class,'saveDetail']);
 Route::post('/Profile/ConfirmData',[App\Http\Controllers\ess_controller::class,'confirmProfileData']);
 Route::get('/Profile/Delete/{id}/{tabel}',[App\Http\Controllers\ess_controller::class,'selectDelete']);

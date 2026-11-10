@@ -94,15 +94,27 @@ class LoginController extends Controller
      */
     public function authenticated(Request $request, $user)
     {
-        $profileConfirmationRequired = DB::table('tb_utilities')
+        $allEmployeesMustConfirm = DB::table('tb_utilities')
             ->where('id', 27)
             ->where('status', '1')
             ->exists();
+        $internsMustConfirm = DB::table('tb_utilities')
+            ->where('id', 28)
+            ->where('status', '1')
+            ->exists();
 
-        if ($profileConfirmationRequired) {
+        if ($allEmployeesMustConfirm || $internsMustConfirm) {
             $employeeId = DB::table('tb_emails')
                 ->where('email_address', $user->email)
                 ->value('id_employee');
+
+            if (!$allEmployeesMustConfirm && $internsMustConfirm) {
+                $employeeId = DB::table('tb_employees')
+                    ->join('users', 'users.NIK', '=', 'tb_employees.NIK')
+                    ->where('users.id', $user->id)
+                    ->where('tb_employees.position_id', '19')
+                    ->value('tb_employees.id');
+            }
 
             if ($employeeId && !DB::table('tb_refresh_data')
                 ->where('id_employee', $employeeId)

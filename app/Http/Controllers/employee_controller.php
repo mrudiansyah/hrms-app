@@ -11,6 +11,7 @@ use PDF;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ksk_approved;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogger;
 
 
 class employee_controller extends Controller
@@ -1464,10 +1465,13 @@ class employee_controller extends Controller
             $join->on('tb_statuses.id_employee', '=', 'tb_employees.id')
                   ->where('tb_statuses.active', '1');
         });
-        $tb_employee=$tb_employee->where([['tb_employees.status','1'],['tb_employees.dept_id','0']]);
+        $dept_ids = ['0'];
         foreach($tb_admins as $dt2){
-            $tb_employee=$tb_employee->orwhere([['tb_employees.status','1'],['tb_employees.dept_id',$dt2->dept_id]]);
+            $dept_ids[] = (string) $dt2->dept_id;
         }
+        $tb_employee=$tb_employee
+        ->where('tb_employees.status','=','1')
+        ->whereIn('tb_employees.dept_id',array_unique($dept_ids));
         $tb_employee=$tb_employee->orderby('tb_statuses.finish_contract','asc')->get(['tb_employees.*','tb_employees1.employee_name as leader_name','tb_departments.dept_code','tb_positions.position_name','tb_statuses.start_contract','tb_statuses.finish_contract','tb_cost_center.segment_name']);
         //return $tb_employee;
         $last_update=DB::table('tb_employees')->max('updated_at');
@@ -1541,10 +1545,34 @@ class employee_controller extends Controller
         ]);
         if($simpan){
             $cc_name=DB::table('tb_cost_center')->where('cc_code',$data->cc_code)->value('description');
-            $update_payroll=DB::table('tb_salary_contract')->where('id_employee',$data->id)->update([
-                'cc_code'=>$data->cc_code,
-                'cc_name'=>$cc_name
-            ]);
+            DB::transaction(function () use ($data, $cc_name) {
+                $oldRows = DB::table('tb_salary_contract')
+                    ->where('id_employee', $data->id)
+                    ->get()
+                    ->keyBy('id');
+                $updated = DB::table('tb_salary_contract')->where('id_employee',$data->id)->update([
+                    'cc_code'=>$data->cc_code,
+                    'cc_name'=>$cc_name
+                ]);
+                if ($updated) {
+                    $newRows = DB::table('tb_salary_contract')
+                        ->where('id_employee', $data->id)
+                        ->get();
+                    foreach ($newRows as $newRow) {
+                        $oldRow = $oldRows->get($newRow->id);
+                        if ($oldRow && (array) $oldRow !== (array) $newRow) {
+                            app(AuditLogger::class)->record(
+                                'updated',
+                                'tb_salary_contract',
+                                (int) $newRow->id,
+                                (array) $oldRow,
+                                (array) $newRow,
+                                'Memperbarui cost center kontrak gaji'
+                            );
+                        }
+                    }
+                }
+            });
             $teks=$data->employee_name.' berhasil diupdate';
             return redirect('/Leader/')->with(['success' => $teks]);
         }

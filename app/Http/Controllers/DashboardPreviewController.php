@@ -17,8 +17,9 @@ class DashboardPreviewController extends Controller
 
     public function index()
     {
-        // $tb1=DB::table('users')->first();
-        // return $tb1;
+        if (!Auth::user()->hasRole('hr_access')) {
+            return redirect('/Profile');
+        }
         $today = Carbon::today();
         $periodEnd = $today->copy()->addDays(30);
         $retirementPeriodEnd = $today->copy()->addYearsNoOverflow(5);

@@ -2,6 +2,35 @@
 <?php $__env->startSection('Contents'); ?>
     <?php $filename = "http://localhost/ESS/public/fokar/" . $id_employee . ".jpg";?>
 
+    <style>
+        .profile-photo-frame {
+            position: relative;
+            width: min(50%, 240px);
+            aspect-ratio: 3 / 4;
+            margin: 0 auto 10px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+
+        .profile-photo-image {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .profile-photo-frame.is-landscape .profile-photo-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 133.333%;
+            height: 75%;
+            max-width: none;
+            transform: translate(-50%, -50%) rotate(-90deg);
+        }
+    </style>
+
     <!-- Main content -->
     <section class="content">
         <?php $__currentLoopData = $tb_employee; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -12,9 +41,10 @@
                     <div class="box box-primary">
                         <div class="box-body" style="padding-top:20px;">
                             <div class="box-body box-profile">
-                                <img title="<?php echo e($photo); ?>" class="profile-user-img img-responsive img-square"
-                                    style="width:50%;border:1px solid #ccc;" src="<?php    echo $photo;?>"
-                                    alt="User profile picture">
+                                <div class="profile-photo-frame">
+                                    <img title="<?php echo e($photo); ?>" class="profile-photo-image"
+                                        src="<?php    echo $photo;?>" alt="User profile picture">
+                                </div>
                                 <h3 class="profile-username text-center"><?php echo e($dt->employee_name); ?></h3>
                                 <p class="text-muted text-center"><?php echo e($dt->dept_name); ?> Dept<br><?php echo e($dt->position_name); ?></p>
                                 <div class="row" style="padding:20px;">
@@ -519,6 +549,20 @@
         });
     </script>
     <script>
+        document.querySelectorAll('.profile-photo-image').forEach(function (image) {
+            function applyPortraitOrientation() {
+                image.parentElement.classList.toggle(
+                    'is-landscape',
+                    image.naturalWidth > image.naturalHeight
+                );
+            }
+
+            image.addEventListener('load', applyPortraitOrientation);
+            if (image.complete && image.naturalWidth > 0) {
+                applyPortraitOrientation();
+            }
+        });
+
         function generateMapLink() {
             //alert("Masuk");
             // Ambil nilai dari inputan

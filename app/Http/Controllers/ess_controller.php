@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogger;
 use DateTime;
 use Auth;
 use PDF;
@@ -1322,6 +1323,8 @@ class ess_controller extends Controller
             $id = $dt->id_employee;
         }
 
+        $this->ensureTopEducation((int) $id);
+
         $leader_name='';
         $tb_employee=DB::table('tb_employees')->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')->where('tb_employees.id',$id)->orderby('id','desc')->get(['tb_employees.*','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name']);
         //return $id;
@@ -1347,6 +1350,12 @@ class ess_controller extends Controller
         $tb_address_darurat=DB::table('tb_address_darurat')->where([['id_employee',$id]])->where('status','1')->get();
         $tb_employee_family=DB::table('tb_employee_family')->where([['id_employee',$id]])->where('status','1')->get();
         //return $tb_employee_family;
+        $confirmationPeriod = now()->format('Y');
+        $confirmationIssues = $this->profileConfirmationIssues((int) $id);
+        $alreadyConfirmed = DB::table('tb_refresh_data')
+            ->where('id_employee', $id)
+            ->where('periode', $confirmationPeriod)
+            ->exists();
         
         $koneksi='OK';
 
@@ -1361,8 +1370,93 @@ class ess_controller extends Controller
             ->get();
         
 
-    return view('page_ess/profile_update',['tb_employee_family'=>$tb_employee_family,'tb_domiciles'=>$tb_domiciles,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee','ess_leave'=>$ess_leave,'tb_provinsi'=>$tb_provinsi,'juduls'=>'Profile Update']);
+    return view('page_ess/profile_update',['tb_employee_family'=>$tb_employee_family,'tb_domiciles'=>$tb_domiciles,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee','ess_leave'=>$ess_leave,'tb_provinsi'=>$tb_provinsi,'confirmationIssues'=>$confirmationIssues,'confirmationPeriod'=>$confirmationPeriod,'alreadyConfirmed'=>$alreadyConfirmed,'juduls'=>'Profile Update']);
     }
+    private function profileConfirmationIssues(int $employeeId): array
+    {
+        $requiredTables = [
+            'tb_addresses' => 'Alamat',
+            'tb_domiciles' => 'Domisili',
+            'tb_address_darurat' => 'Kontak darurat',
+            'tb_educations' => 'Pendidikan',
+        ];
+        $issues = [];
+
+        foreach ($requiredTables as $table => $label) {
+            if (!DB::table($table)->where('id_employee', $employeeId)->exists()) {
+                $issues[] = 'Lengkapi data '.$label;
+            }
+        }
+
+        $detail = DB::table('tb_employee_detail')
+            ->where('id_employee', $employeeId)
+            ->first();
+        if (!$detail) {
+            $issues[] = 'Lengkapi data Detail Karyawan';
+
+            return $issues;
+        }
+
+        foreach ([
+            'tanggal_lahir' => 'Tanggal lahir',
+            'kode_status' => 'Status perkawinan',
+            'nomor_telepon' => 'Nomor telepon',
+        ] as $field => $label) {
+            if ($detail->{$field} === null || trim((string) $detail->{$field}) === '') {
+                $issues[] = 'Isi '.$label.' pada Detail Karyawan';
+            }
+        }
+
+        return $issues;
+    }
+
+    public function confirmProfileData()
+    {
+        $employeeId = $this->profileEmployeeId();
+        $period = now()->format('Y');
+        $userName = mb_substr((string) Auth::user()->name, 0, 50);
+
+        $issues = DB::transaction(function () use ($employeeId, $period, $userName) {
+            DB::table('tb_employees')->where('id', $employeeId)->lockForUpdate()->first();
+
+            $issues = $this->profileConfirmationIssues($employeeId);
+            if ($issues) {
+                return $issues;
+            }
+
+            $confirmation = DB::table('tb_refresh_data')
+                ->where('id_employee', $employeeId)
+                ->where('periode', $period)
+                ->lockForUpdate()
+                ->first();
+
+            if ($confirmation) {
+                DB::table('tb_refresh_data')
+                    ->where('id_employee', $employeeId)
+                    ->where('periode', $period)
+                    ->update(['updated_at' => now()]);
+            } else {
+                DB::table('tb_refresh_data')->insert([
+                    'periode' => $period,
+                    'id_employee' => $employeeId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'updated_by' => $userName,
+                ]);
+            }
+
+            return [];
+        });
+
+        if ($issues) {
+            return redirect()->back()
+                ->with('confirmationError', 'Konfirmasi belum dapat disimpan. Lengkapi data berikut:')
+                ->with('confirmationIssues', $issues);
+        }
+
+        return redirect()->back()->with('success', 'Data profil berhasil dikonfirmasi untuk periode '.$period.'.');
+    }
+
     public function saveProfileAddress(Request $request)
     {
         $request->validate([
@@ -1381,10 +1475,8 @@ class ess_controller extends Controller
         $employeeId = $this->profileEmployeeId();
 
         DB::transaction(function () use ($request, $wilayah, $employeeId) {
-            DB::table('tb_addresses')
-                ->where('id_employee', $employeeId)
-                ->update(['status' => '0']);
-            DB::table('tb_addresses')->insert([
+            $this->deactivateProfileRows('tb_addresses', $employeeId, 'Menonaktifkan alamat aktif');
+            $addressId = DB::table('tb_addresses')->insertGetId([
                 'id_employee' => $employeeId,
                 'provinsi' => $wilayah['province'],
                 'kabupaten' => $wilayah['regency'],
@@ -1394,6 +1486,14 @@ class ess_controller extends Controller
                 'map_address' => '',
                 'status' => '1',
             ]);
+            $this->auditProfileChange(
+                'created',
+                'tb_addresses',
+                (int) $addressId,
+                null,
+                $this->profileAuditSnapshot('tb_addresses', $addressId),
+                'Menambahkan alamat karyawan'
+            );
         });
 
         return redirect('/ProfileEdit')->with('success', 'Data Address berhasil disimpan.');
@@ -1417,10 +1517,8 @@ class ess_controller extends Controller
         $employeeId = $this->profileEmployeeId();
 
         DB::transaction(function () use ($request, $wilayah, $employeeId) {
-            DB::table('tb_domiciles')
-                ->where('id_employee', $employeeId)
-                ->update(['status' => '0']);
-            DB::table('tb_domiciles')->insert([
+            $this->deactivateProfileRows('tb_domiciles', $employeeId, 'Menonaktifkan domisili aktif');
+            $domicileId = DB::table('tb_domiciles')->insertGetId([
                 'id_employee' => $employeeId,
                 'provinsi' => $wilayah['province'],
                 'kabupaten' => $wilayah['regency'],
@@ -1430,9 +1528,77 @@ class ess_controller extends Controller
                 'map_address' => '',
                 'status' => '1',
             ]);
+            $this->auditProfileChange(
+                'created',
+                'tb_domiciles',
+                (int) $domicileId,
+                null,
+                $this->profileAuditSnapshot('tb_domiciles', $domicileId),
+                'Menambahkan domisili karyawan'
+            );
         });
 
         return redirect('/ProfileEdit')->with('success', 'Data domisili berhasil disimpan.');
+    }
+
+    public function copyAddressToDomicile()
+    {
+        $employeeId = $this->profileEmployeeId();
+        $copied = DB::transaction(function () use ($employeeId) {
+            DB::table('tb_employees')->where('id', $employeeId)->lockForUpdate()->first();
+
+            if (DB::table('tb_domiciles')->where('id_employee', $employeeId)->exists()) {
+                return false;
+            }
+
+            $address = DB::table('tb_addresses')
+                ->where('id_employee', $employeeId)
+                ->where('status', '1')
+                ->orderByDesc('id')
+                ->first();
+
+            if (!$address) {
+                $address = DB::table('tb_addresses')
+                    ->where('id_employee', $employeeId)
+                    ->orderByDesc('id')
+                    ->first();
+            }
+
+            if (!$address) {
+                return false;
+            }
+
+            $domicileId = DB::table('tb_domiciles')->insertGetId([
+                'id_employee' => $employeeId,
+                'provinsi' => $address->provinsi,
+                'kabupaten' => $address->kabupaten,
+                'kecamatan' => $address->kecamatan,
+                'kelurahan' => $address->kelurahan,
+                'detail' => $address->detail,
+                'map_address' => $address->map_address ?? '',
+                'status' => '1',
+            ]);
+
+            $this->auditProfileChange(
+                'created',
+                'tb_domiciles',
+                (int) $domicileId,
+                null,
+                $this->profileAuditSnapshot('tb_domiciles', $domicileId),
+                'Menyalin alamat menjadi domisili'
+            );
+
+            return true;
+        });
+
+        if (!$copied) {
+            return redirect('/ProfileEdit')->with(
+                'error',
+                'Alamat tidak dapat disalin. Data alamat mungkin belum tersedia atau domisili sudah tercatat.'
+            );
+        }
+
+        return redirect('/ProfileEdit')->with('success', 'Alamat berhasil disalin menjadi domisili.');
     }
 
     public function saveProfileEmergencyContact(Request $request)
@@ -1455,17 +1621,27 @@ class ess_controller extends Controller
         ]);
         $employeeId = $this->profileEmployeeId();
 
-        DB::table('tb_address_darurat')->insert([
-            'id_employee' => $employeeId,
-            'nama_keluarga' => $request->input('nama_keluarga'),
-            'hubungan' => $request->input('hubungan'),
-            'nomor_kontak' => $request->input('nomor_kontak'),
-            'provinsi_kontak' => $wilayah['province'],
-            'kabupaten_kontak' => $wilayah['regency'],
-            'kecamatan_kontak' => $wilayah['district'],
-            'kelurahan_kontak' => $wilayah['village'],
-            'detail_kontak' => $request->input('detail_kontak'),
-        ]);
+        DB::transaction(function () use ($request, $wilayah, $employeeId) {
+            $contactId = DB::table('tb_address_darurat')->insertGetId([
+                'id_employee' => $employeeId,
+                'nama_keluarga' => $request->input('nama_keluarga'),
+                'hubungan' => $request->input('hubungan'),
+                'nomor_kontak' => $request->input('nomor_kontak'),
+                'provinsi_kontak' => $wilayah['province'],
+                'kabupaten_kontak' => $wilayah['regency'],
+                'kecamatan_kontak' => $wilayah['district'],
+                'kelurahan_kontak' => $wilayah['village'],
+                'detail_kontak' => $request->input('detail_kontak'),
+            ]);
+            $this->auditProfileChange(
+                'created',
+                'tb_address_darurat',
+                (int) $contactId,
+                null,
+                $this->profileAuditSnapshot('tb_address_darurat', $contactId),
+                'Menambahkan kontak darurat'
+            );
+        });
 
         return redirect('/ProfileEdit')->with('success', 'Data kontak darurat berhasil disimpan.');
     }
@@ -1519,21 +1695,145 @@ class ess_controller extends Controller
         return $names;
     }
 
+    private function profileAuditSnapshot(string $table, int|string $id): ?array
+    {
+        $row = DB::table($table)->where('id', $id)->first();
+
+        return $row ? (array) $row : null;
+    }
+
+    private function ensureTopEducation(int $employeeId): void
+    {
+        DB::transaction(function () use ($employeeId) {
+            DB::table('tb_employees')->where('id', $employeeId)->lockForUpdate()->first();
+
+            $rows = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->get()
+                ->keyBy('id');
+            if ($rows->isEmpty()) {
+                return;
+            }
+
+            $topId = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->orderByDesc('graduate_year')
+                ->orderByDesc('id')
+                ->value('id');
+            $currentTopRows = $rows->filter(fn ($row) => (int) $row->is_top === 1);
+            if ($currentTopRows->count() === 1) {
+                return;
+            }
+
+            DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->update(['is_top' => '0']);
+            DB::table('tb_educations')
+                ->where('id', $topId)
+                ->where('id_employee', $employeeId)
+                ->update(['is_top' => '1']);
+
+            $updatedRows = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->get()
+                ->keyBy('id');
+            foreach ($updatedRows as $id => $updatedRow) {
+                $oldRow = $rows->get($id);
+                if ($oldRow && (int) $oldRow->is_top !== (int) $updatedRow->is_top) {
+                    $this->auditProfileChange(
+                        'updated',
+                        'tb_educations',
+                        (int) $id,
+                        (array) $oldRow,
+                        (array) $updatedRow,
+                        'Menyesuaikan pendidikan tertinggi berdasarkan tahun lulus'
+                    );
+                }
+            }
+        });
+    }
+
+    private function auditProfileChange(
+        string $event,
+        string $table,
+        int $id,
+        ?array $oldValues,
+        ?array $newValues,
+        string $description
+    ): void {
+        app(AuditLogger::class)->record(
+            $event,
+            $table,
+            $id,
+            $oldValues,
+            $newValues,
+            $description
+        );
+    }
+
+    private function deactivateProfileRows(string $table, int $employeeId, string $description): void
+    {
+        $activeRows = DB::table($table)
+            ->where('id_employee', $employeeId)
+            ->where(function ($query) {
+                $query->where('status', '<>', '0')->orWhereNull('status');
+            })
+            ->get();
+
+        DB::table($table)
+            ->where('id_employee', $employeeId)
+            ->update(['status' => '0']);
+
+        foreach ($activeRows as $row) {
+            $oldValues = (array) $row;
+            $newValues = array_replace($oldValues, ['status' => '0']);
+            $this->auditProfileChange(
+                'updated',
+                $table,
+                (int) $row->id,
+                $oldValues,
+                $newValues,
+                $description
+            );
+        }
+    }
+
     function selectDelete($id,$tabel){
-        if($tabel=='Address'){
-            $delete=DB::table('tb_addresses')->where('id',$id)->delete();
-        }elseif($tabel=='Domicile'){
-            $delete=DB::table('tb_domiciles')->where('id',$id)->delete();
-        }elseif($tabel=='Education'){
-            $delete=DB::table('tb_educations')->where('id',$id)->delete();
+        $auditTables = [
+            'Address' => 'tb_addresses',
+            'Domicile' => 'tb_domiciles',
+            'Education' => 'tb_educations',
+            'Kontak' => 'tb_address_darurat',
+            'Family' => 'tb_employee_family',
+        ];
+        if (isset($auditTables[$tabel])) {
+            $table = $auditTables[$tabel];
+            $delete = DB::transaction(function () use ($table, $id) {
+                $oldValues = $this->profileAuditSnapshot($table, (int) $id);
+                abort_unless(
+                    $oldValues && (int) ($oldValues['id_employee'] ?? 0) === $this->profileEmployeeId(),
+                    404
+                );
+                $deleted = DB::table($table)->where('id',$id)->delete();
+                if ($deleted && $oldValues) {
+                    $this->auditProfileChange(
+                        'deleted',
+                        $table,
+                        (int) $id,
+                        $oldValues,
+                        null,
+                        'Menghapus data '.$table
+                    );
+                }
+
+                return $deleted;
+            });
         }elseif($tabel=='Experience'){
             $delete=DB::table('tb_experiences')->where('id',$id)->delete();
         }elseif($tabel=='Skill'){
             $delete=DB::table('tb_skills')->where('id',$id)->delete();
-        }elseif($tabel=='Kontak'){
-            $delete=DB::table('tb_address_darurat')->where('id',$id)->delete();
-        }elseif($tabel=='Family'){
-            $delete=DB::table('tb_employee_family')->where('id',$id)->delete();
+        } else {
+            abort(404);
         }
 
         if($delete)
@@ -1543,13 +1843,27 @@ class ess_controller extends Controller
     function saveFamily(Request $data){
         //return "Masuk";
         $this->validate($data,['nama_keluargas'=>'required','hubungans'=>'required','tanggal_lahir_keluarga'=>'required']);
-        $simpan=DB::table('tb_employee_family')->insert([
-            'id_employee'=>$data->id_employee,
-            'nama_keluarga'=>$data->nama_keluargas,
-            'hubungan'=>$data->hubungans,
-            'tanggal_lahir'=>$data->tanggal_lahir_keluarga,
-            'status'=>'1'
-        ]);
+        $employeeId = $this->profileEmployeeId();
+        $familyId=DB::transaction(function () use ($data, $employeeId) {
+            $familyId = DB::table('tb_employee_family')->insertGetId([
+                'id_employee'=>$employeeId,
+                'nama_keluarga'=>$data->nama_keluargas,
+                'hubungan'=>$data->hubungans,
+                'tanggal_lahir'=>$data->tanggal_lahir_keluarga,
+                'status'=>'1'
+            ]);
+            $this->auditProfileChange(
+                'created',
+                'tb_employee_family',
+                (int) $familyId,
+                null,
+                $this->profileAuditSnapshot('tb_employee_family', $familyId),
+                'Menambahkan anggota keluarga'
+            );
+
+            return $familyId;
+        });
+        $simpan = $familyId;
         if($simpan)
         $teks='Data Family berhasil disimpan';
         //return $simpan;
@@ -1557,19 +1871,127 @@ class ess_controller extends Controller
     }
     function saveEducation(Request $data){
         $this->validate($data,['level_education'=>'required']);
-        $simpan=DB::table('tb_educations')->insert([
-            'id_employee'=>$data->id_employee,
-            'level_education'=>$data->level_education,
-            'institute'=>$data->institute,
-            'prodi'=>$data->prodi,
-            'year'=>$data->year,
-            'graduate_year'=>$data->graduate_year,
-            'remark'=>$data->remark
-        ]);
+        $employeeId = $this->profileEmployeeId();
+        $educationId=DB::transaction(function () use ($data, $employeeId) {
+            DB::table('tb_employees')->where('id', $employeeId)->lockForUpdate()->first();
+            $oldRows = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->get()
+                ->keyBy('id');
+            $educationId = DB::table('tb_educations')->insertGetId([
+                'id_employee'=>$employeeId,
+                'level_education'=>$data->level_education,
+                'institute'=>$data->institute,
+                'prodi'=>$data->prodi,
+                'year'=>$data->year,
+                'graduate_year'=>$data->graduate_year,
+                'remark'=>$data->remark,
+                'is_top'=>'0',
+            ]);
+            $topEducation = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->orderByDesc('graduate_year')
+                ->orderByDesc('id')
+                ->first();
+
+            DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->update(['is_top' => '0']);
+            if ($topEducation) {
+                DB::table('tb_educations')->where('id', $topEducation->id)->update(['is_top' => '1']);
+            }
+
+            $newRows = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->get()
+                ->keyBy('id');
+            foreach ($newRows as $id => $newRow) {
+                if ((int) $id === (int) $educationId) {
+                    $this->auditProfileChange(
+                        'created',
+                        'tb_educations',
+                        (int) $educationId,
+                        null,
+                        (array) $newRow,
+                        'Menambahkan data pendidikan'
+                    );
+                    continue;
+                }
+
+                $oldRow = $oldRows->get($id);
+                if ($oldRow && (string) $oldRow->is_top !== (string) $newRow->is_top) {
+                    $this->auditProfileChange(
+                        'updated',
+                        'tb_educations',
+                        (int) $id,
+                        (array) $oldRow,
+                        (array) $newRow,
+                        'Memperbarui pendidikan tertinggi'
+                    );
+                }
+            }
+
+            return $educationId;
+        });
+        $simpan = $educationId;
         if($simpan)
         $teks='Data Education berhasil disimpan';
         //return $simpan;
         return redirect()->back()->with(['success' => $teks]);    
+    }
+    public function setTopEducation($id)
+    {
+        $employeeId = $this->profileEmployeeId();
+        $changed = DB::transaction(function () use ($id, $employeeId) {
+            DB::table('tb_employees')->where('id', $employeeId)->lockForUpdate()->first();
+
+            $education = DB::table('tb_educations')
+                ->where('id', $id)
+                ->where('id_employee', $employeeId)
+                ->first();
+            abort_unless($education, 404);
+
+            $oldRows = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->get()
+                ->keyBy('id');
+
+            DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->update(['is_top' => '0']);
+            DB::table('tb_educations')
+                ->where('id', $id)
+                ->where('id_employee', $employeeId)
+                ->update(['is_top' => '1']);
+
+            $newRows = DB::table('tb_educations')
+                ->where('id_employee', $employeeId)
+                ->get()
+                ->keyBy('id');
+            $changed = false;
+            foreach ($newRows as $rowId => $newRow) {
+                $oldRow = $oldRows->get($rowId);
+                if ($oldRow && (string) $oldRow->is_top !== (string) $newRow->is_top) {
+                    $changed = true;
+                    $this->auditProfileChange(
+                        'updated',
+                        'tb_educations',
+                        (int) $rowId,
+                        (array) $oldRow,
+                        (array) $newRow,
+                        'Memperbarui pendidikan tertinggi'
+                    );
+                }
+            }
+
+            return $changed;
+        });
+
+        $message = $changed
+            ? 'Pendidikan tertinggi berhasil diperbarui'
+            : 'Pendidikan ini sudah ditandai sebagai pendidikan tertinggi';
+
+        return redirect()->back()->with(['success' => $message]);
     }
     function saveExperience(Request $data){
         $this->validate($data,['factory'=>'required','section'=>'required','year'=>'required','finish_year'=>'required']);
@@ -1600,45 +2022,62 @@ class ess_controller extends Controller
     }
     function saveDetail(Request $data){
         //$this->validate($data,['tanggal_lahir'=>'required']);
-        $periksa=DB::table('tb_employee_detail')->where('id_employee',$data->id_employee)->count();
-        if($periksa==0){
-            $simpan=DB::table('tb_employee_detail')->insert([
-                'id_employee'=>$data->id_employee,
-                'tempat_lahir'=>$data->tempat_lahir,
-                'tanggal_lahir'=>$data->tanggal_lahir,
-                'agama'=>$data->agama,
-                'golongan_darah'=>$data->golongan_darah,
-                'ibu_kandung'=>$data->ibu_kandung,
-                'nomor_ktp'=>$data->nomor_ktp,
-                'nomor_kk'=>$data->nomor_kk,
-                'nomor_npwp'=>$data->nomor_npwp,
-                'kode_status'=>$data->kode_status,
-                'nomor_bpjs_kes'=>$data->nomor_bpjs_kes,
-                'nomor_bpjs_ket'=>$data->nomor_bpjs_ket,
-                'nomor_rekening'=>$data->nomor_rekening,
-                'nama_bank'=>$data->nama_bank,
-                'nomor_telepon'=>$data->nomor_telepon,
-            ]);
-            //return "Satu";
-        }else{
-            $simpan=DB::table('tb_employee_detail')->where('id_employee',$data->id_employee)->update([
-                'tempat_lahir'=>$data->tempat_lahir,
-                'tanggal_lahir'=>$data->tanggal_lahir,
-                'agama'=>$data->agama,
-                'golongan_darah'=>$data->golongan_darah,
-                'ibu_kandung'=>$data->ibu_kandung,
-                'nomor_ktp'=>$data->nomor_ktp,
-                'nomor_kk'=>$data->nomor_kk,
-                'nomor_npwp'=>$data->nomor_npwp,
-                'nomor_bpjs_kes'=>$data->nomor_bpjs_kes,
-                'nomor_bpjs_ket'=>$data->nomor_bpjs_ket,
-                'kode_status'=>$data->kode_status,
-                'nomor_rekening'=>$data->nomor_rekening,
-                'nama_bank'=>$data->nama_bank,
-                'nomor_telepon'=>$data->nomor_telepon,
-            ]);
-            //return "Dua";
-        }
+        $employeeId = $this->profileEmployeeId();
+        $simpan = DB::transaction(function () use ($data, $employeeId) {
+            $oldValues = DB::table('tb_employee_detail')->where('id_employee',$employeeId)->first();
+            if(!$oldValues){
+                $writeSucceeded = DB::table('tb_employee_detail')->insert([
+                    'id_employee'=>$employeeId,
+                    'tempat_lahir'=>$data->tempat_lahir,
+                    'tanggal_lahir'=>$data->tanggal_lahir,
+                    'agama'=>$data->agama,
+                    'golongan_darah'=>$data->golongan_darah,
+                    'ibu_kandung'=>$data->ibu_kandung,
+                    'nomor_ktp'=>$data->nomor_ktp,
+                    'nomor_kk'=>$data->nomor_kk,
+                    'nomor_npwp'=>$data->nomor_npwp,
+                    'kode_status'=>$data->kode_status,
+                    'nomor_bpjs_kes'=>$data->nomor_bpjs_kes,
+                    'nomor_bpjs_ket'=>$data->nomor_bpjs_ket,
+                    'nomor_rekening'=>$data->nomor_rekening,
+                    'nama_bank'=>$data->nama_bank,
+                    'nomor_telepon'=>$data->nomor_telepon,
+                ]);
+                $event = 'created';
+            }else{
+                $writeSucceeded = DB::table('tb_employee_detail')->where('id_employee',$employeeId)->update([
+                    'tempat_lahir'=>$data->tempat_lahir,
+                    'tanggal_lahir'=>$data->tanggal_lahir,
+                    'agama'=>$data->agama,
+                    'golongan_darah'=>$data->golongan_darah,
+                    'ibu_kandung'=>$data->ibu_kandung,
+                    'nomor_ktp'=>$data->nomor_ktp,
+                    'nomor_kk'=>$data->nomor_kk,
+                    'nomor_npwp'=>$data->nomor_npwp,
+                    'nomor_bpjs_kes'=>$data->nomor_bpjs_kes,
+                    'nomor_bpjs_ket'=>$data->nomor_bpjs_ket,
+                    'kode_status'=>$data->kode_status,
+                    'nomor_rekening'=>$data->nomor_rekening,
+                    'nama_bank'=>$data->nama_bank,
+                    'nomor_telepon'=>$data->nomor_telepon,
+                ]);
+                $event = 'updated';
+            }
+
+            $newValues = DB::table('tb_employee_detail')->where('id_employee',$employeeId)->first();
+            if ($writeSucceeded && $newValues && (!$oldValues || (array) $oldValues !== (array) $newValues)) {
+                $this->auditProfileChange(
+                    $event,
+                    'tb_employee_detail',
+                    (int) $newValues->id,
+                    $oldValues ? (array) $oldValues : null,
+                    $newValues ? (array) $newValues : null,
+                    $event === 'created' ? 'Menambahkan detail karyawan' : 'Memperbarui detail karyawan'
+                );
+            }
+
+            return $writeSucceeded;
+        });
         //return "Tiga";
         if($simpan)
         $teks='General Data berhasil disimpan';

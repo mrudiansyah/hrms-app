@@ -5,15 +5,216 @@
 
    <style>
 		#tables th {
-		border-top: 1px solid #999;
-		border-bottom: 1px solid #999;
-		background-color: #2F4F4F;
-		color: white;
-		}	
-        .table1 tr:hover {
-          background-color: #DCDCDC;
-		  cursor:pointer;
-        }
+			border-top: 1px solid #999;
+			border-bottom: 1px solid #999;
+			background-color: #2F4F4F;
+			color: white;
+		}
+		.table1 tr:hover {
+			background-color: #DCDCDC;
+			cursor:pointer;
+		}
+		.profile-edit-content {
+			padding: 18px 24px 30px;
+			background: #f4f7fb;
+		}
+		.profile-edit-hero {
+			display: flex;
+			align-items: center;
+			gap: 18px;
+			margin-bottom: 22px;
+			padding: 24px 28px;
+			border: 1px solid #e6edf5;
+			border-radius: 14px;
+			background: linear-gradient(120deg, #fff 0%, #f4f9ff 100%);
+			box-shadow: 0 8px 24px rgba(34, 60, 90, .07);
+		}
+		.profile-edit-avatar {
+			display: flex;
+			flex: 0 0 62px;
+			align-items: center;
+			justify-content: center;
+			width: 62px;
+			height: 62px;
+			border-radius: 18px;
+			background: #e8f4ef;
+			color: #16835d;
+			font-size: 26px;
+		}
+		.profile-edit-hero h2 {
+			margin: 0 0 6px;
+			color: #203047;
+			font-size: 22px;
+			font-weight: 700;
+		}
+		.profile-edit-hero p {
+			margin: 0;
+			color: #718096;
+		}
+		.profile-confirmation {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 18px;
+			margin-bottom: 20px;
+			padding: 18px 22px;
+			border: 1px solid #dce8f2;
+			border-radius: 12px;
+			background: #fff;
+			box-shadow: 0 5px 18px rgba(34, 60, 90, .05);
+		}
+		.profile-confirmation h3 {
+			margin: 0 0 6px;
+			color: #25364d;
+			font-size: 16px;
+			font-weight: 700;
+		}
+		.profile-confirmation p {
+			margin: 0;
+			color: #718096;
+		}
+		.profile-confirmation .alert {
+			margin: 12px 0 0;
+			padding: 10px 14px;
+		}
+		.profile-edit-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin-top: 12px;
+		}
+		.profile-edit-meta span {
+			padding: 5px 10px;
+			border: 1px solid #e6edf5;
+			border-radius: 20px;
+			background: #fff;
+			color: #53647a;
+			font-size: 12px;
+		}
+		.profile-edit-content > .row > [class*="col-"] {
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+		.profile-edit-content .box {
+			overflow: hidden;
+			margin-bottom: 20px;
+			border: 1px solid #e5ebf2;
+			border-top-width: 3px;
+			border-radius: 12px;
+			background: #fff;
+			box-shadow: 0 5px 18px rgba(34, 60, 90, .06);
+		}
+		.profile-edit-content .box.box-success { border-top-color: #20a779; }
+		.profile-edit-content .box.box-info { border-top-color: #3b82c4; }
+		.profile-edit-content .box.box-danger { border-top-color: #e46c72; }
+		.profile-edit-content .box.box-warning { border-top-color: #e5a33b; }
+		.profile-edit-content .box.box-primary { border-top-color: #5279cf; }
+		.profile-edit-content .box.box-solid > .box-header,
+		.profile-edit-content .box:not(.box-solid) > .box-header {
+			padding: 15px 17px;
+			border-bottom: 1px solid #edf1f5;
+			background: #fff !important;
+			color: #25364d !important;
+		}
+		.profile-edit-content .box-header .box-title {
+			font-size: 15px;
+			font-weight: 700;
+		}
+		.profile-edit-content .box-header > .fa,
+		.profile-edit-content .box-header > .glyphicon {
+			margin-right: 7px;
+			color: #16835d;
+		}
+		.profile-edit-content .box-body {
+			padding: 18px;
+		}
+		.profile-edit-content .box-footer {
+			padding: 13px 18px;
+			border-top: 1px solid #edf1f5;
+			background: #fff;
+		}
+		.profile-edit-content .form-group {
+			margin-bottom: 16px;
+		}
+		.profile-edit-content .form-group > label {
+			margin-bottom: 6px;
+			color: #43536a;
+			font-size: 13px;
+			font-weight: 600;
+		}
+		.profile-edit-content .form-control {
+			min-height: 40px;
+			border-color: #dce4ed;
+			border-radius: 7px;
+			box-shadow: none;
+		}
+		.profile-edit-content textarea.form-control {
+			height: auto;
+		}
+		.profile-edit-content .form-control:focus {
+			border-color: #42a982;
+			box-shadow: 0 0 0 3px rgba(32, 167, 121, .12);
+		}
+		.profile-edit-content .btn {
+			border-radius: 7px;
+			font-weight: 600;
+		}
+		.profile-edit-content .btn-success {
+			border-color: #16835d;
+			background: #16835d;
+		}
+		.profile-edit-content .btn-success:hover,
+		.profile-edit-content .btn-success:focus {
+			border-color: #116c4c;
+			background: #116c4c;
+		}
+		.profile-edit-content .box-default.collapsed-box {
+			border: 1px dashed #d8e1eb;
+			box-shadow: none;
+		}
+		.profile-edit-content .box-default.collapsed-box > .box-header {
+			border: 0;
+			background: #f8fafc !important;
+		}
+		.profile-edit-content ul {
+			padding-left: 20px;
+		}
+		.profile-edit-content li {
+			padding: 6px 0;
+			color: #46566b;
+		}
+		.profile-edit-content .delete-modal {
+			color: #cf4e55;
+		}
+		@media (max-width: 767px) {
+			.profile-edit-content {
+				padding: 12px 10px 24px;
+			}
+			.profile-edit-content > .row > [class*="col-"] {
+				padding-left: 5px;
+				padding-right: 5px;
+			}
+			.profile-edit-hero {
+				align-items: flex-start;
+				margin-bottom: 16px;
+				padding: 18px;
+			}
+			.profile-confirmation {
+				align-items: flex-start;
+				flex-direction: column;
+				padding: 16px;
+			}
+			.profile-edit-hero h2 {
+				font-size: 19px;
+			}
+			.profile-edit-avatar {
+				flex-basis: 48px;
+				width: 48px;
+				height: 48px;
+				border-radius: 14px;
+				font-size: 20px;
+			}
+		}
    </style>
 	<?php
 
@@ -23,12 +224,6 @@
 	?>
 	<!-- <div class="content-wrapper"> -->
 		<!-- Content Header (Page header) -->
-		<section class="content-header">
-			<h1 onclick="">
-				Employee
-				<small>setup</small>
-			</h1>
-		</section>
 		<?php $__currentLoopData = $tb_employee; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 			<?php 
 				$gender=$row->gender;
@@ -37,7 +232,51 @@
 		<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 		<?php $id_ktp='';?>
 		<!-- Main content -->
-		<section class="content">
+		<section class="content profile-edit-content">
+		<?php ($profileEmployee = $tb_employee->first()); ?>
+		<div class="profile-edit-hero">
+			<div class="profile-edit-avatar"><i class="fa fa-user"></i></div>
+			<div>
+				<h2><?php echo e($nama_karyawan); ?></h2>
+				<p><?php echo e($profileEmployee->position_name ?? 'Informasi jabatan belum tersedia'); ?> · <?php echo e($profileEmployee->dept_name ?? 'Informasi departemen belum tersedia'); ?></p>
+				<div class="profile-edit-meta">
+					<span><i class="fa fa-id-badge"></i> NIK <?php echo e($NIK); ?></span>
+					<span><i class="fa fa-key"></i> PIN <?php echo e($PIN); ?></span>
+					<span><i class="fa fa-check-circle"></i> Data profil karyawan</span>
+				</div>
+			</div>
+		</div>
+		<div class="profile-confirmation">
+			<div>
+				<h3><i class="fa fa-check-circle"></i> Konfirmasi data profil <?php echo e($confirmationPeriod); ?></h3>
+				<p>
+					<?php if($alreadyConfirmed): ?>
+						Data profil Anda sudah dikonfirmasi untuk tahun ini. Konfirmasi ulang akan memperbarui waktu konfirmasi.
+					<?php else: ?>
+						Pastikan data profil wajib sudah lengkap sebelum melakukan konfirmasi.
+					<?php endif; ?>
+				</p>
+				<?php if($confirmationIssues): ?>
+					<div class="alert alert-warning" role="alert">
+						<strong><?php echo e(session('confirmationError') ?? 'Konfirmasi belum tersedia. Lengkapi data berikut terlebih dahulu:'); ?></strong>
+						<ul style="margin:6px 0 0;padding-left:20px;">
+							<?php $__currentLoopData = $confirmationIssues; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $issue): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+								<li><?php echo e($issue); ?></li>
+							<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+						</ul>
+					</div>
+				<?php endif; ?>
+			</div>
+			<form action="/Profile/ConfirmData" method="post">
+				<?php echo e(csrf_field()); ?>
+
+				<button type="submit" class="btn btn-success" <?php if(count($confirmationIssues) > 0): echo 'disabled'; endif; ?>>
+					<i class="fa fa-check"></i>
+					<?php echo e($alreadyConfirmed ? 'Konfirmasi Ulang' : 'Konfirmasi Data'); ?>
+
+				</button>
+			</form>
+		</div>
 		<div class="row">
 			<div class="col-lg-4 col-sm-12 col-xs-12">
 				<div class="row">
@@ -92,12 +331,12 @@
 										</div>
 										<div class="form-group">
 											<label>Ibu Kandung</label>
-											<input type="text" name="ibu_kandung" class="form-control" value="<?php echo e($dt->ibu_kandung); ?>">
+											<input type="password" name="ibu_kandung" class="form-control" value="<?php echo e($dt->ibu_kandung); ?>">
 										</div>
 										<div class="form-group">
 											<label>Nomor KTP</label>
 											<?php $id_ktp=$dt->nomor_ktp;?>
-											<input type="number" name="nomor_ktp" class="form-control" value="<?php echo e($dt->nomor_ktp); ?>">
+											<input type="password" name="nomor_ktp" class="form-control" value="<?php echo e($dt->nomor_ktp); ?>">
 										</div>
 										<div class="form-group">
 											<label>Nomor KK</label>
@@ -340,6 +579,15 @@
 							<li>
 								<b><?php echo e($dt->level_education); ?></b>, <?php echo e($dt->prodi); ?> <?php echo e($dt->institute); ?>. Graduate on <?php echo e($dt->graduate_year); ?>
 
+								<?php if((string) $dt->is_top === '1'): ?>
+									<span class="label label-success">Pendidikan tertinggi</span>
+								<?php else: ?>
+									<form action="/Profile/Education/<?php echo e($dt->id); ?>/SetTop" method="post" style="display:inline-block;margin-left:6px;">
+										<?php echo e(csrf_field()); ?>
+
+										<button type="submit" class="btn btn-xs btn-default">Jadikan tertinggi</button>
+									</form>
+								<?php endif; ?>
 								<a class="delete-modal" data-delid="<?php echo e($dt->id); ?>" data-delid1="Education" data-delname="<?php echo e($dt->institute); ?>">
 									<span class="pull-right-container">
 										<i class="fa fa-trash-o pull-right" style="color:#C00;cursor:pointer;"></i>
@@ -568,13 +816,17 @@
 						</div>
 					</div>
 					<div class="box-body">
+						<?php $no=0;?>
 						<?php $__currentLoopData = $tb_address; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+						<?php $no++;?>
 						<p style="text-align:left;">
 							<?php echo e($dt->detail); ?>, 
 							Kel.<?php echo e($dt->kelurahan); ?>, 
 							Kab.<?php echo e($dt->kabupaten); ?> - 
 							<?php echo e($dt->provinsi); ?>
 
+						</p>
+						<p style="text-align:right;">
 							<a class="delete-modal" data-delid="<?php echo e($dt->id); ?>" data-delid1="Address" data-delname="<?php echo e($dt->kelurahan); ?>">
 								<span class="pull-right-container">
 									<i class="fa fa-trash-o pull-right" style="color:#C00;cursor:pointer;"></i>
@@ -591,74 +843,76 @@
 						<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 						<?php if(!isset($dt->detail))echo "<br><p style='text-align:center;'>No Address Recorded</p>";?>
 					</div>
-					<div class="box-footer" style="border:0px;">
+					<?php if($no==0): ?>
+						<div class="box-footer" style="border:0px;">
 
-						<form role="form" action="/Profile/SaveAddress" method="post" class="region-form">
-							<?php echo e(csrf_field()); ?>
+							<form role="form" action="/Profile/SaveAddress" method="post" class="region-form">
+								<?php echo e(csrf_field()); ?>
 
-							<input type="hidden" value="<?php echo e($id_employee); ?>" name="id_employee">
-								<div class="box box-default collapsed-box" style="background:#FFF;border:0px;">
-									<div class="box-header">
-										<div class="box-tools pull-right">
-											<label>Add Address</label>&nbsp;&nbsp;
-											<button type="button" class="btn btn-default btn-xs" data-widget="collapse"><i class="fa fa-plus"></i></button>
+								<input type="hidden" value="<?php echo e($id_employee); ?>" name="id_employee">
+									<div class="box box-default collapsed-box" style="background:#FFF;border:0px;">
+										<div class="box-header">
+											<div class="box-tools pull-right">
+												<label>Add Address</label>&nbsp;&nbsp;
+												<button type="button" class="btn btn-default btn-xs" data-widget="collapse"><i class="fa fa-plus"></i></button>
+											</div>
+										</div>
+										<div class="box-body">
+											<div class="col-md-12">
+												<!-- <div class="form-group">
+													<label>ID-KTP</label>
+													<input type="text" name="id_ktp" class="form-control" placeholder="Entry ...">
+												</div> -->
+												<div class="form-group">
+													<input type="hidden" name="id_ktp" class="form-control" value="<?php echo e($id_ktp); ?>">
+													<label>Provinsi</label>
+													<select name="provinsi" class="form-control region-select" data-region-level="province" id="form_prov" required>
+														<option value="">Pilih provinsi</option>
+														<?php $__currentLoopData = $tb_provinsi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provinsi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+															<option value="<?php echo e($provinsi->kode); ?>"><?php echo e($provinsi->nama); ?></option>
+														<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="regency" id="form_kabs" hidden>
+													<label>Kabupaten</label>
+													<select name="kabupaten" class="form-control region-select" data-region-level="regency" id="form_kab" disabled required>
+														<option value="">Pilih kabupaten/kota</option>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="district" id="form_kecs" hidden>
+													<label>Kecamatan</label>
+													<select name="kecamatan" class="form-control region-select" data-region-level="district" id="form_kec" disabled required>
+														<option value="">Pilih kecamatan</option>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="village" id="form_dess" hidden>
+													<label>Desa/Kelurahan</label>
+													<select name="kelurahan" class="form-control region-select" data-region-level="village" id="form_des" disabled required>
+														<option value="">Pilih desa/kelurahan</option>
+													</select>
+												</div>
+												<div class="form-group" id="detail_address">
+													<label>Detail Address</label>
+													<textarea name="detail" class="form-control" rows="3" placeholder="Lingkungan/jalan/RT-RW/No.Rumah etc..." required></textarea>
+												</div>
+												<input type="hidden" name="map_address" value="">
+												<!-- <div class="form-group">
+													<label>Map Address </label> &nbsp;<a target="_blank" id="link_map">link</a>
+													<textarea name="map_address" class="form-control" rows="3" placeholder="Copy from google map ..."></textarea>
+												</div> -->
+
+											</div>
+										</div>
+										<div class="box-footer">
+											<div class="pull-right" style="border:0px;">
+												<button type="submit" class="btn btn-success" id="saveAddress">Submit</button>
+											</div>
 										</div>
 									</div>
-									<div class="box-body">
-										<div class="col-md-12">
-											<!-- <div class="form-group">
-												<label>ID-KTP</label>
-												<input type="text" name="id_ktp" class="form-control" placeholder="Entry ...">
-											</div> -->
-											<div class="form-group">
-												<input type="hidden" name="id_ktp" class="form-control" value="<?php echo e($id_ktp); ?>">
-												<label>Provinsi</label>
-												<select name="provinsi" class="form-control region-select" data-region-level="province" id="form_prov" required>
-													<option value="">Pilih provinsi</option>
-													<?php $__currentLoopData = $tb_provinsi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provinsi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-														<option value="<?php echo e($provinsi->kode); ?>"><?php echo e($provinsi->nama); ?></option>
-													<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="regency" id="form_kabs" hidden>
-												<label>Kabupaten</label>
-												<select name="kabupaten" class="form-control region-select" data-region-level="regency" id="form_kab" disabled required>
-													<option value="">Pilih kabupaten/kota</option>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="district" id="form_kecs" hidden>
-												<label>Kecamatan</label>
-												<select name="kecamatan" class="form-control region-select" data-region-level="district" id="form_kec" disabled required>
-													<option value="">Pilih kecamatan</option>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="village" id="form_dess" hidden>
-												<label>Desa/Kelurahan</label>
-												<select name="kelurahan" class="form-control region-select" data-region-level="village" id="form_des" disabled required>
-													<option value="">Pilih desa/kelurahan</option>
-												</select>
-											</div>
-											<div class="form-group" id="detail_address">
-												<label>Detail Address</label>
-												<textarea name="detail" class="form-control" rows="3" placeholder="Lingkungan/jalan/RT-RW/No.Rumah etc..." required></textarea>
-											</div>
-											<input type="hidden" name="map_address" value="">
-											<!-- <div class="form-group">
-												<label>Map Address </label> &nbsp;<a target="_blank" id="link_map">link</a>
-												<textarea name="map_address" class="form-control" rows="3" placeholder="Copy from google map ..."></textarea>
-											</div> -->
+							</form>
 
-										</div>
-									</div>
-									<div class="box-footer">
-										<div class="pull-right" style="border:0px;">
-											<button type="submit" class="btn btn-success" id="saveAddress">Submit</button>
-										</div>
-									</div>
-								</div>
-						</form>
-
-					</div>
+						</div>
+					<?php endif; ?>
 				</div>
 				<div class="box box-info box-solid" style="background:#FFF;padding-bottom:0px;">
 					<div class="box-header">
@@ -670,13 +924,17 @@
 						</div>
 					</div>
 					<div class="box-body">
+						<?php $no=0;?>
 						<?php $__currentLoopData = $tb_domiciles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+						<?php $no++;?>
 						<p style="text-align:left;">
 							<?php echo e($dt->detail); ?>, 
 							Kel.<?php echo e($dt->kelurahan); ?>, 
 							Kab.<?php echo e($dt->kabupaten); ?> - 
 							<?php echo e($dt->provinsi); ?>
 
+						</p>
+						<p style="text-align:right;">
 							<a class="delete-modal" data-delid="<?php echo e($dt->id); ?>" data-delid1="Domicile" data-delname="<?php echo e($dt->kelurahan); ?>">
 								<span class="pull-right-container">
 									<i class="fa fa-trash-o pull-right" style="color:#C00;cursor:pointer;"></i>
@@ -693,78 +951,89 @@
 						<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 						<?php if(!isset($dt->detail))echo "<br><p style='text-align:center;'>No Address Recorded</p>";?>
 					</div>
-					<div class="box-footer" style="border:0px;">
+					<?php if($no==0): ?>
+						<div class="box-footer" style="border:0px;">
+							<?php if($tb_address->isNotEmpty()): ?>
+								<form action="/Profile/Domicile/CopyAddress" method="post" style="margin-bottom:12px;">
+									<?php echo e(csrf_field()); ?>
 
-						<form role="form" action="/Profile/SaveDomicile" method="post" class="region-form">
-							<?php echo e(csrf_field()); ?>
+									<button type="submit" class="btn btn-info">
+										<i class="fa fa-copy"></i> Copy from Address
+									</button>
+								</form>
+							<?php endif; ?>
 
-							<input type="hidden" value="<?php echo e($id_employee); ?>" name="id_employee">
-								<div class="box box-default collapsed-box" style="background:#FFF;border:0px;">
-									<div class="box-header">
-										<div class="box-tools pull-right">
-											<label>Add Address</label>&nbsp;&nbsp;
-											<button type="button" class="btn btn-default btn-xs" data-widget="collapse"><i class="fa fa-plus"></i></button>
+							<form role="form" action="/Profile/SaveDomicile" method="post" class="region-form">
+								<?php echo e(csrf_field()); ?>
+
+								<input type="hidden" value="<?php echo e($id_employee); ?>" name="id_employee">
+									<div class="box box-default collapsed-box" style="background:#FFF;border:0px;">
+										<div class="box-header">
+											<div class="box-tools pull-right">
+												<label>Add Address</label>&nbsp;&nbsp;
+												<button type="button" class="btn btn-default btn-xs" data-widget="collapse"><i class="fa fa-plus"></i></button>
+											</div>
+										</div>
+										<div class="box-body">
+											<div class="col-md-12">
+												<!-- <div class="form-group">
+													<label>ID-KTP</label>
+													<input type="hidden" name="id_ktp" class="form-control" value="<?php echo e($id_ktp); ?>">
+												</div> -->
+												<div class="form-group">
+													<input type="hidden" name="id_ktp" class="form-control" value="<?php echo e($id_ktp); ?>">
+													<label>Provinsi</label>
+													<select name="provinsi_domicile" class="form-control region-select" data-region-level="province" id="form_prov3" required>
+														<option value="">Pilih provinsi</option>
+														<?php $__currentLoopData = $tb_provinsi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provinsi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+															<option value="<?php echo e($provinsi->kode); ?>"><?php echo e($provinsi->nama); ?></option>
+														<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="regency" id="form_kabs3" hidden>
+													<label>Kabupaten</label>
+													<select name="kabupaten_domicile" class="form-control region-select" data-region-level="regency" id="form_kab3" disabled required>
+														<option value="">Pilih kabupaten/kota</option>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="district" id="form_kecs3" hidden>
+													<label>Kecamatan</label>
+													<select name="kecamatan_domicile" class="form-control region-select" data-region-level="district" id="form_kec3" disabled required>
+														<option value="">Pilih kecamatan</option>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="village" id="form_dess3" hidden>
+													<label>Desa/Kelurahan</label>
+													<select name="kelurahan_domicile" class="form-control region-select" data-region-level="village" id="form_des3" disabled required>
+														<option value="">Pilih desa/kelurahan</option>
+													</select>
+												</div>
+												<div class="form-group" id="detail_address3">
+													<label>Detail Address</label>
+													<textarea name="detail_domicile" class="form-control" rows="3" placeholder="Lingkungan/jalan/RT-RW/No.Rumah etc..." required></textarea>
+												</div>
+												<input type="hidden" name="map_address" value="">
+												<!-- <div class="form-group">
+													<label>Map Address </label> &nbsp;<a target="_blank" id="link_map">link</a>
+													<textarea name="map_address" class="form-control" rows="3" placeholder="Copy from google map ..."></textarea>
+												</div> -->
+												<!-- <div class="form-group">
+													<label>Map Address </label> &nbsp;<a target="_blank" id="link_map">link</a>
+													<textarea name="map_address" class="form-control" rows="3" placeholder="Copy from google map ..."></textarea>
+												</div> -->
+
+											</div>
+										</div>
+										<div class="box-footer">
+											<div class="pull-right" style="border:0px;">
+												<button type="submit" class="btn btn-success" id="saveAddress">Submit</button>
+											</div>
 										</div>
 									</div>
-									<div class="box-body">
-										<div class="col-md-12">
-											<!-- <div class="form-group">
-												<label>ID-KTP</label>
-												<input type="hidden" name="id_ktp" class="form-control" value="<?php echo e($id_ktp); ?>">
-											</div> -->
-											<div class="form-group">
-												<input type="hidden" name="id_ktp" class="form-control" value="<?php echo e($id_ktp); ?>">
-												<label>Provinsi</label>
-												<select name="provinsi_domicile" class="form-control region-select" data-region-level="province" id="form_prov3" required>
-													<option value="">Pilih provinsi</option>
-													<?php $__currentLoopData = $tb_provinsi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provinsi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-														<option value="<?php echo e($provinsi->kode); ?>"><?php echo e($provinsi->nama); ?></option>
-													<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="regency" id="form_kabs3" hidden>
-												<label>Kabupaten</label>
-												<select name="kabupaten_domicile" class="form-control region-select" data-region-level="regency" id="form_kab3" disabled required>
-													<option value="">Pilih kabupaten/kota</option>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="district" id="form_kecs3" hidden>
-												<label>Kecamatan</label>
-												<select name="kecamatan_domicile" class="form-control region-select" data-region-level="district" id="form_kec3" disabled required>
-													<option value="">Pilih kecamatan</option>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="village" id="form_dess3" hidden>
-												<label>Desa/Kelurahan</label>
-												<select name="kelurahan_domicile" class="form-control region-select" data-region-level="village" id="form_des3" disabled required>
-													<option value="">Pilih desa/kelurahan</option>
-												</select>
-											</div>
-											<div class="form-group" id="detail_address3">
-												<label>Detail Address</label>
-												<textarea name="detail_domicile" class="form-control" rows="3" placeholder="Lingkungan/jalan/RT-RW/No.Rumah etc..." required></textarea>
-											</div>
-											<input type="hidden" name="map_address" value="">
-											<!-- <div class="form-group">
-												<label>Map Address </label> &nbsp;<a target="_blank" id="link_map">link</a>
-												<textarea name="map_address" class="form-control" rows="3" placeholder="Copy from google map ..."></textarea>
-											</div> -->
-											<!-- <div class="form-group">
-												<label>Map Address </label> &nbsp;<a target="_blank" id="link_map">link</a>
-												<textarea name="map_address" class="form-control" rows="3" placeholder="Copy from google map ..."></textarea>
-											</div> -->
+							</form>
 
-										</div>
-									</div>
-									<div class="box-footer">
-										<div class="pull-right" style="border:0px;">
-											<button type="submit" class="btn btn-success" id="saveAddress">Submit</button>
-										</div>
-									</div>
-								</div>
-						</form>
-
-					</div>
+						</div>
+					<?php endif; ?>
 				</div>
 				<div class="box box-danger box-solid" style="background:#FFF;padding-bottom:0px;">
 					<div class="box-header">
@@ -777,7 +1046,9 @@
 					</div>
 					<div class="box-body">
 						<ul>
+							<?php $no=0;?>
 							<?php $__currentLoopData = $tb_address_darurat; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+							<?php $no++;?>
 							<li>
 								<?php echo e($dt->nama_keluarga); ?> (<?php echo e($dt->hubungan); ?>) <i class="fa fa-phone"></i> <?php echo e($dt->nomor_kontak); ?><br>
 								<?php echo e($dt->detail_kontak); ?>, 
@@ -794,76 +1065,78 @@
 							<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 						</ul>
 					</div>
-					<div class="box-footer" style="border:0px;">
+					<?php if($no==0): ?>
+						<div class="box-footer" style="border:0px;">
 
-						<form role="form" action="/Profile/SaveKontak" method="post" class="region-form">
-							<?php echo e(csrf_field()); ?>
+							<form role="form" action="/Profile/SaveKontak" method="post" class="region-form">
+								<?php echo e(csrf_field()); ?>
 
-							<input type="hidden" value="<?php echo e($id_employee); ?>" name="id_employee">
-								<div class="box box-default collapsed-box" style="background:#FFF;border:0px;">
-									<div class="box-header">
-										<div class="box-tools pull-right">
-											<label>New Emergency Contact</label>&nbsp;&nbsp;
-											<button type="button" class="btn btn-default btn-xs" data-widget="collapse"><i class="fa fa-plus"></i></button>
+								<input type="hidden" value="<?php echo e($id_employee); ?>" name="id_employee">
+									<div class="box box-default collapsed-box" style="background:#FFF;border:0px;">
+										<div class="box-header">
+											<div class="box-tools pull-right">
+												<label>New Emergency Contact</label>&nbsp;&nbsp;
+												<button type="button" class="btn btn-default btn-xs" data-widget="collapse"><i class="fa fa-plus"></i></button>
+											</div>
+										</div>
+										<div class="box-body">
+											<div class="col-md-12">
+												<div class="form-group">
+													<label>Nama Keluarga</label>
+													<input type="text" name="nama_keluarga" class="form-control" placeholder="Entry ..." required>
+												</div>
+												<div class="form-group">
+													<label>Hubungan</label>
+													<input type="text" name="hubungan" class="form-control" placeholder="Entry ..." required>
+												</div>
+												<div class="form-group">
+													<label>Nomor Telepon</label>
+													<input type="text" name="nomor_kontak" class="form-control" placeholder="Entry ..." required>
+												</div>
+												<div class="form-group">
+													<label>Provinsi</label>
+													<select name="provinsi_kontak" class="form-control region-select" data-region-level="province" id="form_prov2" required>
+														<option value="">Pilih provinsi</option>
+														<?php $__currentLoopData = $tb_provinsi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provinsi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+															<option value="<?php echo e($provinsi->kode); ?>"><?php echo e($provinsi->nama); ?></option>
+														<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="regency" id="form_kabs2" hidden>
+													<label>Kabupaten</label>
+													<select name="kabupaten_kontak" class="form-control region-select" data-region-level="regency" id="form_kab2" disabled required>
+														<option value="">Pilih kabupaten/kota</option>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="district" id="form_kecs2" hidden>
+													<label>Kecamatan</label>
+													<select name="kecamatan_kontak" class="form-control region-select" data-region-level="district" id="form_kec2" disabled required>
+														<option value="">Pilih kecamatan</option>
+													</select>
+												</div>
+												<div class="form-group region-field" data-region-container="village" id="form_dess2" hidden>
+													<label>Desa/Kelurahan</label>
+													<select name="kelurahan_kontak" class="form-control region-select" data-region-level="village" id="form_des2" disabled required>
+														<option value="">Pilih desa/kelurahan</option>
+													</select>
+												</div>
+												<div class="form-group" id="detail_address2">
+													<label>Detail Address</label>
+													<textarea name="detail_kontak" class="form-control" rows="3" placeholder="Lingkungan/jalan/RT-RW/No.Rumah etc..." required></textarea>
+												</div>
+
+											</div>
+										</div>
+										<div class="box-footer">
+											<div class="pull-right" style="border:0px;">
+												<button type="submit" class="btn btn-success" id="saveAddress2">Submit</button>
+											</div>
 										</div>
 									</div>
-									<div class="box-body">
-										<div class="col-md-12">
-											<div class="form-group">
-												<label>Nama Keluarga</label>
-												<input type="text" name="nama_keluarga" class="form-control" placeholder="Entry ..." required>
-											</div>
-											<div class="form-group">
-												<label>Hubungan</label>
-												<input type="text" name="hubungan" class="form-control" placeholder="Entry ..." required>
-											</div>
-											<div class="form-group">
-												<label>Nomor Telepon</label>
-												<input type="text" name="nomor_kontak" class="form-control" placeholder="Entry ..." required>
-											</div>
-											<div class="form-group">
-												<label>Provinsi</label>
-												<select name="provinsi_kontak" class="form-control region-select" data-region-level="province" id="form_prov2" required>
-													<option value="">Pilih provinsi</option>
-													<?php $__currentLoopData = $tb_provinsi; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provinsi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-														<option value="<?php echo e($provinsi->kode); ?>"><?php echo e($provinsi->nama); ?></option>
-													<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="regency" id="form_kabs2" hidden>
-												<label>Kabupaten</label>
-												<select name="kabupaten_kontak" class="form-control region-select" data-region-level="regency" id="form_kab2" disabled required>
-													<option value="">Pilih kabupaten/kota</option>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="district" id="form_kecs2" hidden>
-												<label>Kecamatan</label>
-												<select name="kecamatan_kontak" class="form-control region-select" data-region-level="district" id="form_kec2" disabled required>
-													<option value="">Pilih kecamatan</option>
-												</select>
-											</div>
-											<div class="form-group region-field" data-region-container="village" id="form_dess2" hidden>
-												<label>Desa/Kelurahan</label>
-												<select name="kelurahan_kontak" class="form-control region-select" data-region-level="village" id="form_des2" disabled required>
-													<option value="">Pilih desa/kelurahan</option>
-												</select>
-											</div>
-											<div class="form-group" id="detail_address2">
-												<label>Detail Address</label>
-												<textarea name="detail_kontak" class="form-control" rows="3" placeholder="Lingkungan/jalan/RT-RW/No.Rumah etc..." required></textarea>
-											</div>
+							</form>
 
-										</div>
-									</div>
-									<div class="box-footer">
-										<div class="pull-right" style="border:0px;">
-											<button type="submit" class="btn btn-success" id="saveAddress2">Submit</button>
-										</div>
-									</div>
-								</div>
-						</form>
-
-					</div>
+						</div>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -904,6 +1177,14 @@
 
 		</div>
     <?php endif; ?>
+	<?php if($message = Session::get('error')): ?>
+		<div class="alert alert-danger alert-dismissible" style="position:absolute;width:350px;right:10px;top:65px;z-index: 1;">
+			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+			<h4><i class="icon fa fa-warning"></i> Action Failed</h4>
+			<?php echo e($message); ?>
+
+		</div>
+	<?php endif; ?>
 	<?php if($errors->any()): ?>
 		<div class="alert alert-danger alert-dismissible" style="position:absolute;width:350px;right:10px;top:65px;z-index: 1;">
 			<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
@@ -1425,7 +1706,7 @@
 	<!-- page script alert-->
 	<script>
 		window.setTimeout(function() {
-			$(".alert").fadeTo(500, 0).slideUp(500, function(){
+			$(".alert-dismissible").fadeTo(500, 0).slideUp(500, function(){
 			$(this).remove(); 
 			});
 		}, 5000);

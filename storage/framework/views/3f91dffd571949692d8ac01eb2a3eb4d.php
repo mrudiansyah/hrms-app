@@ -43,6 +43,51 @@
         .fc-time {
             display: none;
         }
+
+        .skin-blue-light .main-header .navbar {
+            background: linear-gradient(110deg, #123047 0%, #155e75 100%);
+            box-shadow: 0 2px 12px rgba(15, 39, 58, 0.18);
+        }
+
+        .skin-blue-light .main-header .logo {
+            background: #102a43;
+            color: #fff;
+            transition: background-color 0.2s ease;
+        }
+
+        .skin-blue-light .main-header .logo:hover {
+            background: #0b2238;
+        }
+
+        .skin-blue-light .main-header .navbar .nav > li > a {
+            color: #fff;
+            transition: background-color 0.2s ease;
+        }
+
+        .skin-blue-light .main-header .navbar .nav > li > a:hover,
+        .skin-blue-light .main-header .navbar .nav > li > a:focus,
+        .skin-blue-light .main-header .navbar .nav > li > a:active {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .skin-blue-light .main-header .navbar .sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .skin-blue-light .main-header .navbar-custom-menu .btn {
+            color: #fff !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.24) !important;
+            border-radius: 6px;
+            box-shadow: none;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .skin-blue-light .main-header .navbar-custom-menu .btn:hover,
+        .skin-blue-light .main-header .navbar-custom-menu .btn:focus {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-color: rgba(255, 255, 255, 0.45) !important;
+        }
     </style>
     <link rel="stylesheet" href="<?php echo e(asset('/assets/sweetalert/sweetalert.css')); ?>">
 
@@ -153,7 +198,7 @@
     </style>
 </head>
 
-<body class="hold-transition skin-blue sidebar-collapse sidebar-mini">
+<body class="hold-transition skin-blue-light sidebar-collapse sidebar-mini">
     <div class="wrapper">
         <?php //date_default_timezone_set("Asia/Jakarta");$sekarang=date('Y-m-d');$periode=date('Y-m');?>
         <header class="main-header">

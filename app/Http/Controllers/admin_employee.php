@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Services\AuditLogger;
 
 class admin_employee extends Controller
 {
@@ -386,12 +387,36 @@ class admin_employee extends Controller
             ->where('tb_employees.id',$data->id)
             ->get(['tb_employees.NIK','tb_employees.employee_name','tb_departments.dept_code as department','tb_positions.position_name as jabatan']);
             foreach($tb_employee as $dt){
-                $update_payroll=DB::table('tb_salary_contract')->where('id_employee',$data->id)->update([
-                    'NIK'=>$dt->NIK,
-                    'nama_karyawan'=>$dt->employee_name,
-                    'department'=>$dt->department,
-                    'jabatan'=>$dt->jabatan
-                ]);
+                DB::transaction(function () use ($data, $dt) {
+                    $oldRows = DB::table('tb_salary_contract')
+                        ->where('id_employee', $data->id)
+                        ->get()
+                        ->keyBy('id');
+                    $updated = DB::table('tb_salary_contract')->where('id_employee',$data->id)->update([
+                        'NIK'=>$dt->NIK,
+                        'nama_karyawan'=>$dt->employee_name,
+                        'department'=>$dt->department,
+                        'jabatan'=>$dt->jabatan
+                    ]);
+                    if ($updated) {
+                        $newRows = DB::table('tb_salary_contract')
+                            ->where('id_employee', $data->id)
+                            ->get();
+                        foreach ($newRows as $newRow) {
+                            $oldRow = $oldRows->get($newRow->id);
+                            if ($oldRow && (array) $oldRow !== (array) $newRow) {
+                                app(AuditLogger::class)->record(
+                                    'updated',
+                                    'tb_salary_contract',
+                                    (int) $newRow->id,
+                                    (array) $oldRow,
+                                    (array) $newRow,
+                                    'Sinkronisasi data kontrak dengan data karyawan'
+                                );
+                            }
+                        }
+                    }
+                });
                 $update_tms=DB::table('tb_work_contract')->where('id_employee',$data->id)->update([
                     'NIK'=>$dt->NIK,
                     'nama_karyawan'=>$dt->employee_name,

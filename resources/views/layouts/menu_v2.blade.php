@@ -25,7 +25,7 @@
 
             <!-- USER MANAGEMENT & ACCESS -->
             @if (request()->user()->hasRole('add_user') || request()->user()->hasRole('role') || request()->user()->hasRole('user_role') || request()->user()->hasRole('hr_access') || request()->user()->hasRole('root'))
-                        <li class="treeview<?php    if (isset($menu) && ($menu == 'user_management' || $menu == 'setup' || $menu == 'whatsapp_wuzapi' || $menu == 'functionality_test'))
+                        <li class="treeview<?php    if (isset($menu) && ($menu == 'user_management' || $menu == 'setup' || $menu == 'whatsapp_wuzapi' || $menu == 'functionality_test' || $menu == 'audit_logs'))
                 echo ' active';?>">
                         <a href="#">
                             <i class="fa fa-gears text-red"></i> <span>Configuration</span>
@@ -61,6 +61,7 @@
                                 <li><a href="/Setup"><i class="fa fa-gear"></i> <span>Setup Utility</span></a></li>
                             @endif
                             @if(request()->user()->hasRole('root'))
+                                <li><a href="/AuditLogs"><i class="fa fa-history"></i> <span>Audit Log</span></a></li>
                                 <li><a href="/whatsapp"><i class="fa fa-whatsapp"></i> <span>Whatsapp Test</span></a></li>
                                 <li><a href="/functionality-test"><i class="fa fa-gears"></i> <span>Functionality Test</span></a></li>
                             @endif

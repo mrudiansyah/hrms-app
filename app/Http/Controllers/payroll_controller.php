@@ -17,6 +17,7 @@ use PDF;
 use App\Mail\slip_Gaji_Payroll;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Services\AuditLogger;
 
 class payroll_controller extends Controller
 {
@@ -198,7 +199,7 @@ class payroll_controller extends Controller
         //return $tb_employee;
         //End Get Detail Employee
         if ($data->id_salary_kontrak == '') {
-            $simpan = DB::table('tb_salary_contract')->insert([
+            $contractAttributes = [
                 'id_employee' => $data->id_employee,
                 'NIK' => $NIK,
                 'nama_karyawan' => $employee_name,
@@ -243,13 +244,25 @@ class payroll_controller extends Controller
                 'admin' => $admin,
                 'created_at' => $today,
                 'updated_at' => $now
-            ]);
+            ];
+            $simpan = DB::transaction(function () use ($contractAttributes) {
+                $contractId = DB::table('tb_salary_contract')->insertGetId($contractAttributes);
+                $this->auditSalaryContract(
+                    'created',
+                    $contractId,
+                    null,
+                    $this->salaryContractSnapshot($contractId),
+                    'Menambahkan kontrak gaji'
+                );
+
+                return $contractId;
+            });
             // if($simpan)$tb_workentry=DB::table('tb_work_entry')->insert([
             //     'id_employee'=>$data->id_employee,
             //     'periode'=>$periode,
             // ]);
         } else {
-            $simpan = DB::table('tb_salary_contract')->where('id', $data->id_salary_kontrak)->update([
+            $contractAttributes = [
                 'tanggal_kontrak' => $data->tanggal_kontrak,
                 'tanggal_expired' => $data->tanggal_expired,
                 'tipe_kontrak' => $data->tipe_kontrak,
@@ -287,7 +300,24 @@ class payroll_controller extends Controller
                 'admin' => $admin,
                 'created_at' => $today,
                 'updated_at' => $now
-            ]);
+            ];
+            $simpan = DB::transaction(function () use ($data, $contractAttributes) {
+                $contractId = (int) $data->id_salary_kontrak;
+                $oldValues = $this->salaryContractSnapshot($contractId);
+                $updated = DB::table('tb_salary_contract')->where('id', $contractId)->update($contractAttributes);
+                $newValues = $this->salaryContractSnapshot($contractId);
+                if ($updated && $oldValues && $oldValues !== $newValues) {
+                    $this->auditSalaryContract(
+                        'updated',
+                        $contractId,
+                        $oldValues,
+                        $newValues,
+                        'Memperbarui kontrak gaji'
+                    );
+                }
+
+                return $updated;
+            });
         }
         if ($simpan) {
             $konten = 'Sukses';
@@ -329,15 +359,29 @@ class payroll_controller extends Controller
     function deleteKontrak($id)
     {
         if (request()->user()->hasRole('root') || request()->user()->hasRole('payroll') || request()->user()->hasRole('payroll_management')) {
-            $tb_salary_contract = DB::table('tb_salary_contract')->where('id', $id)->get();
-            foreach ($tb_salary_contract as $dt) {
-                $status = $dt->status;
-            }
+            $contract = DB::table('tb_salary_contract')->where('id', $id)->first();
+            abort_if(!$contract, 404, 'Kontrak gaji tidak ditemukan.');
+            $status = $contract->status;
             if ($status == 1)
                 $change = 0;
             else
                 $change = 1;
-            $update = DB::table('tb_salary_contract')->where('id', $id)->update(['status' => $change]);
+            $update = DB::transaction(function () use ($id, $change) {
+                $oldValues = $this->salaryContractSnapshot((int) $id);
+                $updated = DB::table('tb_salary_contract')->where('id', $id)->update(['status' => $change]);
+                $newValues = $this->salaryContractSnapshot((int) $id);
+                if ($updated && $oldValues && $oldValues !== $newValues) {
+                    $this->auditSalaryContract(
+                        'updated',
+                        (int) $id,
+                        $oldValues,
+                        $newValues,
+                        'Mengubah status kontrak gaji'
+                    );
+                }
+
+                return $updated;
+            });
             if ($update)
                 return redirect()->back()->with(['info' => 'Success']);
         } else {
@@ -3995,13 +4039,27 @@ class payroll_controller extends Controller
             $tb_salary_contract = DB::table('tb_salary_contract')->where('NIK', $dt->NIK)->get();
             foreach ($tb_salary_contract as $dt2) {
                 if ($dt2->nama_karyawan != $dt->employee_name || $dt2->department != $dt->dept_code || $dt2->jabatan != $dt->position_name || $dt2->tanggal_kontrak != $dt->join_date) {
-                    $update = DB::table('tb_salary_contract')->where('id', $dt->id)->update([
-                        'nama_karyawan' => $dt->employee_name,
-                        'department' => $dt->dept_code,
-                        'jabatan' => $dt->position_name,
-                        'tanggal_kontrak' => $dt->join_date,
-                        'updated_at' => $sekarang
-                    ]);
+                    DB::transaction(function () use ($dt, $sekarang) {
+                        $contractId = (int) $dt->id;
+                        $oldValues = $this->salaryContractSnapshot($contractId);
+                        $updated = DB::table('tb_salary_contract')->where('id', $contractId)->update([
+                            'nama_karyawan' => $dt->employee_name,
+                            'department' => $dt->dept_code,
+                            'jabatan' => $dt->position_name,
+                            'tanggal_kontrak' => $dt->join_date,
+                            'updated_at' => $sekarang
+                        ]);
+                        $newValues = $this->salaryContractSnapshot($contractId);
+                        if ($updated && $oldValues && $oldValues !== $newValues) {
+                            $this->auditSalaryContract(
+                                'updated',
+                                $contractId,
+                                $oldValues,
+                                $newValues,
+                                'Sinkronisasi data kontrak dengan data karyawan'
+                            );
+                        }
+                    });
                 }
             }
         }
@@ -4136,7 +4194,7 @@ class payroll_controller extends Controller
         $now = date('Y-m-d H:i:s');
         $tb = DB::table('tb_salary_contract')->where('id', $id)->get();
         foreach ($tb as $data) {
-            $simpan = DB::table('tb_salary_contract')->insert([
+            $contractAttributes = [
                 'id_employee' => $data->id_employee,
                 'NIK' => $data->NIK,
                 'nama_karyawan' => $data->nama_karyawan,
@@ -4181,13 +4239,58 @@ class payroll_controller extends Controller
                 'admin' => $admin,
                 'created_at' => $today,
                 'updated_at' => $now
-            ]);
-            if ($simpan) {
-                $update = DB::table('tb_salary_contract')->where('id', $id)->update(['status' => '0']);
-            }
+            ];
+            DB::transaction(function () use ($contractAttributes, $id) {
+                $contractId = DB::table('tb_salary_contract')->insertGetId($contractAttributes);
+                $this->auditSalaryContract(
+                    'created',
+                    $contractId,
+                    null,
+                    $this->salaryContractSnapshot($contractId),
+                    'Membuat kontrak gaji baru dari kontrak sebelumnya'
+                );
+
+                $oldValues = $this->salaryContractSnapshot((int) $id);
+                $updated = DB::table('tb_salary_contract')->where('id', $id)->update(['status' => '0']);
+                $newValues = $this->salaryContractSnapshot((int) $id);
+                if ($updated && $oldValues && $oldValues !== $newValues) {
+                    $this->auditSalaryContract(
+                        'updated',
+                        (int) $id,
+                        $oldValues,
+                        $newValues,
+                        'Menonaktifkan kontrak sebelumnya'
+                    );
+                }
+            });
         }
         return redirect()->back();
     }
+
+    private function salaryContractSnapshot(int $id): ?array
+    {
+        $row = DB::table('tb_salary_contract')->where('id', $id)->first();
+
+        return $row ? (array) $row : null;
+    }
+
+    private function auditSalaryContract(
+        string $event,
+        int $id,
+        ?array $oldValues,
+        ?array $newValues,
+        string $description
+    ): void {
+        app(AuditLogger::class)->record(
+            $event,
+            'tb_salary_contract',
+            $id,
+            $oldValues,
+            $newValues,
+            $description
+        );
+    }
+
     public function ter_calculation($tabel, $kategori, $periode)
     {
         $end = date('Y-m-d', strtotime($periode . '-24'));

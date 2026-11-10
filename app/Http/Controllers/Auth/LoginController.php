@@ -94,6 +94,24 @@ class LoginController extends Controller
      */
     public function authenticated(Request $request, $user)
     {
+        $profileConfirmationRequired = DB::table('tb_utilities')
+            ->where('id', 27)
+            ->where('status', '1')
+            ->exists();
+
+        if ($profileConfirmationRequired) {
+            $employeeId = DB::table('tb_emails')
+                ->where('email_address', $user->email)
+                ->value('id_employee');
+
+            if ($employeeId && !DB::table('tb_refresh_data')
+                ->where('id_employee', $employeeId)
+                ->where('periode', now()->format('Y'))
+                ->exists()) {
+                return redirect('/ProfileEdit');
+            }
+        }
+
         return;
         try {
             $email = $request->input('email') ?? $user->email;

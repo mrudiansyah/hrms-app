@@ -16,7 +16,18 @@
         <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="sidebar-menu" data-widget="tree">
             <?php if (request()->user()->hasRole('ess')) {?>
-                <li class="<?php    if (isset($menu) && $menu == 'profile') echo ' active';?>"><a href="/Profile"><i class="fa fa-user"></i> <span>Profile</span></a></li>
+                <li class="treeview<?php if(isset($menu)&&$menu=='slip_gaji')echo ' active';?>">
+                <a href="#">
+                    <i class="fa fa-user"></i> <span>Profile</span>
+                    <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    <li class="<?php if(isset($menu)&&$menu=='profile')echo ' active';?>"><a href="/Profile"><i class="fa fa-image"></i> <span>View Profile</span></a></li>
+                    <li class="<?php if(isset($menu)&&$menu=='profile')echo ' active';?>"><a href="/ProfileEdit"><i class="fa fa-edit"></i> <span>Edit</span></a></li>
+                </ul>
+                </li>
                 <li class="<?php    if (isset($menu) && $menu == 'manualcheck') echo ' active';?>"><a href="/ManualCheck"><i class="fa fa-clock-o"></i> <span>Manual Check </span></a></li>
             <?php }?>
             <?php if (request()->user()->hasRole('ess')) {?>

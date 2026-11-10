@@ -1311,6 +1311,340 @@ class ess_controller extends Controller
             'actual_qty' => $tb2
         ]);
     }
+    function profileEdit(){
+        // if(request()->user()->hasRole('hr_access')){
 
+        $email=Auth::user()->email;
+        $tb_employee=DB::table('tb_emails')
+        ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        ->where('email_address',$email)->get();
+        foreach($tb_employee as $dt){
+            $id = $dt->id_employee;
+        }
+
+        $leader_name='';
+        $tb_employee=DB::table('tb_employees')->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')->where('tb_employees.id',$id)->orderby('id','desc')->get(['tb_employees.*','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name']);
+        //return $id;
+        foreach($tb_employee as $dt){
+            $PIN=$dt->PIN;
+            $leader=DB::table('tb_employees')->where('id',$dt->leader_id)->get();
+            foreach($leader as $dt2){
+                $leader_name=$dt2->employee_name;
+            }
+            $nama_karyawan=$dt->employee_name;
+            $NIK=$dt->NIK;
+        }
+        $tb_address=DB::table('tb_addresses')->where([['id_employee',$id]])->get();
+        $tb_domiciles=DB::table('tb_domiciles')->where([['id_employee',$id]])->get();
+        $tb_education=DB::table('tb_educations')->where('id_employee',$id)->orderby('graduate_year','desc')->get();
+        $tb_experience=DB::table('tb_experiences')->where('id_employee',$id)->orderby('finish_year','desc')->get();
+        $tb_skill=DB::table('tb_skills')->where('id_employee',$id)->get();
+        $tb_email=DB::table('tb_emails')->where([['id_employee',$id]])->get();
+        $tb_salary=DB::table('tb_salaries')->where([['id_employee',$id],['status','1']])->get();
+        $tb_admin=DB::table('tb_admins')->leftjoin('tb_departments','tb_departments.id','=','tb_admins.dept_id')->where('tb_admins.id_employee',$id)->get(['tb_admins.*','tb_departments.dept_code','tb_departments.dept_name']);
+        $tb_bagian=DB::table('tb_bagians')->where([['id_employee',$id]])->orderby('implement','desc')->limit(1)->get();
+        $tb_detail=DB::table('tb_employee_detail')->where([['id_employee',$id]])->get();
+        $tb_address_darurat=DB::table('tb_address_darurat')->where([['id_employee',$id]])->where('status','1')->get();
+        $tb_employee_family=DB::table('tb_employee_family')->where([['id_employee',$id]])->where('status','1')->get();
+        //return $tb_employee_family;
+        
+        $koneksi='OK';
+
+        $tb_utility=DB::table('tb_utilities')->where('atribut','ess_leave')->get(['status']);
+        foreach($tb_utility as $dt){
+            $ess_leave=$dt->status;
+        }
+        $tb_provinsi = DB::table('wilayah_2020')
+            ->select('kode', 'nama')
+            ->whereRaw('LEN(kode) = 2')
+            ->orderBy('nama')
+            ->get();
+        
+
+    return view('page_ess/profile_update',['tb_employee_family'=>$tb_employee_family,'tb_domiciles'=>$tb_domiciles,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee','ess_leave'=>$ess_leave,'tb_provinsi'=>$tb_provinsi,'juduls'=>'Profile Update']);
+    }
+    public function saveProfileAddress(Request $request)
+    {
+        $request->validate([
+            'provinsi' => ['required', 'string'],
+            'kabupaten' => ['required', 'string'],
+            'kecamatan' => ['required', 'string'],
+            'kelurahan' => ['required', 'string'],
+            'detail' => ['required', 'string', 'max:1000'],
+        ]);
+        $wilayah = $this->resolveProfileWilayah($request, [
+            'province' => 'provinsi',
+            'regency' => 'kabupaten',
+            'district' => 'kecamatan',
+            'village' => 'kelurahan',
+        ]);
+        $employeeId = $this->profileEmployeeId();
+
+        DB::transaction(function () use ($request, $wilayah, $employeeId) {
+            DB::table('tb_addresses')
+                ->where('id_employee', $employeeId)
+                ->update(['status' => '0']);
+            DB::table('tb_addresses')->insert([
+                'id_employee' => $employeeId,
+                'provinsi' => $wilayah['province'],
+                'kabupaten' => $wilayah['regency'],
+                'kecamatan' => $wilayah['district'],
+                'kelurahan' => $wilayah['village'],
+                'detail' => $request->input('detail'),
+                'map_address' => '',
+                'status' => '1',
+            ]);
+        });
+
+        return redirect('/ProfileEdit')->with('success', 'Data Address berhasil disimpan.');
+    }
+
+    public function saveProfileDomicile(Request $request)
+    {
+        $request->validate([
+            'provinsi_domicile' => ['required', 'string'],
+            'kabupaten_domicile' => ['required', 'string'],
+            'kecamatan_domicile' => ['required', 'string'],
+            'kelurahan_domicile' => ['required', 'string'],
+            'detail_domicile' => ['required', 'string', 'max:1000'],
+        ]);
+        $wilayah = $this->resolveProfileWilayah($request, [
+            'province' => 'provinsi_domicile',
+            'regency' => 'kabupaten_domicile',
+            'district' => 'kecamatan_domicile',
+            'village' => 'kelurahan_domicile',
+        ]);
+        $employeeId = $this->profileEmployeeId();
+
+        DB::transaction(function () use ($request, $wilayah, $employeeId) {
+            DB::table('tb_domiciles')
+                ->where('id_employee', $employeeId)
+                ->update(['status' => '0']);
+            DB::table('tb_domiciles')->insert([
+                'id_employee' => $employeeId,
+                'provinsi' => $wilayah['province'],
+                'kabupaten' => $wilayah['regency'],
+                'kecamatan' => $wilayah['district'],
+                'kelurahan' => $wilayah['village'],
+                'detail' => $request->input('detail_domicile'),
+                'map_address' => '',
+                'status' => '1',
+            ]);
+        });
+
+        return redirect('/ProfileEdit')->with('success', 'Data domisili berhasil disimpan.');
+    }
+
+    public function saveProfileEmergencyContact(Request $request)
+    {
+        $request->validate([
+            'nama_keluarga' => ['required', 'string', 'max:255'],
+            'hubungan' => ['required', 'string', 'max:100'],
+            'nomor_kontak' => ['required', 'string', 'max:50'],
+            'provinsi_kontak' => ['required', 'string'],
+            'kabupaten_kontak' => ['required', 'string'],
+            'kecamatan_kontak' => ['required', 'string'],
+            'kelurahan_kontak' => ['required', 'string'],
+            'detail_kontak' => ['required', 'string', 'max:1000'],
+        ]);
+        $wilayah = $this->resolveProfileWilayah($request, [
+            'province' => 'provinsi_kontak',
+            'regency' => 'kabupaten_kontak',
+            'district' => 'kecamatan_kontak',
+            'village' => 'kelurahan_kontak',
+        ]);
+        $employeeId = $this->profileEmployeeId();
+
+        DB::table('tb_address_darurat')->insert([
+            'id_employee' => $employeeId,
+            'nama_keluarga' => $request->input('nama_keluarga'),
+            'hubungan' => $request->input('hubungan'),
+            'nomor_kontak' => $request->input('nomor_kontak'),
+            'provinsi_kontak' => $wilayah['province'],
+            'kabupaten_kontak' => $wilayah['regency'],
+            'kecamatan_kontak' => $wilayah['district'],
+            'kelurahan_kontak' => $wilayah['village'],
+            'detail_kontak' => $request->input('detail_kontak'),
+        ]);
+
+        return redirect('/ProfileEdit')->with('success', 'Data kontak darurat berhasil disimpan.');
+    }
+
+    private function profileEmployeeId(): int
+    {
+        $employeeId = DB::table('tb_emails')
+            ->where('email_address', Auth::user()->email)
+            ->value('id_employee');
+
+        abort_if(!$employeeId, 404, 'Data karyawan untuk akun ini tidak ditemukan.');
+
+        return (int) $employeeId;
+    }
+
+    private function resolveProfileWilayah(Request $request, array $fields): array
+    {
+        $levels = [
+            'province' => 2,
+            'regency' => 5,
+            'district' => 8,
+            'village' => 13,
+        ];
+        $names = [];
+        $parentCode = null;
+
+        foreach ($levels as $level => $length) {
+            $field = $fields[$level];
+            $code = $request->input($field);
+            $query = DB::table('wilayah_2020')
+                ->select('kode', 'nama')
+                ->where('kode', $code)
+                ->whereRaw('LEN(kode) = ?', [$length]);
+
+            if ($parentCode !== null) {
+                $query->whereRaw('LEFT(kode, ?) = ?', [strlen($parentCode), $parentCode])
+                    ->whereRaw('SUBSTRING(kode, ?, 1) = ?', [strlen($parentCode) + 1, '.']);
+            }
+
+            $wilayah = $query->first();
+            if (!$wilayah) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    $field => 'Pilihan wilayah tidak valid atau tidak sesuai urutannya.',
+                ]);
+            }
+
+            $names[$level] = $wilayah->nama;
+            $parentCode = $wilayah->kode;
+        }
+
+        return $names;
+    }
+
+    function selectDelete($id,$tabel){
+        if($tabel=='Address'){
+            $delete=DB::table('tb_addresses')->where('id',$id)->delete();
+        }elseif($tabel=='Domicile'){
+            $delete=DB::table('tb_domiciles')->where('id',$id)->delete();
+        }elseif($tabel=='Education'){
+            $delete=DB::table('tb_educations')->where('id',$id)->delete();
+        }elseif($tabel=='Experience'){
+            $delete=DB::table('tb_experiences')->where('id',$id)->delete();
+        }elseif($tabel=='Skill'){
+            $delete=DB::table('tb_skills')->where('id',$id)->delete();
+        }elseif($tabel=='Kontak'){
+            $delete=DB::table('tb_address_darurat')->where('id',$id)->delete();
+        }elseif($tabel=='Family'){
+            $delete=DB::table('tb_employee_family')->where('id',$id)->delete();
+        }
+
+        if($delete)
+        $teks="Data Tabel ".$tabel." berhasil dihapus";
+        return redirect()->back()->with(['success' => $teks]);    
+    }
+    function saveFamily(Request $data){
+        //return "Masuk";
+        $this->validate($data,['nama_keluargas'=>'required','hubungans'=>'required','tanggal_lahir_keluarga'=>'required']);
+        $simpan=DB::table('tb_employee_family')->insert([
+            'id_employee'=>$data->id_employee,
+            'nama_keluarga'=>$data->nama_keluargas,
+            'hubungan'=>$data->hubungans,
+            'tanggal_lahir'=>$data->tanggal_lahir_keluarga,
+            'status'=>'1'
+        ]);
+        if($simpan)
+        $teks='Data Family berhasil disimpan';
+        //return $simpan;
+        return redirect()->back()->with(['success' => $teks]);    
+    }
+    function saveEducation(Request $data){
+        $this->validate($data,['level_education'=>'required']);
+        $simpan=DB::table('tb_educations')->insert([
+            'id_employee'=>$data->id_employee,
+            'level_education'=>$data->level_education,
+            'institute'=>$data->institute,
+            'prodi'=>$data->prodi,
+            'year'=>$data->year,
+            'graduate_year'=>$data->graduate_year,
+            'remark'=>$data->remark
+        ]);
+        if($simpan)
+        $teks='Data Education berhasil disimpan';
+        //return $simpan;
+        return redirect()->back()->with(['success' => $teks]);    
+    }
+    function saveExperience(Request $data){
+        $this->validate($data,['factory'=>'required','section'=>'required','year'=>'required','finish_year'=>'required']);
+        $simpan=DB::table('tb_experiences')->insert([
+            'id_employee'=>$data->id_employee,
+            'factory'=>$data->factory,
+            'section'=>$data->section,
+            'year'=>$data->year,
+            'finish_year'=>$data->finish_year,
+            'remark'=>$data->remark
+        ]);
+        if($simpan)
+        $teks='Data Experience berhasil disimpan';
+        //return $simpan;
+        return redirect()->back()->with(['success' => $teks]);    
+    }
+    function saveSkill(Request $data){
+        $this->validate($data,['skill_name'=>'required']);
+        $simpan=DB::table('tb_skills')->insert([
+            'id_employee'=>$data->id_employee,
+            'skill_type'=>$data->skill_type,
+            'skill_name'=>$data->skill_name
+        ]);
+        if($simpan)
+        $teks='Data Skill berhasil disimpan';
+        //return $simpan;
+        return redirect()->back()->with(['success' => $teks]);    
+    }
+    function saveDetail(Request $data){
+        //$this->validate($data,['tanggal_lahir'=>'required']);
+        $periksa=DB::table('tb_employee_detail')->where('id_employee',$data->id_employee)->count();
+        if($periksa==0){
+            $simpan=DB::table('tb_employee_detail')->insert([
+                'id_employee'=>$data->id_employee,
+                'tempat_lahir'=>$data->tempat_lahir,
+                'tanggal_lahir'=>$data->tanggal_lahir,
+                'agama'=>$data->agama,
+                'golongan_darah'=>$data->golongan_darah,
+                'ibu_kandung'=>$data->ibu_kandung,
+                'nomor_ktp'=>$data->nomor_ktp,
+                'nomor_kk'=>$data->nomor_kk,
+                'nomor_npwp'=>$data->nomor_npwp,
+                'kode_status'=>$data->kode_status,
+                'nomor_bpjs_kes'=>$data->nomor_bpjs_kes,
+                'nomor_bpjs_ket'=>$data->nomor_bpjs_ket,
+                'nomor_rekening'=>$data->nomor_rekening,
+                'nama_bank'=>$data->nama_bank,
+                'nomor_telepon'=>$data->nomor_telepon,
+            ]);
+            //return "Satu";
+        }else{
+            $simpan=DB::table('tb_employee_detail')->where('id_employee',$data->id_employee)->update([
+                'tempat_lahir'=>$data->tempat_lahir,
+                'tanggal_lahir'=>$data->tanggal_lahir,
+                'agama'=>$data->agama,
+                'golongan_darah'=>$data->golongan_darah,
+                'ibu_kandung'=>$data->ibu_kandung,
+                'nomor_ktp'=>$data->nomor_ktp,
+                'nomor_kk'=>$data->nomor_kk,
+                'nomor_npwp'=>$data->nomor_npwp,
+                'nomor_bpjs_kes'=>$data->nomor_bpjs_kes,
+                'nomor_bpjs_ket'=>$data->nomor_bpjs_ket,
+                'kode_status'=>$data->kode_status,
+                'nomor_rekening'=>$data->nomor_rekening,
+                'nama_bank'=>$data->nama_bank,
+                'nomor_telepon'=>$data->nomor_telepon,
+            ]);
+            //return "Dua";
+        }
+        //return "Tiga";
+        if($simpan)
+        $teks='General Data berhasil disimpan';
+        else $teks='Anda tidak merubah data apapun';
+        //return $simpan;
+        return redirect()->back()->with(['success' => $teks]);    
+    }
 }
 #endregion

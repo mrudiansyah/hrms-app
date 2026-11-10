@@ -150,6 +150,18 @@ Route::get('/payroll/recap_journal/{periode?}', [App\Http\Controllers\PayrollCon
 
 //ESS
 Route::get('/Profile', [App\Http\Controllers\ess_controller::class, 'index']);
+Route::get('/ProfileEdit',[App\Http\Controllers\ess_controller::class,'profileEdit']);
+Route::post('/Profile/SaveDetail',[App\Http\Controllers\ess_controller::class,'saveDetail']);
+Route::get('/Profile/Delete/{id}/{tabel}',[App\Http\Controllers\ess_controller::class,'selectDelete']);
+Route::post('/Profile/SaveAddress', [App\Http\Controllers\ess_controller::class, 'saveProfileAddress']);
+Route::post('/Profile/SaveDomicile', [App\Http\Controllers\ess_controller::class, 'saveProfileDomicile']);
+Route::post('/Profile/SaveKontak', [App\Http\Controllers\ess_controller::class, 'saveProfileEmergencyContact']);
+Route::post('/Profile/SaveFamily',[App\Http\Controllers\ess_controller::class,'saveFamily']);
+Route::post('/Profile/SaveEducation',[App\Http\Controllers\ess_controller::class,'saveEducation']);
+Route::post('/Profile/SaveExperience',[App\Http\Controllers\ess_controller::class,'saveExperience']);
+Route::post('/Profile/SaveSkill',[App\Http\Controllers\ess_controller::class,'saveSkill']);
+
+
 Route::get('/SlipGaji', [App\Http\Controllers\ess_controller::class, 'employee_slip']);
 Route::get('/Slip/{periode}/{id_employee}', [App\Http\Controllers\ess_controller::class, 'slip']);
 Route::get('/SlipGaji/Temp/{periode}/{NIK}', [App\Http\Controllers\ess_controller::class, 'employee_slip_temp_download']);

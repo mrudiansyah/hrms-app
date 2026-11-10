@@ -154,7 +154,7 @@ class assigment_controller extends Controller
             ]);
             if($simpan){
                 $id=DB::table('tb_overtime_spv')->where('id_employee',$data->id_employee)->where('ot_date',$date_on)->value('id');
-                //$this->notificationAssigment($id);
+                $this->notificationAssigment($id);
                 return redirect()->back()->with(['success' => 'Save Data Berhasil']); 
             }
             else echo "Error";
@@ -295,7 +295,7 @@ class assigment_controller extends Controller
         $update=DB::table('tb_overtime_spv')->where('id',$id)->update([$status=>'1',$tgl=>$now]);
         // $update=DB::table('tb_overtime_spv')->where('id',$id)->update([$status=>'1']);
         if($update){
-            //$send_whatsapp=$this->notificationAssigment($id);
+            $send_whatsapp=$this->notificationAssigment($id);
             return redirect()->back()->with(['success' => 'Sign Form Berhasil']);
         }
     }

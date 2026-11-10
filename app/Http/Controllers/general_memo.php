@@ -427,7 +427,7 @@ class general_memo extends Controller
                 }
             }
             //$this->sendMail($data->id_memo);
-            //$this->notificationMemo($data->id_memo);            
+            $this->notificationMemo($data->id_memo);            
         }
         return $data->id_memo.' '.$data->status;
     }

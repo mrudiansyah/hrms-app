@@ -24,7 +24,18 @@ class ResetPasswordController extends Controller
     |
     */
 
-    use ResetsPasswords;
+    use ResetsPasswords {
+        setUserPassword as protected setDefaultUserPassword;
+    }
+
+    protected function setUserPassword($user, $password)
+    {
+        $this->setDefaultUserPassword($user, $password);
+
+        $today = now();
+        $user->reset_date = $today->toDateString();
+        $user->expired_date = $today->copy()->addMonthsNoOverflow(3)->toDateString();
+    }
 
     /**
      * Where to redirect users after resetting their password.

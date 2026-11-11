@@ -15,6 +15,7 @@ Route::get('/home', function () {
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRoleController;
+Route::post('/user-management/{id}/reset-password', [UserController::class, 'resetPassword'])->name('user-management.reset-password');
 Route::resource('user-management', UserController::class);
 Route::resource('role-management', RoleController::class);
 Route::get('/userrole-management', [UserRoleController::class, 'index']);

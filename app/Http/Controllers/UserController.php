@@ -77,6 +77,17 @@ class UserController extends Controller
         return redirect('user-management')->with('success', 'User updated successfully.');
     }
 
+    public function resetPassword($id)
+    {
+        abort_unless(request()->user()->hasRole('role'), 403);
+
+        $user = tb_user::findOrFail($id);
+        $user->password = '$2y$10$rHOAhWixGqy58KbLaqappOs8atW8JfGfScoSzbEcfugSQCTHyqMJO';
+        $user->save();
+
+        return redirect('user-management')->with('success', "Password reset for {$user->name}.");
+    }
+
     public function destroy($id)
     {
         $user = tb_user::findOrFail($id);

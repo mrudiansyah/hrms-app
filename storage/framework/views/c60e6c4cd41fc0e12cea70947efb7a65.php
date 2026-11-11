@@ -19,7 +19,7 @@
                         <?php echo csrf_field(); ?>
 
                         <div class="form-group row">
-                            <label for="email" class="col-md-4 col-form-label text-md-right"><?php echo e(__('E-Mail Address')); ?></label>
+                            <label for="email" class="col-md-4 col-form-label text-md-right"><?php echo e(__('Registered E-Mail Address')); ?></label>
 
                             <div class="col-md-6">
                                 <input id="email" type="email" class="form-control <?php $__errorArgs = ['email'];
@@ -49,7 +49,7 @@ unset($__errorArgs, $__bag); ?>
                         <div class="form-group row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
-                                    <?php echo e(__('Send Password Reset Link')); ?>
+                                    <?php echo e(__('Send Password Reset Link via WhatsApp')); ?>
 
                                 </button>
                             </div>

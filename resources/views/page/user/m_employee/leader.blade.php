@@ -27,12 +27,9 @@
 							<th>No</th>
 							<th>NIK</th>
 							<th>Employee Name</th>
-							<th>Gender</th>
-							<th>Join Date</th>
-							<th>Dept</th>
-							<th>Cost Center</th>
 							<th>Segment</th>
 							<th>Position</th>
+							<th>Email Address</th>
 							<th>Direct leader</th>
 						</tr>
 					</thead>
@@ -43,12 +40,9 @@
 								<td><?php $no++;$pin=$dt->PIN;$userid=$dt->id;echo $no;?></td>
 								<td>{{$dt->NIK}}</td>
 								<td>{{$dt->employee_name}}</td>
-								<td>{{$dt->gender}}</td>
-								<td>{{$dt->join_date}}</td>
-								<td>{{$dt->dept_code}}</td>
-								<td>{{$dt->cc_code}}</td>
-								<td>{{$dt->segment_name}}</td>
+								<td title="{{$dt->cc_code}}">{{$dt->segment_name}}</td>
 								<td>{{$dt->position_name}}</td>
+								<td>{{$dt->email_address ?? '-'}}</td>
 								<td>
 									{{$dt->leader_name}}
 									<div class="pull-right">

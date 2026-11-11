@@ -27,12 +27,9 @@
 							<th>No</th>
 							<th>NIK</th>
 							<th>Employee Name</th>
-							<th>Gender</th>
-							<th>Join Date</th>
-							<th>Dept</th>
-							<th>Cost Center</th>
 							<th>Segment</th>
 							<th>Position</th>
+							<th>Email Address</th>
 							<th>Direct leader</th>
 						</tr>
 					</thead>
@@ -43,12 +40,9 @@
 								<td><?php $no++;$pin=$dt->PIN;$userid=$dt->id;echo $no;?></td>
 								<td><?php echo e($dt->NIK); ?></td>
 								<td><?php echo e($dt->employee_name); ?></td>
-								<td><?php echo e($dt->gender); ?></td>
-								<td><?php echo e($dt->join_date); ?></td>
-								<td><?php echo e($dt->dept_code); ?></td>
-								<td><?php echo e($dt->cc_code); ?></td>
-								<td><?php echo e($dt->segment_name); ?></td>
+								<td title="<?php echo e($dt->cc_code); ?>"><?php echo e($dt->segment_name); ?></td>
 								<td><?php echo e($dt->position_name); ?></td>
+								<td><?php echo e($dt->email_address ?? '-'); ?></td>
 								<td>
 									<?php echo e($dt->leader_name); ?>
 

@@ -100,6 +100,10 @@
 									@if(request()->user()->hasRole('role'))
                                     <td align="center">
                                         <a href="{{ url('/user-management/'.$dt->id.'/edit') }}" class="btn btn-warning btn-xs"><i class="fa fa-edit"></i></a>
+                                        <form action="{{ route('user-management.reset-password', $dt->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-info btn-xs" title="Reset Password" onclick="return confirm('Reset this user password?');"><i class="fa fa-key"></i></button>
+                                        </form>
                                         <form action="{{ url('/user-management/'.$dt->id) }}" method="POST" style="display:inline;">
                                             @csrf
                                             @method('DELETE')

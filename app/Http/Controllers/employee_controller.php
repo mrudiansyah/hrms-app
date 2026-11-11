@@ -1472,7 +1472,20 @@ class employee_controller extends Controller
         $tb_employee=$tb_employee
         ->where('tb_employees.status','=','1')
         ->whereIn('tb_employees.dept_id',array_unique($dept_ids));
-        $tb_employee=$tb_employee->orderby('tb_statuses.finish_contract','asc')->get(['tb_employees.*','tb_employees1.employee_name as leader_name','tb_departments.dept_code','tb_positions.position_name','tb_statuses.start_contract','tb_statuses.finish_contract','tb_cost_center.segment_name']);
+        $tb_employee=$tb_employee->select([
+            'tb_employees.*',
+            'tb_employees1.employee_name as leader_name',
+            'tb_departments.dept_code',
+            'tb_positions.position_name',
+            'tb_statuses.start_contract',
+            'tb_statuses.finish_contract',
+            'tb_cost_center.segment_name',
+        ])->addSelect([
+            'email_address' => DB::table('tb_emails')
+                ->select('email_address')
+                ->whereColumn('tb_emails.id_employee', 'tb_employees.id')
+                ->limit(1),
+        ])->orderby('tb_statuses.finish_contract','asc')->get();
         //return $tb_employee;
         $last_update=DB::table('tb_employees')->max('updated_at');
         return view('page/user/m_employee/leader',['tb_employee'=>$tb_employee,'menu'=>'leader']);

@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'password_reset_url' => env('PASSWORD_RESET_URL', 'https://hrms.summitadyawinsa.co.id'),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*

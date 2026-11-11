@@ -1502,7 +1502,18 @@ class employee_controller extends Controller
         ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
         ->leftjoin('tb_positions','tb_positions.id','=','tb_employees.position_id')
         ->leftjoin('tb_cost_center','tb_cost_center.cc_code','=','tb_employees.cc_code')
-        ->where('tb_employees.id',$id)->orderby('id','desc')->get(['tb_employees.*','tb_departments.dept_code','tb_departments.dept_name','tb_positions.position_name','tb_cost_center.segment_name']);
+        ->where('tb_employees.id',$id)->orderby('id','desc')->select([
+            'tb_employees.*',
+            'tb_departments.dept_code',
+            'tb_departments.dept_name',
+            'tb_positions.position_name',
+            'tb_cost_center.segment_name',
+        ])->addSelect([
+            'nomor_telepon' => DB::table('tb_employee_detail')
+                ->select('nomor_telepon')
+                ->whereColumn('tb_employee_detail.id_employee', 'tb_employees.id')
+                ->limit(1),
+        ])->get();
         foreach($tb_employee as $dt){
             $PIN=$dt->PIN;
             $leader=DB::table('tb_employees')->where('id',$dt->leader_id)->get();
@@ -1555,25 +1566,48 @@ class employee_controller extends Controller
         return view('page/admin/m_employee/employee_update',['data'=>$data,'tb_employee_family'=>$tb_employee_family,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee']);
     }
     function saveData(Request $data){
-
-        $simpan=DB::table('tb_employees')->where('id',$data->id)->update([
-            'leader_id'=>$data->leader_id,
-            'cc_code'=>$data->cc_code,
+        $validated = $data->validate([
+            'id' => 'required|integer|exists:tb_employees,id',
+            'nomor_telepon' => 'present|nullable|string|max:50',
         ]);
-        if($simpan){
-            $cc_name=DB::table('tb_cost_center')->where('cc_code',$data->cc_code)->value('description');
-            DB::transaction(function () use ($data, $cc_name) {
+
+        DB::transaction(function () use ($data, $validated) {
+            $simpan = DB::table('tb_employees')->where('id', $validated['id'])->update([
+                'leader_id' => $data->leader_id,
+                'cc_code' => $data->cc_code,
+            ]);
+
+            $employeeDetail = DB::table('tb_employee_detail')
+                ->where('id_employee', $validated['id'])
+                ->first(['id']);
+            if ($employeeDetail) {
+                DB::table('tb_employee_detail')
+                    ->where('id', $employeeDetail->id)
+                    ->update(['nomor_telepon' => $validated['nomor_telepon']]);
+            } else {
+                DB::table('tb_employee_detail')->insert([
+                    'id_employee' => $validated['id'],
+                    'nomor_telepon' => $validated['nomor_telepon'],
+                ]);
+            }
+
+            if ($simpan) {
+                $cc_name = DB::table('tb_cost_center')
+                    ->where('cc_code', $data->cc_code)
+                    ->value('description');
                 $oldRows = DB::table('tb_salary_contract')
-                    ->where('id_employee', $data->id)
+                    ->where('id_employee', $validated['id'])
                     ->get()
                     ->keyBy('id');
-                $updated = DB::table('tb_salary_contract')->where('id_employee',$data->id)->update([
-                    'cc_code'=>$data->cc_code,
-                    'cc_name'=>$cc_name
-                ]);
+                $updated = DB::table('tb_salary_contract')
+                    ->where('id_employee', $validated['id'])
+                    ->update([
+                        'cc_code' => $data->cc_code,
+                        'cc_name' => $cc_name,
+                    ]);
                 if ($updated) {
                     $newRows = DB::table('tb_salary_contract')
-                        ->where('id_employee', $data->id)
+                        ->where('id_employee', $validated['id'])
                         ->get();
                     foreach ($newRows as $newRow) {
                         $oldRow = $oldRows->get($newRow->id);
@@ -1589,12 +1623,10 @@ class employee_controller extends Controller
                         }
                     }
                 }
-            });
-            $teks=$data->employee_name.' berhasil diupdate';
-            return redirect('/Leader/')->with(['success' => $teks]);
-        }
-        else    
-        return redirect()->back()->with(['success' => 'Gagal']);;
+            }
+        });
+
+        return redirect('/Leader/')->with('success', 'Data karyawan berhasil diperbarui.');
     }
     function access_point(){
         $tb_access_point=DB::table('tb_area_master')->where('is_active','1')->orderby('ap','asc')->orderby('plant','asc')->get();

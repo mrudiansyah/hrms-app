@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use App\Services\AuditLogger;
 use DateTime;
 use Auth;
@@ -1372,6 +1373,54 @@ class ess_controller extends Controller
 
     return view('page_ess/profile_update',['tb_employee_family'=>$tb_employee_family,'tb_domiciles'=>$tb_domiciles,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee','ess_leave'=>$ess_leave,'tb_provinsi'=>$tb_provinsi,'confirmationIssues'=>$confirmationIssues,'confirmationPeriod'=>$confirmationPeriod,'alreadyConfirmed'=>$alreadyConfirmed,'juduls'=>'Profile Update']);
     }
+
+    public function updateProfileEmail(Request $request)
+    {
+        $user = Auth::user();
+        $employeeId = $this->profileEmployeeId();
+        $emailRecord = DB::table('tb_emails')
+            ->where('id_employee', $employeeId)
+            ->where('email_address', $user->email)
+            ->first();
+
+        abort_if(!$emailRecord, 404, 'Alamat email akun ini tidak ditemukan pada data karyawan.');
+
+        $validated = $request->validate([
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+                Rule::unique('tb_emails', 'email_address')->ignore($emailRecord->id),
+            ],
+        ]);
+
+        DB::transaction(function () use ($user, $emailRecord, $validated) {
+            DB::table('users')
+                ->where('id', $user->id)
+                ->update([
+                    'email' => $validated['email'],
+                    'updated_at' => now(),
+                ]);
+
+            DB::table('tb_emails')
+                ->where('id', $emailRecord->id)
+                ->update([
+                    'email_address' => $validated['email'],
+                    'updated_at' => now(),
+                ]);
+        });
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with(
+            'status',
+            'Email berhasil diperbarui. Silakan masuk kembali menggunakan email baru.'
+        );
+    }
+
     private function profileConfirmationIssues(int $employeeId): array
     {
         $requiredTables = [

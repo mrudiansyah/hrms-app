@@ -277,6 +277,52 @@
 				</button>
 			</form>
 		</div>
+		<div class="box box-info">
+			<div class="box-header">
+				<i class="fa fa-envelope"></i>
+				<h3 class="box-title">Perbarui Email Akun</h3>
+			</div>
+			<form action="<?php echo e(route('profile.email.update')); ?>" method="POST">
+				<?php echo csrf_field(); ?>
+				<div class="box-body">
+					<p>Perubahan email akan memperbarui email akun dan data email karyawan. Setelah berhasil, Anda akan logout dan perlu masuk kembali menggunakan email baru.</p>
+					<div class="form-group">
+						<label for="profile-email">Alamat Email Baru</label>
+						<input
+							id="profile-email"
+							type="email"
+							name="email"
+							class="form-control <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+							value="<?php echo e(old('email', Auth::user()->email)); ?>"
+							maxlength="255"
+							required
+						>
+						<?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+							<span class="text-danger" role="alert"><?php echo e($message); ?></span>
+						<?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+					</div>
+				</div>
+				<div class="box-footer">
+					<button type="submit" class="btn btn-success">
+						<i class="fa fa-save"></i> Perbarui Email
+					</button>
+				</div>
+			</form>
+		</div>
 		<div class="row">
 			<div class="col-lg-4 col-sm-12 col-xs-12">
 				<div class="row">

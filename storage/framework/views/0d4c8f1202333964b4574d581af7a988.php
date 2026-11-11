@@ -4,7 +4,7 @@
         <!-- Sidebar user panel -->
         <div class="user-panel">
             <div class="pull-left image">
-                <img src="<?php echo e(asset('/public/assets/dist/img/user.jpg')); ?>" class="img-circle" alt="User Image"
+                <img src="<?php echo e(asset('/assets/dist/img/user.jpg')); ?>" class="img-circle" alt="User Image"
                     onclick="location.href='/Profile';" style="cursor:pointer;">
             </div>
             <div class="pull-left info" onclick="location.href='/Profile';" style="cursor:pointer;">

@@ -226,6 +226,12 @@
         <div class="glass-panel">
             <h2 class="login-title">HRMS Login</h2>
 
+            @if (session('status'))
+                <div class="alert alert-success" role="alert">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <!-- @if (session('login_failed'))
                 <div class="alert alert-danger" role="alert">
                     {{ session('login_failed') }}

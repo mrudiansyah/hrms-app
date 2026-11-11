@@ -79,6 +79,13 @@
 													
 												</div>
 												<div class="form-group">
+													<label>Nomor Telepon</label>
+													<input type="tel" value="<?php echo e(old('nomor_telepon', $row->nomor_telepon)); ?>" name="nomor_telepon" class="form-control" maxlength="50">
+													<?php if($errors->has('nomor_telepon')): ?>
+														<div class="box-body text-danger"><?php echo e($errors->first('nomor_telepon')); ?></div>
+													<?php endif; ?>
+												</div>
+												<div class="form-group">
 													<label>Join Date</label>
 													<input type="date" value="<?php echo e($row->join_date); ?>" name="join_date" class="form-control" disabled>
 													<?php if($errors->has('join_date')): ?>

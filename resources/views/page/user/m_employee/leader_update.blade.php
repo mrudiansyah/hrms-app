@@ -78,6 +78,13 @@
 													
 												</div>
 												<div class="form-group">
+													<label>Nomor Telepon</label>
+													<input type="tel" value="{{ old('nomor_telepon', $row->nomor_telepon) }}" name="nomor_telepon" class="form-control" maxlength="50">
+													@if($errors->has('nomor_telepon'))
+														<div class="box-body text-danger">{{ $errors->first('nomor_telepon') }}</div>
+													@endif
+												</div>
+												<div class="form-group">
 													<label>Join Date</label>
 													<input type="date" value="{{$row->join_date}}" name="join_date" class="form-control" disabled>
 													@if($errors->has('join_date'))

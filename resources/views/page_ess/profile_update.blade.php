@@ -275,6 +275,38 @@
 				</button>
 			</form>
 		</div>
+		<div class="box box-info">
+			<div class="box-header">
+				<i class="fa fa-envelope"></i>
+				<h3 class="box-title">Perbarui Email Akun</h3>
+			</div>
+			<form action="{{ route('profile.email.update') }}" method="POST">
+				@csrf
+				<div class="box-body">
+					<p>Perubahan email akan memperbarui email akun dan data email karyawan. Setelah berhasil, Anda akan logout dan perlu masuk kembali menggunakan email baru.</p>
+					<div class="form-group">
+						<label for="profile-email">Alamat Email Baru</label>
+						<input
+							id="profile-email"
+							type="email"
+							name="email"
+							class="form-control @error('email') is-invalid @enderror"
+							value="{{ old('email', Auth::user()->email) }}"
+							maxlength="255"
+							required
+						>
+						@error('email')
+							<span class="text-danger" role="alert">{{ $message }}</span>
+						@enderror
+					</div>
+				</div>
+				<div class="box-footer">
+					<button type="submit" class="btn btn-success">
+						<i class="fa fa-save"></i> Perbarui Email
+					</button>
+				</div>
+			</form>
+		</div>
 		<div class="row">
 			<div class="col-lg-4 col-sm-12 col-xs-12">
 				<div class="row">

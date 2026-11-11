@@ -226,6 +226,13 @@
         <div class="glass-panel">
             <h2 class="login-title">HRMS Login</h2>
 
+            <?php if(session('status')): ?>
+                <div class="alert alert-success" role="alert">
+                    <?php echo e(session('status')); ?>
+
+                </div>
+            <?php endif; ?>
+
             <!-- <?php if(session('login_failed')): ?>
                 <div class="alert alert-danger" role="alert">
                     <?php echo e(session('login_failed')); ?>

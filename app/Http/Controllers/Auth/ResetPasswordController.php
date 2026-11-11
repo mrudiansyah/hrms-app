@@ -8,6 +8,11 @@ use Illuminate\Foundation\Auth\ResetsPasswords;
 
 class ResetPasswordController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('throttle:5,1')->only('reset');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Password Reset Controller

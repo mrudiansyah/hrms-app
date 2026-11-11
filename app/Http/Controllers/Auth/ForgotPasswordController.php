@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Password;
 
 class ForgotPasswordController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('throttle:5,1')->only('sendResetLinkEmail');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Password Reset Controller

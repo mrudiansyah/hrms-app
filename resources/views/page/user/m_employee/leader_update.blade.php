@@ -79,7 +79,10 @@
 												</div>
 												<div class="form-group">
 													<label>Nomor Telepon</label>
-													<input type="tel" value="{{ old('nomor_telepon', $row->nomor_telepon) }}" name="nomor_telepon" class="form-control" maxlength="50">
+													<input type="tel" value="{{ old('nomor_telepon', $row->nomor_telepon) }}" name="nomor_telepon" class="form-control" maxlength="50" {{ $canUpdatePhone ? '' : 'readonly' }}>
+													@if(!$canUpdatePhone)
+														<p class="text-muted">Nomor telepon tidak dapat diubah saat ini.</p>
+													@endif
 													@if($errors->has('nomor_telepon'))
 														<div class="box-body text-danger">{{ $errors->first('nomor_telepon') }}</div>
 													@endif

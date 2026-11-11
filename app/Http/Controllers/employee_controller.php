@@ -1497,6 +1497,7 @@ class employee_controller extends Controller
     function updateLeader($id){
         $tb_department=DB::table('tb_departments')->where('isDelete',0)->get();
         $tb_position=DB::table('tb_positions')->get();
+        $canUpdatePhone = $this->employeePhoneUpdatesEnabled();
         $leader_name='';
         $tb_employee=DB::table('tb_employees')
         ->leftjoin('tb_departments','tb_departments.id','=','tb_employees.dept_id')
@@ -1528,7 +1529,7 @@ class employee_controller extends Controller
         
         $koneksi='OK';
 
-        return view('page/user/m_employee/leader_update',['tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_cost_center'=>$tb_cost_center,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'leader_name'=>$leader_name,'menu'=>'leader']);
+        return view('page/user/m_employee/leader_update',['tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_cost_center'=>$tb_cost_center,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'leader_name'=>$leader_name,'canUpdatePhone'=>$canUpdatePhone,'menu'=>'leader']);
     }
     function updateData($id){
         $tb_department=tb_department::where('isDelete',0)->get();
@@ -1566,29 +1567,35 @@ class employee_controller extends Controller
         return view('page/admin/m_employee/employee_update',['data'=>$data,'tb_employee_family'=>$tb_employee_family,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_department'=>$tb_department,'tb_position'=>$tb_position,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee']);
     }
     function saveData(Request $data){
-        $validated = $data->validate([
+        $canUpdatePhone = $this->employeePhoneUpdatesEnabled();
+        $rules = [
             'id' => 'required|integer|exists:tb_employees,id',
-            'nomor_telepon' => 'present|nullable|string|max:50',
-        ]);
+        ];
+        if ($canUpdatePhone) {
+            $rules['nomor_telepon'] = 'present|nullable|string|max:50';
+        }
+        $validated = $data->validate($rules);
 
-        DB::transaction(function () use ($data, $validated) {
+        DB::transaction(function () use ($data, $validated, $canUpdatePhone) {
             $simpan = DB::table('tb_employees')->where('id', $validated['id'])->update([
                 'leader_id' => $data->leader_id,
                 'cc_code' => $data->cc_code,
             ]);
 
-            $employeeDetail = DB::table('tb_employee_detail')
-                ->where('id_employee', $validated['id'])
-                ->first(['id']);
-            if ($employeeDetail) {
-                DB::table('tb_employee_detail')
-                    ->where('id', $employeeDetail->id)
-                    ->update(['nomor_telepon' => $validated['nomor_telepon']]);
-            } else {
-                DB::table('tb_employee_detail')->insert([
-                    'id_employee' => $validated['id'],
-                    'nomor_telepon' => $validated['nomor_telepon'],
-                ]);
+            if ($canUpdatePhone) {
+                $employeeDetail = DB::table('tb_employee_detail')
+                    ->where('id_employee', $validated['id'])
+                    ->first(['id']);
+                if ($employeeDetail) {
+                    DB::table('tb_employee_detail')
+                        ->where('id', $employeeDetail->id)
+                        ->update(['nomor_telepon' => $validated['nomor_telepon']]);
+                } else {
+                    DB::table('tb_employee_detail')->insert([
+                        'id_employee' => $validated['id'],
+                        'nomor_telepon' => $validated['nomor_telepon'],
+                    ]);
+                }
             }
 
             if ($simpan) {
@@ -1628,6 +1635,19 @@ class employee_controller extends Controller
 
         return redirect('/Leader/')->with('success', 'Data karyawan berhasil diperbarui.');
     }
+
+    private function employeePhoneUpdatesEnabled(): bool
+    {
+        return DB::table('tb_utilities')
+                ->where('id', 27)
+                ->where('status', '1')
+                ->exists()
+            || DB::table('tb_utilities')
+                ->where('id', 28)
+                ->where('status', '1')
+                ->exists();
+    }
+
     function access_point(){
         $tb_access_point=DB::table('tb_area_master')->where('is_active','1')->orderby('ap','asc')->orderby('plant','asc')->get();
         return view('page/user/m_employee/access_point',['menu'=>'employees','tb_access_point'=>$tb_access_point,'menu'=>'access_point']);

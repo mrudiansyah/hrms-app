@@ -80,7 +80,10 @@
 												</div>
 												<div class="form-group">
 													<label>Nomor Telepon</label>
-													<input type="tel" value="<?php echo e(old('nomor_telepon', $row->nomor_telepon)); ?>" name="nomor_telepon" class="form-control" maxlength="50">
+													<input type="tel" value="<?php echo e(old('nomor_telepon', $row->nomor_telepon)); ?>" name="nomor_telepon" class="form-control" maxlength="50" <?php echo e($canUpdatePhone ? '' : 'readonly'); ?>>
+													<?php if(!$canUpdatePhone): ?>
+														<p class="text-muted">Nomor telepon tidak dapat diubah saat ini.</p>
+													<?php endif; ?>
 													<?php if($errors->has('nomor_telepon')): ?>
 														<div class="box-body text-danger"><?php echo e($errors->first('nomor_telepon')); ?></div>
 													<?php endif; ?>

@@ -1485,6 +1485,10 @@ class employee_controller extends Controller
                 ->select('email_address')
                 ->whereColumn('tb_emails.id_employee', 'tb_employees.id')
                 ->limit(1),
+            'nomor_telepon' => DB::table('tb_employee_detail')
+                ->select('nomor_telepon')
+                ->whereColumn('tb_employee_detail.id_employee', 'tb_employees.id')
+                ->limit(1),
         ])->orderby('tb_statuses.finish_contract','asc')->get();
         //return $tb_employee;
         $last_update=DB::table('tb_employees')->max('updated_at');

@@ -30,6 +30,7 @@
 							<th>Segment</th>
 							<th>Position</th>
 							<th>Email Address</th>
+							<th>Nomor Telepon</th>
 							<th>Direct leader</th>
 						</tr>
 					</thead>
@@ -43,6 +44,7 @@
 								<td title="{{$dt->cc_code}}">{{$dt->segment_name}}</td>
 								<td>{{$dt->position_name}}</td>
 								<td>{{$dt->email_address ?? '-'}}</td>
+								<td>{{$dt->nomor_telepon ?? '-'}}</td>
 								<td>
 									{{$dt->leader_name}}
 									<div class="pull-right">

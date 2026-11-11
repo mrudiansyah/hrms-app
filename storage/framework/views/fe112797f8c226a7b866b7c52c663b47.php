@@ -30,6 +30,7 @@
 							<th>Segment</th>
 							<th>Position</th>
 							<th>Email Address</th>
+							<th>Nomor Telepon</th>
 							<th>Direct leader</th>
 						</tr>
 					</thead>
@@ -43,6 +44,7 @@
 								<td title="<?php echo e($dt->cc_code); ?>"><?php echo e($dt->segment_name); ?></td>
 								<td><?php echo e($dt->position_name); ?></td>
 								<td><?php echo e($dt->email_address ?? '-'); ?></td>
+								<td><?php echo e($dt->nomor_telepon ?? '-'); ?></td>
 								<td>
 									<?php echo e($dt->leader_name); ?>
 

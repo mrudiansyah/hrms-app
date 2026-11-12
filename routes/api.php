@@ -45,6 +45,7 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('mobile.token')->group(function () {
         Route::get('/profile', [MobileAuthController::class, 'profile']);
         Route::post('/logout', [MobileAuthController::class, 'logout']);
+        Route::post('/activity', [MobileAuthController::class, 'activity']);
         Route::get('/attendance', [MobileAttendanceController::class, 'index']);
         Route::post('/attendance', [MobileAttendanceController::class, 'store'])->middleware('throttle:10,1');
         Route::get('/inside-checktime', [MobileInsideChecktimeController::class, 'index']);

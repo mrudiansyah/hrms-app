@@ -246,6 +246,85 @@
 				</div>
 			</div>
 		</div>
+		<div class="box box-primary">
+			<div class="box-header">
+				<i class="fa fa-tags"></i>
+				<h3 class="box-title">Ukuran Seragam <?php echo e($confirmationPeriod); ?></h3>
+				<div class="box-tools pull-right">
+					<button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#uniform-size-guide">
+						<i class="fa fa-info-circle"></i> Panduan Memilih Ukuran
+					</button>
+				</div>
+			</div>
+			<form action="/Profile/SaveUniform" method="post">
+				<?php echo csrf_field(); ?>
+				<div class="box-body">
+					<p>Pilih ukuran seragam yang sesuai. Data ini wajib dilengkapi sebelum konfirmasi profil.</p>
+					<div class="row">
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="ukuran-baju">Ukuran Baju</label>
+								<select id="ukuran-baju" name="ukuran_baju" class="form-control" required>
+									<option value="">Pilih ukuran baju</option>
+									<?php $__currentLoopData = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($size); ?>" <?php if(old('ukuran_baju', $tb_uniform->ukuran_baju ?? '') === $size): echo 'selected'; endif; ?>><?php echo e($size); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+								</select>
+								<?php $__errorArgs = ['ukuran_baju'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><span class="text-danger"><?php echo e($message); ?></span><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="ukuran-celana">Ukuran Celana</label>
+								<select id="ukuran-celana" name="ukuran_celana" class="form-control" required>
+									<option value="">Pilih ukuran celana</option>
+									<?php $__currentLoopData = ['28', '30', '32', '34', '36', '38', '40', '42', '44']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($size); ?>" <?php if(old('ukuran_celana', $tb_uniform->ukuran_celana ?? '') === $size): echo 'selected'; endif; ?>><?php echo e($size); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+								</select>
+								<?php $__errorArgs = ['ukuran_celana'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><span class="text-danger"><?php echo e($message); ?></span><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="ukuran-sepatu">Ukuran Sepatu</label>
+								<select id="ukuran-sepatu" name="ukuran_sepatu" class="form-control" required>
+									<option value="">Pilih ukuran sepatu</option>
+									<?php $__currentLoopData = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $size): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+										<option value="<?php echo e($size); ?>" <?php if(old('ukuran_sepatu', $tb_uniform->ukuran_sepatu ?? '') === $size): echo 'selected'; endif; ?>><?php echo e($size); ?></option>
+									<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+								</select>
+								<?php $__errorArgs = ['ukuran_sepatu'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><span class="text-danger"><?php echo e($message); ?></span><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="box-footer text-right">
+					<button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Simpan Ukuran Seragam</button>
+				</div>
+			</form>
+		</div>
 		<div class="profile-confirmation">
 			<div>
 				<h3><i class="fa fa-check-circle"></i> Konfirmasi data profil <?php echo e($confirmationPeriod); ?></h3>
@@ -1213,6 +1292,27 @@ unset($__errorArgs, $__bag); ?>
 			<!-- /.modal-content -->
 		</div>
 		<!-- /.modal-dialog -->
+	</div>
+	<div class="modal fade" id="uniform-size-guide" tabindex="-1" role="dialog" aria-labelledby="uniform-size-guide-title">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="uniform-size-guide-title">Panduan Memilih Ukuran Seragam</h4>
+				</div>
+				<div class="modal-body">
+					<ul>
+						<li><strong>Baju:</strong> ukur lingkar dada pada bagian terlebar dengan pita ukur tetap mendatar. Pilih ukuran yang memberi ruang gerak nyaman.</li>
+						<li><strong>Celana:</strong> ukur lingkar pinggang pada posisi celana biasa dikenakan. Pastikan pita ukur tidak terlalu ketat.</li>
+						<li><strong>Sepatu:</strong> ukur panjang telapak kaki dari tumit hingga ujung jari terpanjang dalam posisi berdiri, lalu pilih ukuran sepatu yang paling sesuai.</li>
+					</ul>
+					<p>Jika ragu, ukur pakaian dan sepatu yang saat ini terasa nyaman sebagai pembanding.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+				</div>
+			</div>
+		</div>
 	</div>
 
     <?php if($message = Session::get('success')): ?>

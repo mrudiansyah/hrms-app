@@ -1352,6 +1352,10 @@ class ess_controller extends Controller
         $tb_employee_family=DB::table('tb_employee_family')->where([['id_employee',$id]])->where('status','1')->get();
         //return $tb_employee_family;
         $confirmationPeriod = now()->format('Y');
+        $tb_uniform = DB::table('tb_uniforms')
+            ->where('id_employee', $id)
+            ->where('periode', $confirmationPeriod)
+            ->first();
         $confirmationIssues = $this->profileConfirmationIssues((int) $id);
         $alreadyConfirmed = DB::table('tb_refresh_data')
             ->where('id_employee', $id)
@@ -1371,7 +1375,7 @@ class ess_controller extends Controller
             ->get();
         
 
-    return view('page_ess/profile_update',['tb_employee_family'=>$tb_employee_family,'tb_domiciles'=>$tb_domiciles,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee','ess_leave'=>$ess_leave,'tb_provinsi'=>$tb_provinsi,'confirmationIssues'=>$confirmationIssues,'confirmationPeriod'=>$confirmationPeriod,'alreadyConfirmed'=>$alreadyConfirmed,'juduls'=>'Profile Update']);
+    return view('page_ess/profile_update',['tb_employee_family'=>$tb_employee_family,'tb_domiciles'=>$tb_domiciles,'tb_address_darurat'=>$tb_address_darurat,'tb_detail'=>$tb_detail,'tb_bagian'=>$tb_bagian,'PIN'=>$PIN,'koneksi'=>$koneksi,'tb_admin'=>$tb_admin,'tb_salary'=>$tb_salary,'tb_employee'=>$tb_employee,'tb_address'=>$tb_address,'leader_name'=>$leader_name,'tb_education'=>$tb_education,'tb_experience'=>$tb_experience,'tb_skill'=>$tb_skill,'tb_email'=>$tb_email,'tb_uniform'=>$tb_uniform,'id_employee'=>$id,'nama_karyawan'=>$nama_karyawan,'NIK'=>$NIK,'menu'=>'employee','ess_leave'=>$ess_leave,'tb_provinsi'=>$tb_provinsi,'confirmationIssues'=>$confirmationIssues,'confirmationPeriod'=>$confirmationPeriod,'alreadyConfirmed'=>$alreadyConfirmed,'juduls'=>'Profile Update']);
     }
 
     public function updateProfileEmail(Request $request)
@@ -1437,6 +1441,14 @@ class ess_controller extends Controller
             }
         }
 
+        $uniform = DB::table('tb_uniforms')
+            ->where('id_employee', $employeeId)
+            ->where('periode', now()->format('Y'))
+            ->first();
+        if (!$uniform || !$uniform->ukuran_baju || !$uniform->ukuran_celana || !$uniform->ukuran_sepatu) {
+            $issues[] = 'Lengkapi ukuran seragam (baju, celana, dan sepatu)';
+        }
+
         $detail = DB::table('tb_employee_detail')
             ->where('id_employee', $employeeId)
             ->first();
@@ -1457,6 +1469,46 @@ class ess_controller extends Controller
         }
 
         return $issues;
+    }
+
+    public function saveProfileUniform(Request $request)
+    {
+        $validated = $request->validate([
+            'ukuran_baju' => ['required', 'in:XS,S,M,L,XL,XXL,XXXL'],
+            'ukuran_celana' => ['required', 'in:28,30,32,34,36,38,40,42,44'],
+            'ukuran_sepatu' => ['required', 'in:36,37,38,39,40,41,42,43,44,45,46'],
+        ]);
+        $employeeId = $this->profileEmployeeId();
+        $period = now()->format('Y');
+        $updatedBy = mb_substr((string) Auth::user()->name, 0, 50);
+
+        DB::transaction(function () use ($validated, $employeeId, $period, $updatedBy) {
+            $uniform = DB::table('tb_uniforms')
+                ->where('id_employee', $employeeId)
+                ->where('periode', $period)
+                ->first();
+            $values = [
+                'ukuran_baju' => $validated['ukuran_baju'],
+                'ukuran_celana' => $validated['ukuran_celana'],
+                'ukuran_sepatu' => $validated['ukuran_sepatu'],
+                'updated_at' => now(),
+                'updated_by' => $updatedBy,
+            ];
+
+            if ($uniform) {
+                DB::table('tb_uniforms')
+                    ->where('id', $uniform->id)
+                    ->update($values);
+            } else {
+                DB::table('tb_uniforms')->insert(array_merge($values, [
+                    'periode' => $period,
+                    'id_employee' => $employeeId,
+                    'created_at' => now(),
+                ]));
+            }
+        });
+
+        return redirect('/ProfileEdit')->with('success', 'Ukuran seragam berhasil disimpan.');
     }
 
     public function confirmProfileData()

@@ -52,7 +52,7 @@ class AuthenticateMobileToken
         $now = now();
         $token->forceFill([
             'last_used_at' => $now,
-            'expires_at' => $now->copy()->addDays(30),
+            'expires_at' => $now->copy()->addMinutes(30),
         ])->save();
         $request->attributes->set('mobile_api_token', $token);
         $request->setUserResolver(static fn () => $token->user);

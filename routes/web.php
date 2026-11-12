@@ -156,6 +156,7 @@ Route::post('/Profile/UpdateEmail', [App\Http\Controllers\ess_controller::class,
 Route::get('/AuditLogs', [App\Http\Controllers\AuditLogController::class, 'index']);
 Route::get('/ProfileConfirmations', [App\Http\Controllers\ProfileRefreshDataController::class, 'index']);
 Route::post('/Profile/SaveDetail',[App\Http\Controllers\ess_controller::class,'saveDetail']);
+Route::post('/Profile/SaveUniform', [App\Http\Controllers\ess_controller::class, 'saveProfileUniform']);
 Route::post('/Profile/ConfirmData',[App\Http\Controllers\ess_controller::class,'confirmProfileData']);
 Route::get('/Profile/Delete/{id}/{tabel}',[App\Http\Controllers\ess_controller::class,'selectDelete']);
 Route::post('/Profile/SaveAddress', [App\Http\Controllers\ess_controller::class, 'saveProfileAddress']);

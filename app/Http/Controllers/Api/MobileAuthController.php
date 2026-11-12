@@ -14,15 +14,27 @@ class MobileAuthController extends Controller
 {
     public function login(Request $request)
     {
+        $request->merge([
+            'login' => $request->input('login', $request->input('email')),
+        ]);
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'login' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $user = User::where('email', $credentials['login'])->first();
+        if (!$user) {
+            $employeeEmail = DB::table('tb_emails')
+                ->join('tb_employees', 'tb_employees.id', '=', 'tb_emails.id_employee')
+                ->where('tb_employees.NIK', $credentials['login'])
+                ->value('tb_emails.email_address');
+            if ($employeeEmail) {
+                $user = User::where('email', $employeeEmail)->first();
+            }
+        }
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            return response()->json(['message' => 'Email atau password salah.'], 401);
+            return response()->json(['message' => 'Email/NIK atau password salah.'], 401);
         }
 
         if (!$user->hasVerifiedEmail()) {
@@ -45,7 +57,7 @@ class MobileAuthController extends Controller
         }
 
         $plainTextToken = Str::random(80);
-        $expiresAt = now()->addDays(30);
+        $expiresAt = now()->addMinutes(30);
 
         MobileApiToken::create([
             'user_id' => $user->id,
@@ -114,5 +126,10 @@ class MobileAuthController extends Controller
         $request->attributes->get('mobile_api_token')->delete();
 
         return response()->json(['message' => 'Berhasil logout.']);
+    }
+
+    public function activity()
+    {
+        return response()->json(['active' => true]);
     }
 }

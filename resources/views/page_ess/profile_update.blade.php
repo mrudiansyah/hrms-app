@@ -266,7 +266,7 @@
 								<label for="ukuran-baju">Ukuran Baju</label>
 								<select id="ukuran-baju" name="ukuran_baju" class="form-control" required>
 									<option value="">Pilih ukuran baju</option>
-									@foreach(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as $size)
+									@foreach(['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', '6XL', '7XL'] as $size)
 										<option value="{{ $size }}" @selected(old('ukuran_baju', $tb_uniform->ukuran_baju ?? '') === $size)>{{ $size }}</option>
 									@endforeach
 								</select>
@@ -278,7 +278,7 @@
 								<label for="ukuran-celana">Ukuran Celana</label>
 								<select id="ukuran-celana" name="ukuran_celana" class="form-control" required>
 									<option value="">Pilih ukuran celana</option>
-									@foreach(['28', '30', '32', '34', '36', '38', '40', '42', '44'] as $size)
+									@foreach(['27','28', '30', '32', '34', '36', '38', '40', '42', '44', '45'] as $size)
 										<option value="{{ $size }}" @selected(old('ukuran_celana', $tb_uniform->ukuran_celana ?? '') === $size)>{{ $size }}</option>
 									@endforeach
 								</select>

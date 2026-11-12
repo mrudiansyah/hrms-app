@@ -89,18 +89,16 @@ class ApprovalSPLController extends Controller
         })
         ->count();
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar=CAL_GREGORIAN;
         $periode = $request->input('periode');
         if (empty($periode)) {
             $periode=date('Y-m');
             $periode_teks=date('F Y');
             $thn=date('Y',strtotime($periode.'-01'));
-            $bln=date('m',strtotime($periode.'-01'));
-            $hariakhir=cal_days_in_month($kalendar,$bln,$thn);        
-            $Tglawal=date('Y-m-d',strtotime($thn.'-'.$bln.'-01'));
-            $Tglakhir=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$hariakhir));
-            $total_sumot=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','>=','1')->where('status','<','90')->sum('hours_act');
-            $total_ammount=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','>=','1')->where('status','<','90')->sum('ammount');
+            $periode_timestamp=strtotime($periode.'-01');
+            $Tglawal=date('Y-m-25',strtotime('-1 month',$periode_timestamp));
+            $Tglakhir=date('Y-m-24',$periode_timestamp);
+            $total_sumot=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','<','90')->sum('hours_act');
+            $total_ammount=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','<','90')->sum('ammount');
             $sales_row = DB::table('tb_overtime_sales')->where('periode', $periode)->first();
             $last_sales = $sales_row
                 ? $sales_row->amount_sales
@@ -295,7 +293,6 @@ class ApprovalSPLController extends Controller
 
     public function ChartApproval(Request $request){
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar=CAL_GREGORIAN;
         $periode = $request->periode;
         $paretto = $request->paretto;
         if($periode == 0 ){
@@ -304,8 +301,6 @@ class ApprovalSPLController extends Controller
         }
         $periode_teks=''; 
 
-            $thn=date('Y',strtotime($periode.'-01'));
-            $bln=date('m',strtotime($periode.'-01'));
         $email=Auth::user()->email;
         $tb_email=DB::table('tb_emails')->where('email_address',$email)->get();
         $id_employee='';
@@ -314,13 +309,9 @@ class ApprovalSPLController extends Controller
         }
 
 
-        $thn=date('Y',strtotime($periode.'-01'));
-        $bln=date('m',strtotime($periode.'-01'));
-        
-        $hariakhir=cal_days_in_month($kalendar,$bln,$thn);
-
-        $Tglawal=date('Y-m-d',strtotime($thn.'-'.$bln.'-01'));
-        $Tglakhir=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$hariakhir));
+        $periode_timestamp=strtotime($periode.'-01');
+        $Tglawal=date('Y-m-25',strtotime('-1 month',$periode_timestamp));
+        $Tglakhir=date('Y-m-24',$periode_timestamp);
         if($paretto > 0 ){
             $tb_sumot_detail= DB::select("SELECT id,dept_code,
             (select sum(ammount) from tb_overtime_details left join tb_overtimes on tb_overtime_details.id_ot=tb_overtimes.id where tb_overtimes.dept_id=tb_departments.id and tb_overtime_details.date_on>='$Tglawal' and tb_overtime_details.date_on<='$Tglakhir' and tb_overtime_details.status<'90')as total_act,
@@ -329,7 +320,7 @@ class ApprovalSPLController extends Controller
             (select TOP 1 tb_overtime_target.ammount from tb_overtime_target left join tb_overtimes on tb_overtime_target.dept_id=tb_overtimes.dept_id where tb_overtime_target.dept_id=tb_departments.id and tb_overtime_target.periode='$periode')as ammount_target
             FROM tb_departments
             where EXISTS(select * from tb_admins where tb_admins.dept_id=tb_departments.id and tb_admins.id_employee='$id_employee') order by total_act desc");
-        $total_sumot=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','>=','1')->where('status','<','90')->sum('hours_act');
+        $total_sumot=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','<','90')->sum('hours_act');
         $data['tb_sumot_detail'] = $tb_sumot_detail;
         $data['total_sumot'] = $total_sumot;
         $data['periode_teks'] = $periode_teks;

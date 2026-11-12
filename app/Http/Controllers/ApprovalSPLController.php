@@ -90,8 +90,8 @@ class ApprovalSPLController extends Controller
         ->count();
         date_default_timezone_set("Asia/Jakarta");
         $kalendar=CAL_GREGORIAN;
-        $periode = $request->periode;
-        if($periode == 0 ){
+        $periode = $request->input('periode');
+        if (empty($periode)) {
             $periode=date('Y-m');
             $periode_teks=date('F Y');
             $thn=date('Y',strtotime($periode.'-01'));
@@ -101,23 +101,22 @@ class ApprovalSPLController extends Controller
             $Tglakhir=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$hariakhir));
             $total_sumot=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','>=','1')->where('status','<','90')->sum('hours_act');
             $total_ammount=DB::table('tb_overtime_details')->where('date_on','>=',$Tglawal)->where('date_on','<=',$Tglakhir)->where('status','>=','1')->where('status','<','90')->sum('ammount');
-            $last=DB::table('tb_overtime_sales')->where('periode',$periode)->get();
-            $last_sales = 0;
-            $skip=0;
-            if($skip==0){
-                foreach($last as $dt_last){
-                    $last_sales= $dt_last->amount_sales;
-                    $last_target=$last_sales/100;
-                    $act_persentase=$last_sales > 0 ? round($total_ammount / $last_sales * 100, 2) : 0;
-                    DB::table('tb_overtime_sales')->where('periode',$periode)->update([
-                        'amount_sales'=>$last_sales,
-                        'amount_overtime'=>$total_ammount ?? 0,
-                        'target_persentase'=>1,
-                        'aktual_persentase'=>$act_persentase,
-                        'target_overtime'=>$last_target
-                    ]);
-                }
-            }
+            $sales_row = DB::table('tb_overtime_sales')->where('periode', $periode)->first();
+            $last_sales = $sales_row
+                ? $sales_row->amount_sales
+                : (DB::table('tb_overtime_sales')->orderByDesc('periode')->value('amount_sales') ?? 0);
+            DB::table('tb_overtime_sales')->updateOrInsert(
+                ['periode' => $periode],
+                ['amount_sales' => $last_sales, 'tahun' => $thn]
+            );
+            $last_target = $last_sales / 100;
+            $act_persentase = $last_sales > 0 ? round($total_ammount / $last_sales * 100, 2) : 0;
+            DB::table('tb_overtime_sales')->where('periode', $periode)->update([
+                'amount_overtime' => $total_ammount ?? 0,
+                'target_persentase' => 1,
+                'aktual_persentase' => $act_persentase,
+                'target_overtime' => $last_target
+            ]);
             $data['menu'] = 'overtime';
             $data['submenu'] = 'approval';
             $data['periode'] = $periode;
@@ -488,7 +487,13 @@ class ApprovalSPLController extends Controller
                   echo json_encode($json_data);
     }
     public function updateSales(Request $data){
-        $simpan=DB::table('tb_overtime_sales')->where('periode',$data->periodesales)->update(['amount_sales'=>$data->salesammount]);
+        $simpan = DB::table('tb_overtime_sales')->updateOrInsert(
+            ['periode' => $data->periodesales],
+            [
+                'amount_sales' => $data->salesammount,
+                'tahun' => date('Y', strtotime($data->periodesales . '-01')),
+            ]
+        );
         if($simpan){
             $dt['amount_sales'] = number_format($data->salesammount);
             $dt['periode'] = $data->periodesales;

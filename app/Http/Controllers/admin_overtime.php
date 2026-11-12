@@ -617,7 +617,13 @@ class admin_overtime extends Controller
     }
     function updateSales(Request $data)
     {
-        $simpan = DB::table('tb_overtime_sales')->where('periode', $data->periodesales)->update(['amount_sales' => $data->salesammount]);
+        $simpan = DB::table('tb_overtime_sales')->updateOrInsert(
+            ['periode' => $data->periodesales],
+            [
+                'amount_sales' => $data->salesammount,
+                'tahun' => date('Y', strtotime($data->periodesales . '-01')),
+            ]
+        );
         if ($simpan)
             return redirect()->back()->with(['success' => 'Sales Amount Updated']);
     }

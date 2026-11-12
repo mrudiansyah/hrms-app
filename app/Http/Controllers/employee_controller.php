@@ -253,7 +253,6 @@ class employee_controller extends Controller
             $tgl2 = new DateTime($Tgl);
             $diffdays = $tgl2->diff($tgl1)->days;
             $cycle = $dt->cycle_day;
-            $diffcycle = Floor($diffdays / $cycle);
             $modcycle = $diffdays % $cycle;
             $modcycle++;
 

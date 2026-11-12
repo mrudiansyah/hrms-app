@@ -501,13 +501,11 @@
                                                 SPL</a></li>
                                     <?php endif; ?>
                                     <?php if(request()->user()->hasRole('spl_approval')): ?>
-                                        <li><a href="/ApprovalSPL"><i class="fa fa-check-square-o text-warning"></i> Approval
-                                                SPL</a></li>
-                                        <li><a href="/LegalizeSPL"><i class="fa fa-gavel text-warning"></i> Legalize SPL</a></li>
+                                        <li><a href="/ApprovalSPL"><i class="fa fa-check-square-o text-warning"></i> Approval SPL</a></li>
                                     <?php endif; ?>
                                     <?php if(request()->user()->hasRole('spl_verification')): ?>
-                                        <li><a href="/Admin/Overtime/Verifications/0"><i class="fa fa-shield text-warning"></i>
-                                                Verification SPL</a></li>
+                                        <li><a href="/LegalizeSPL"><i class="fa fa-gavel text-warning"></i> Legalize SPL</a></li>
+                                        <li><a href="/Admin/Overtime/Verifications/0"><i class="fa fa-shield text-warning"></i>Verification SPL</a></li>
                                     <?php endif; ?>
                                 </ul>
                             </li>

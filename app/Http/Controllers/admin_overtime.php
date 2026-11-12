@@ -556,14 +556,11 @@ class admin_overtime extends Controller
     function headOT($periode)
     {
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar = CAL_GREGORIAN;
         if ($periode == 0)
             $periode = date('Y-m');
-        $thn = date('Y', strtotime($periode . '-01'));
-        $bln = date('m', strtotime($periode . '-01'));
-        $hariakhir = cal_days_in_month($kalendar, $bln, $thn);
-        $periode_awal = date('Y-m-d', strtotime($thn . '-' . $bln . '-01'));
-        $periode_akhir = date('Y-m-d', strtotime($thn . '-' . $bln . '-' . $hariakhir));
+        $periode_timestamp = strtotime($periode . '-01');
+        $periode_awal = date('Y-m-25', strtotime('-1 month', $periode_timestamp));
+        $periode_akhir = date('Y-m-24', $periode_timestamp);
 
         $admin = Auth::user()->name;
         $tb_overtime_plan = DB::table('tb_overtimes')
@@ -602,6 +599,7 @@ class admin_overtime extends Controller
                     ->where('tb_overtime_details.sign_after', '1');
             })
             ->where('tb_overtimes.status', '1')
+            ->where('tb_overtimes.isDelete', '0')
             ->where('ot_date', '>=', $periode_awal)
             ->where('ot_date', '<=', $periode_akhir)
             ->where('tb_overtimes.admin', $admin);

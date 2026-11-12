@@ -373,14 +373,12 @@ class ApprovalSPLController extends Controller
             ->all();
         $periode = $request->periode;
         date_default_timezone_set("Asia/Jakarta");
-        $kalendar=CAL_GREGORIAN;
-        if($periode==0){$periode=date('Y-m');$periode_teks=date('F Y');}
-        else $periode_teks=date('F Y',strtotime($periode.'-01'));
-        $thn=date('Y',strtotime($periode.'-01'));
-        $bln=date('m',strtotime($periode.'-01'));
-        $hariakhir=cal_days_in_month($kalendar,$bln,$thn);
-        $periode_awal=date('Y-m-d',strtotime($thn.'-'.$bln.'-01'));
-        $periode_akhir=date('Y-m-d',strtotime($thn.'-'.$bln.'-'.$hariakhir));
+        if ($periode == 0) {
+            $periode = date('Y-m');
+        }
+        $periode_timestamp = strtotime($periode . '-01');
+        $periode_awal = date('Y-m-25', strtotime('-1 month', $periode_timestamp));
+        $periode_akhir = date('Y-m-24', $periode_timestamp);
 
         $columns = array( 
             0 =>'',
@@ -401,19 +399,28 @@ class ApprovalSPLController extends Controller
             return DB::table('tb_overtimes')
                 ->leftjoin('tb_departments','tb_departments.id','=','tb_overtimes.dept_id')
                 ->where('tb_overtimes.status', '1')
-                ->where('tb_overtimes.status_paid', '1')
+                ->where(function ($query) use ($employeeIds) {
+                    $query->where(function ($query) use ($employeeIds) {
+                        $query->whereIn('tb_overtimes.diperintah', $employeeIds)
+                            ->where('tb_overtimes.status_diperintah', '1');
+                    })
+                    ->orWhere(function ($query) use ($employeeIds) {
+                        $query->whereIn('tb_overtimes.disetujui', $employeeIds)
+                            ->where('tb_overtimes.status_disetujui', '1');
+                    })
+                    ->orWhere(function ($query) use ($employeeIds) {
+                        $query->whereIn('tb_overtimes.diketahui', $employeeIds)
+                            ->where('tb_overtimes.status_diketahui', '1');
+                    })
+                    ->orWhere(function ($query) use ($employeeIds) {
+                        $query->whereIn('tb_overtimes.dicatat', $employeeIds)
+                            ->where('tb_overtimes.status_dicatat', '1');
+                    });
+                })
                 ->where('tb_departments.isTrial', '1')
                 ->whereBetween('tb_overtimes.ot_date', [$periode_awal, $periode_akhir])
                 ->where('tb_overtimes.isDelete', 0)
-                ->where(function ($query) use ($employeeIds) {
-                    $query->whereIn('tb_overtimes.diperintah', $employeeIds)
-                        ->orWhereIn('tb_overtimes.disetujui', $employeeIds)
-                        ->orWhereIn('tb_overtimes.diketahui', $employeeIds)
-                        ->orWhereIn('tb_overtimes.dicatat', $employeeIds)
-                        ->orWhereIn('tb_overtimes.approve', $employeeIds)
-                        ->orWhereIn('tb_overtimes.paid', $employeeIds);
-                })
-                ->select('tb_overtimes.*');
+                ->select('tb_overtimes.*', 'tb_departments.dept_name');
         };
         $tb_overtime = $buildQuery();
         $totalData = (clone $tb_overtime)->count();
@@ -434,7 +441,7 @@ class ApprovalSPLController extends Controller
             $search = $request->input('search.value');  
             $filteredQuery = (clone $tb_overtime)
             ->where(function ($query) use ($search) {
-                $query->where('tb_overtimes.dept_name','LIKE',"%$search%")
+                $query->where('tb_departments.dept_name','LIKE',"%$search%")
                     ->orWhere('tb_overtimes.ot_date','LIKE',"%$search%")
                     ->orWhere('tb_overtimes.id_overtime','LIKE',"%$search%");
             });

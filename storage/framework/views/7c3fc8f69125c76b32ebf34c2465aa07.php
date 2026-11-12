@@ -1,3 +1,4 @@
+<?php ($menu = $menu ?? null); ?>
 <aside class="main-sidebar">
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar">
@@ -21,6 +22,9 @@
                 echo 'active'; ?>">
                         <a href="/Dashboard"><i class="fa fa-dashboard text-light-blue"></i> <span>Dashboard</span></a>
                     </li>
+            <?php endif; ?>
+            <?php if(request()->user()->hasRole('ai_chat')): ?>
+                <li><a href="/AIChat"><i class="fa fa-comments text-light-blue"></i> <span>AI Chat</span></a></li>
             <?php endif; ?>
 
             <!-- USER MANAGEMENT & ACCESS -->
@@ -62,6 +66,7 @@
                             <?php endif; ?>
                             <?php if(request()->user()->hasRole('root')): ?>
                                 <li><a href="/AuditLogs"><i class="fa fa-history"></i> <span>Audit Log</span></a></li>
+                                <li><a href="/AIChat/Settings"><i class="fa fa-database"></i> <span>AI Chat Data Access</span></a></li>
                                 <li><a href="/whatsapp"><i class="fa fa-whatsapp"></i> <span>Whatsapp Test</span></a></li>
                                 <li><a href="/functionality-test"><i class="fa fa-gears"></i> <span>Functionality Test</span></a></li>
                             <?php endif; ?>

@@ -30,4 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'ai_chat' => [
+        'base_url' => env('AI_CHAT_BASE_URL'),
+        'model' => env('AI_CHAT_MODEL'),
+    ],
+
 ];

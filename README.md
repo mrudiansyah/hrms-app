@@ -62,3 +62,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 Mobile slip summaries and PDF downloads are served under /api/mobile/slips and require the mobile.token bearer-token middleware. PDF downloads are limited to the requesting employee and published slips.
+
+## Private HRMS AI Chat
+
+The AI Chat feature uses an internal Ollama-compatible `/api/chat` endpoint. Set `AI_CHAT_BASE_URL` to the private service URL and `AI_CHAT_MODEL` to an installed model name; do not point this configuration at a public AI service. Run the database migrations, grant `ai_chat` to users who may chat, and use `/AIChat/Settings` as a `root` user to allow specific tables, columns, and row scopes. Tables and columns are denied until explicitly configured. The model never receives database credentials or SQL execution access; the Laravel backend validates and runs read-only, parameterized queries with a maximum result size of 50 rows.

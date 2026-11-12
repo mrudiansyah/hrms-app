@@ -30,5 +30,6 @@ class RolesSeeder extends Seeder
         DB::table('roles')->insert(['name' => 'contract']);
         DB::table('roles')->insert(['name' => 'changeday']);
         DB::table('roles')->insert(['name' => 'leave']);
+        DB::table('roles')->insert(['name' => 'ai_chat']);
     }
 }

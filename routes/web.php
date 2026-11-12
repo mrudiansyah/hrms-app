@@ -12,6 +12,12 @@ Route::get('/home', function () {
     return redirect('/Dashboard');
 });
 
+Route::get('/AIChat', [App\Http\Controllers\AiChatController::class, 'index']);
+Route::post('/AIChat/Ask', [App\Http\Controllers\AiChatController::class, 'ask']);
+Route::get('/AIChat/Settings', [App\Http\Controllers\AiChatController::class, 'settings']);
+Route::post('/AIChat/Settings', [App\Http\Controllers\AiChatController::class, 'saveSettings']);
+Route::post('/AIChat/Settings/Delete', [App\Http\Controllers\AiChatController::class, 'deleteSettings']);
+
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRoleController;

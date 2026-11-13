@@ -1727,74 +1727,73 @@ class contract_controller extends Controller
       $email=Auth::user()->email;
       $update=DB::table('tb_ksk')->where('periode',$periode)->update(['distribute_status'=>'1']);
       if($update){
-        $tb_ksk=DB::table('tb_ksk')
-        ->select(['tb_ksk.direct_id'])
-        ->groupby('tb_ksk.direct_id')
-        ->where('periode',$periode)
-        ->get();
+        // $tb_ksk=DB::table('tb_ksk')
+        // ->select(['tb_ksk.direct_id'])
+        // ->groupby('tb_ksk.direct_id')
+        // ->where('periode',$periode)
+        // ->get();
 
-        foreach($tb_ksk as $dt){
-          $tb_ksk_detail=DB::table('tb_ksk_detail')
-          ->leftjoin('tb_ksk','tb_ksk.no_ksk','=','tb_ksk_detail.no_ksk')
-          ->leftjoin('tb_departments','tb_departments.id','=','tb_ksk.dept_id')
-          ->leftjoin('tb_employees','tb_employees.id','=','tb_ksk_detail.id_employee')
-          ->leftjoin('tb_employees as tb_employees1','tb_employees1.id','tb_ksk.approval1')
-          ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','tb_ksk.approval2')
-          ->leftjoin('tb_employees as tb_employees3','tb_employees3.id','tb_ksk.approval3')
-          ->leftjoin('tb_employees as tb_employees4','tb_employees4.id','tb_ksk.approval4')
-          ->leftjoin('tb_employees as tb_employees5','tb_employees5.id','tb_ksk.approval5')
-          ->leftjoin('tb_employees as tb_employees6','tb_employees6.id','tb_ksk.approval6')
-          ->leftjoin('tb_employees as tb_employees7','tb_employees7.id','tb_ksk.legalize1')
-          ->leftjoin('tb_employees as tb_employees8','tb_employees8.id','tb_ksk.legalize2')
-          ->leftjoin('tb_employees as tb_employees9','tb_employees9.id','tb_ksk.legalize3')
-          ->leftjoin('tb_employees as tb_employees10','tb_employees10.id','tb_ksk.legalize4')
-          ->where('tb_ksk.direct_id',$dt->direct_id)
-          ->where('tb_ksk.periode',$periode)
-          ->select([
-            'tb_ksk_detail.*',
-            'tb_employees.NIK',
-            'tb_employees.employee_name',
-            'tb_departments.dept_code',
-            'tb_employees1.id as approval1',
-            'tb_employees2.id as approval2',
-            'tb_employees3.id as approval3',
-            'tb_employees4.id as approval4',
-            'tb_employees5.id as approval5',
-            'tb_employees6.id as approval6',
-            'tb_employees7.id as legalize1',
-            'tb_employees8.id as legalize2',
-            'tb_employees9.id as legalize3',
-            'tb_employees10.id as legalize4',
-            'tb_employees1.employee_name as approvalname1',
-            'tb_employees2.employee_name as approvalname2',
-            'tb_employees3.employee_name as approvalname3',
-            'tb_employees4.employee_name as approvalname4',
-            'tb_employees5.employee_name as approvalname5',
-            'tb_employees6.employee_name as approvalname6',
-            'tb_ksk.approval_status',
-            'tb_employees7.employee_name as legalizename1',
-            'tb_employees8.employee_name as legalizename2',
-            'tb_employees9.employee_name as legalizename3',
-            'tb_employees10.employee_name as legalizename4',
-          ])
-          ->orderby('no_ksk','asc')->get();
+        // foreach($tb_ksk as $dt){
+        //   $tb_ksk_detail=DB::table('tb_ksk_detail')
+        //   ->leftjoin('tb_ksk','tb_ksk.no_ksk','=','tb_ksk_detail.no_ksk')
+        //   ->leftjoin('tb_departments','tb_departments.id','=','tb_ksk.dept_id')
+        //   ->leftjoin('tb_employees','tb_employees.id','=','tb_ksk_detail.id_employee')
+        //   ->leftjoin('tb_employees as tb_employees1','tb_employees1.id','tb_ksk.approval1')
+        //   ->leftjoin('tb_employees as tb_employees2','tb_employees2.id','tb_ksk.approval2')
+        //   ->leftjoin('tb_employees as tb_employees3','tb_employees3.id','tb_ksk.approval3')
+        //   ->leftjoin('tb_employees as tb_employees4','tb_employees4.id','tb_ksk.approval4')
+        //   ->leftjoin('tb_employees as tb_employees5','tb_employees5.id','tb_ksk.approval5')
+        //   ->leftjoin('tb_employees as tb_employees6','tb_employees6.id','tb_ksk.approval6')
+        //   ->leftjoin('tb_employees as tb_employees7','tb_employees7.id','tb_ksk.legalize1')
+        //   ->leftjoin('tb_employees as tb_employees8','tb_employees8.id','tb_ksk.legalize2')
+        //   ->leftjoin('tb_employees as tb_employees9','tb_employees9.id','tb_ksk.legalize3')
+        //   ->leftjoin('tb_employees as tb_employees10','tb_employees10.id','tb_ksk.legalize4')
+        //   ->where('tb_ksk.direct_id',$dt->direct_id)
+        //   ->where('tb_ksk.periode',$periode)
+        //   ->select([
+        //     'tb_ksk_detail.*',
+        //     'tb_employees.NIK',
+        //     'tb_employees.employee_name',
+        //     'tb_departments.dept_code',
+        //     'tb_employees1.id as approval1',
+        //     'tb_employees2.id as approval2',
+        //     'tb_employees3.id as approval3',
+        //     'tb_employees4.id as approval4',
+        //     'tb_employees5.id as approval5',
+        //     'tb_employees6.id as approval6',
+        //     'tb_employees7.id as legalize1',
+        //     'tb_employees8.id as legalize2',
+        //     'tb_employees9.id as legalize3',
+        //     'tb_employees10.id as legalize4',
+        //     'tb_employees1.employee_name as approvalname1',
+        //     'tb_employees2.employee_name as approvalname2',
+        //     'tb_employees3.employee_name as approvalname3',
+        //     'tb_employees4.employee_name as approvalname4',
+        //     'tb_employees5.employee_name as approvalname5',
+        //     'tb_employees6.employee_name as approvalname6',
+        //     'tb_ksk.approval_status',
+        //     'tb_employees7.employee_name as legalizename1',
+        //     'tb_employees8.employee_name as legalizename2',
+        //     'tb_employees9.employee_name as legalizename3',
+        //     'tb_employees10.employee_name as legalizename4',
+        //   ])
+        //   ->orderby('no_ksk','asc')->get();
 
-          $judul="KSK ".$periode;
-          $tb_email=DB::table('tb_emails')
-          ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
-          ->where('id_employee',$dt->direct_id)->get(['tb_employees.*','tb_emails.email_address']);
-          foreach($tb_email as $dt2){
-            $tujuan=$dt2->email_address;
-            //$tujuan=$email;
-            $nama=$dt2->employee_name;
-            $kirim=Mail::to($tujuan)
-            ->cc($email)
-            ->bcc('cahyudin@summitadyawinsa.co.id')
-            ->queue(new ksk_distribute($tb_ksk_detail,$periode,$judul,$nama));
-            Log::info('Send Notification KSK to '.$tujuan);      
-          }
-          $this->notificationKSK($dt->direct_id);
-        }
+        //   $judul="KSK ".$periode;
+        //   $tb_email=DB::table('tb_emails')
+        //   ->leftjoin('tb_employees','tb_employees.id','=','tb_emails.id_employee')
+        //   ->where('id_employee',$dt->direct_id)->get(['tb_employees.*','tb_emails.email_address']);
+        //   foreach($tb_email as $dt2){
+        //     $tujuan=$dt2->email_address;
+        //     //$tujuan=$email;
+        //     $nama=$dt2->employee_name;
+        //     $kirim=Mail::to($tujuan)
+        //     ->cc($email)
+        //     ->bcc('cahyudin@summitadyawinsa.co.id')
+        //     ->queue(new ksk_distribute($tb_ksk_detail,$periode,$judul,$nama));
+        //     Log::info('Send Notification KSK to '.$tujuan);      
+        //   }
+        // }
         $tb1=DB::table('tb_ksk')->where('periode',$periode)->get();
         foreach($tb1 as $dt){
           $this->notificationKSK($dt->id);

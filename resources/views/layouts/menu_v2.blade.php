@@ -129,6 +129,9 @@
                             </span>
                         </a>
                         <ul class="treeview-menu">
+                            @if(request()->user()->hasRole('hr_access'))
+                                <li><a href="{{ route('candidate.pins') }}"><i class="fa fa-key"></i> <span>PIN Kandidat</span></a></li>
+                            @endif
                             @if(request()->user()->hasRole('root'))
                                 <li><a href="/ProfileConfirmations"><i class="fa fa-check-circle"></i> <span>Konfirmasi Data Profil</span></a></li>
                             @endif

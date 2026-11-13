@@ -7,6 +7,30 @@ Route::get('/', function () {
 
 Auth::routes(['register' => false, 'verify' => true]);
 
+use App\Http\Controllers\CandidateOnboardingController;
+Route::middleware('auth')->group(function () {
+    Route::get('/Admin/Candidate/Pins', [CandidateOnboardingController::class, 'pins'])->name('candidate.pins');
+    Route::post('/Admin/Candidate/Pins', [CandidateOnboardingController::class, 'generatePin'])->name('candidate.pins.generate');
+    Route::patch('/Admin/Candidate/Pins/{id}/expire', [CandidateOnboardingController::class, 'expirePin'])->name('candidate.pins.expire');
+});
+
+Route::get('/candidate', [CandidateOnboardingController::class, 'showAccessForm'])->name('candidate.access');
+Route::post('/candidate/regions/{level}', [CandidateOnboardingController::class, 'regionOptions'])
+    ->whereIn('level', ['regency', 'district', 'village'])
+    ->middleware('throttle:60,1')
+    ->name('candidate.regions');
+Route::post('/candidate/verify-email', [CandidateOnboardingController::class, 'sendVerification'])
+    ->middleware('throttle:5,1')
+    ->name('candidate.send-verification');
+Route::get('/candidate/email/verify/{token}', [CandidateOnboardingController::class, 'verifyEmail'])
+    ->middleware(['signed', 'throttle:10,1'])
+    ->name('candidate.email.verify');
+Route::get('/candidate/profile', [CandidateOnboardingController::class, 'showProfileForm'])->name('candidate.profile');
+Route::post('/candidate/profile', [CandidateOnboardingController::class, 'saveProfile'])
+    ->middleware('throttle:10,1')
+    ->name('candidate.profile.save');
+Route::get('/candidate/complete', [CandidateOnboardingController::class, 'complete'])->name('candidate.complete');
+
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/home', function () {
     return redirect('/Dashboard');

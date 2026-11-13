@@ -297,6 +297,7 @@ Route::get('/Status/KSK/Execute/{periode}', [App\Http\Controllers\contract_contr
 
 Route::get('/Status/KSK/Template/{periode}', [App\Http\Controllers\contract_controller::class, 'kskTemplate']);
 Route::post('/Status/KSK/Import', [App\Http\Controllers\contract_controller::class, 'ImportKSK']);
+Route::get('/Status/KSK/Distribute/{periode}', [App\Http\Controllers\contract_controller::class, 'kskDistribute']);
 
 Route::get('/Employee/{id}/{id2}', [App\Http\Controllers\employee_controller::class, 'employee']);
 

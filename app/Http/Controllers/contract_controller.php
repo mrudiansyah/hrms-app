@@ -1793,6 +1793,7 @@ class contract_controller extends Controller
             ->queue(new ksk_distribute($tb_ksk_detail,$periode,$judul,$nama));
             Log::info('Send Notification KSK to '.$tujuan);      
           }
+          $this->notificationKSK($dt->direct_id);
         }
         $tb1=DB::table('tb_ksk')->where('periode',$periode)->get();
         foreach($tb1 as $dt){

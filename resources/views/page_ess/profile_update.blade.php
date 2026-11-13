@@ -278,7 +278,7 @@
 								<label for="ukuran-celana">Ukuran Celana</label>
 								<select id="ukuran-celana" name="ukuran_celana" class="form-control" required>
 									<option value="">Pilih ukuran celana</option>
-									@foreach(['27','28', '30', '32', '34', '36', '38', '40', '42', '44', '45'] as $size)
+									@foreach(['27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'] as $size)
 										<option value="{{ $size }}" @selected(old('ukuran_celana', $tb_uniform->ukuran_celana ?? '') === $size)>{{ $size }}</option>
 									@endforeach
 								</select>
